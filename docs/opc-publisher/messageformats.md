@@ -542,50 +542,25 @@ Keep alive messages are part of the network message. A network message can conta
 
 ### Heartbeat messages
 
-> This feature is in preview
+> IMPORTANT: The `Heartbeat` indicator was **removed in OPC Publisher 3.0**.
 
-A [heartbeat](./readme.md#heartbeat) re-sends the last known (good) value of a node when the node did not report a new value within the configured `HeartbeatInterval`. Because the re-sent value is identical to the previously reported one (including its `SourceTimestamp` and `ServerTimestamp`), a consumer cannot tell a heartbeat apart from a real value change. To disambiguate the two, OPC Publisher can add a `Heartbeat` indicator to the message.
+A [heartbeat](./readme.md#heartbeat) re-sends the last known (good) value of a node when the node did not report a new value within the configured `HeartbeatInterval`. Because the re-sent value is identical to the previously reported one (including its `SourceTimestamp` and `ServerTimestamp`), a consumer cannot tell a heartbeat apart from a real value change.
 
-The indicator is controlled through the `Heartbeat` flag (`0x400000`) of the `DataSetFieldContentMask`. It is part of the `FullNetworkMessages` [messaging profile](#messaging-profiles-supported-by-opc-publisher) with `Json` encoding, which is selected using the `--mm` or the `--fm=True` [command line](./commandline.md) options, or the `MessagingMode` property of a writer entry in the [configuration](./readme.md#configuration-schema).
-
-> In 2.9 the indicator was also part of the `FullSamples` profile. That profile was [removed in 3.0](#samples-mode-encoding-removed-in-30), so `Json` encoded `FullNetworkMessages` is now the only way to obtain it.
-
-The `Heartbeat` member is only present when the data set message was produced by a heartbeat, and it is then always `true`. Regular value changes and key frames do not contain the member at all. This keeps the message size of regular messages unchanged and remains backwards compatible with consumers that are not aware of the indicator.
+Up to 2.9 OPC Publisher could disambiguate the two by writing an extra `Heartbeat` member on the data set message, enabled through the `Heartbeat` flag (`0x400000`) of the `DataSetFieldContentMask` in the `FullSamples` and `FullNetworkMessages` profiles:
 
 ```json
 {
-  "body": {
-    "MessageId": "27",
-    "MessageType": "ua-data",
-    "PublisherId": "opc.tcp://opcplc:50000_70FB9F43",
-    "Messages": [
-      {
-        "DataSetWriterId": 1,
-        "DataSetWriterName": "1000",
-        "SequenceNumber": 27,
-        "MetaDataVersion": {
-          "MajorVersion": 1,
-          "MinorVersion": 0
-        },
-        "MessageType": "ua-deltaframe",
-        "Timestamp": "2022-03-18T12:55:21.3424136Z",
-        "Heartbeat": true,
-        "Payload": {
-          "StepUp": {
-            "Value": 23305,
-            "SourceTimestamp": "2022-03-18T12:55:21.3313539Z",
-            "ServerTimestamp": "2022-03-18T12:55:21.3313638Z"
-          }
-        }
-      }
-    ]
-  }
+  "DataSetWriterId": 1,
+  "MessageType": "ua-deltaframe",
+  "Timestamp": "2022-03-18T12:55:21.3424136Z",
+  "Heartbeat": true,
+  "Payload": { }
 }
 ```
 
-> IMPORTANT: The indicator is a message level indicator, it is only set if *all* fields of the data set message were produced by a heartbeat. Since heartbeats are emitted by a per node watchdog timer, a heartbeat data set message contains exactly the fields of the nodes whose heartbeat timer expired.
+That member is not part of OPC UA Part 14. 3.0 publishes through the standards compliant PubSub encoder, which has no notion of it, so the indicator is no longer written. As with the other non-standard message features 3.0 dropped, the `Heartbeat` field content flag is still accepted so existing configurations keep loading, but it no longer changes the message on the wire.
 
-The `Heartbeat` member is an optional member of the data set message header in the JSON schema published for the writer (`--ps` [command line](./commandline.md) option). It is not supported in `Uadp` (binary) encoding and not part of the Avro schema of a data set message, as both are strict, position based encodings which cannot carry an optional member. Use `Json` encoding if you need the heartbeat indicator.
+Consumers that need to distinguish a heartbeat from a value change can compare the `SourceTimestamp` of consecutive values for a field: a heartbeat repeats the previous timestamp exactly, whereas a genuine change carries a new one. Note that this is only reliable when the heartbeat behaviour is left at its default, since `HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps` deliberately advances the timestamps.
 
 ## Samples mode encoding (Removed in 3.0)
 

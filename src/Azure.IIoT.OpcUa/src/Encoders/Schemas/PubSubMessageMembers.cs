@@ -50,16 +50,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary>The fields a data set message carries.</summary>
         public const string Payload = "Payload";
 
-        /// <summary>
-        /// Marks a data set message that a heartbeat produced rather than a
-        /// value change received from the server.
-        /// </summary>
-        /// <remarks>
-        /// Only written when the field content mask asks for it, so consumers
-        /// must treat it as optional rather than required.
-        /// </remarks>
-        public const string Heartbeat = "Heartbeat";
-
         /// <summary>Type-name suffix for a generated network message schema.</summary>
         public const string NetworkMessageTypeName = "NetworkMessage";
 

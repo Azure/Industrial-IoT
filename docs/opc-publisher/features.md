@@ -70,7 +70,7 @@ Rows marked `Removed in 3.0` describe features that earlier versions supported a
 | | Heartbeat (Periodic resending of last known value) |X|X|X||
 | | Configurable heartbeat behavior (LKG, LKV) ||X|X||
 | | Heartbeat message timestamp source configuration ||X|X||
-| | [Heartbeat indicator](./readme.md#heartbeat-indicator) in Json messages ||X|X|Preview|
+| | [Heartbeat indicator](./messageformats.md#heartbeat-messages) in Json messages ||X|-|Removed in 3.0|
 | Subscribe to [events](./readme.md#configuring-event-subscriptions) ||||||
 | | Using browse path to event notifier |-|X|X||
 | | Simple (get all events of a type from event notifier)|-|X|X||

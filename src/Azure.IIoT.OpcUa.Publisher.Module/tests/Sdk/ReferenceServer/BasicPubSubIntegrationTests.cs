@@ -644,23 +644,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task HeartbeatIndicatorTestAsync()
+        public async Task HeartbeatProducesMessagesWithoutTheNonStandardIndicatorTestAsync()
         {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(
-                nameof(HeartbeatIndicatorTestAsync), "./Resources/Heartbeat.json",
+                nameof(HeartbeatProducesMessagesWithoutTheNonStandardIndicatorTestAsync),
+                "./Resources/Heartbeat.json",
                 TimeSpan.FromMinutes(2), 5, messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--fm=True"]);
 
             // Assert
+            //
+            // Heartbeats still drive messages, so the watchdog itself keeps
+            // working. What 3.0 no longer writes is the Heartbeat member: it
+            // is not a Part 14 member and the standards compliant encoder has
+            // no notion of it. Up to 2.9 this was written when the Heartbeat
+            // field content flag was set, and the flag is still accepted so
+            // existing configurations load, but it no longer changes the wire.
+            //
+            // Asserting its absence rather than skipping the test keeps the
+            // contract pinned: reintroducing a non-standard member, or losing
+            // heartbeat messages altogether, both fail here.
+            //
             Assert.True(messages.Count > 1);
 
-            var heartbeats = messages
+            var dataSetMessages = messages
                 .SelectMany(m => m.Message.GetProperty("Messages").EnumerateArray())
-                .Where(m => m.TryGetProperty("Heartbeat", out var hb) && hb.GetBoolean())
                 .ToList();
-            Assert.True(heartbeats.Count > 0, "No heartbeat indicator was sent");
+            Assert.NotEmpty(dataSetMessages);
+            Assert.DoesNotContain(dataSetMessages,
+                m => m.TryGetProperty("Heartbeat", out _));
         }
 
         [Fact]

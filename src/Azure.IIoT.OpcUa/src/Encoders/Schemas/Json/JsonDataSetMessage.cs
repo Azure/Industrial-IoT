@@ -180,18 +180,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             }
 
             //
-            // The heartbeat indicator is optional: it is written only when the
-            // data set message was produced by a heartbeat rather than by a
-            // value change from the server, so it is deliberately left out of
-            // the required list that was captured just above.
+            // No heartbeat indicator here. 2.9 wrote an optional Heartbeat
+            // member on data set messages produced by a heartbeat, but that is
+            // not a Part 14 member and the standards compliant encoder 3.0
+            // publishes through has no notion of it. Declaring it in the schema
+            // would describe a member the runtime never writes - the exact
+            // failure mode this file's remarks warn about.
             //
             var required = properties.Keys.ToList();
-            if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
-            {
-                properties.Add(PubSubMessageMembers.Heartbeat,
-                    encoding.GetSchemaForBuiltInType(BuiltInType.Boolean));
-            }
-
             properties.Add(PubSubMessageMembers.Payload, _dataSet.Ref);
             required.Add(PubSubMessageMembers.Payload);
 
