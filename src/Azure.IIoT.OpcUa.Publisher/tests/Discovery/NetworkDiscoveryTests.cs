@@ -219,6 +219,82 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
             Assert.Same(expected, error.Exception);
         }
 
+        [Fact]
+        public void IsContainer_WhenEnvVarIsFalse_ReturnsFalse()
+        {
+            var saved = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER");
+            try
+            {
+                Environment.SetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER", "false");
+                Assert.False(NetworkDiscovery.IsContainer);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER", saved);
+            }
+        }
+
+        [Fact]
+        public void IsContainer_WhenEnvVarIsTrue_ReturnsTrue()
+        {
+            var saved = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER");
+            try
+            {
+                Environment.SetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER", "true");
+                Assert.True(NetworkDiscovery.IsContainer);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER", saved);
+            }
+        }
+
+        [Fact]
+        public void IsContainer_WhenEnvVarIsNotSet_ReturnsFalse()
+        {
+            var saved = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER");
+            try
+            {
+                Environment.SetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER", null);
+                Assert.False(NetworkDiscovery.IsContainer);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER", saved);
+            }
+        }
+
+        [Fact]
+        public async Task RegisterAsyncWithNullDiscoveryUrlThrowsArgumentExceptionAsync()
+        {
+            var endpointDiscovery = new Mock<IEndpointDiscovery>();
+            var progress = new CapturingProgress();
+            using var sut = CreateSut(endpointDiscovery, new Mock<IEventClient>(), progress);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sut.RegisterAsync(new ServerRegistrationRequestModel
+                {
+                    DiscoveryUrl = null
+                }, default)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task CancelAsyncWithUnknownIdDoesNotThrowAsync()
+        {
+            var endpointDiscovery = new Mock<IEndpointDiscovery>();
+            var progress = new CapturingProgress();
+            using var sut = CreateSut(endpointDiscovery, new Mock<IEventClient>(), progress);
+
+            // Cancelling a non-existent request should be a no-op
+            var ex = await Record.ExceptionAsync(() =>
+                sut.CancelAsync(new DiscoveryCancelRequestModel
+                {
+                    Id = "nonexistent-id"
+                }, default)).ConfigureAwait(false);
+
+            Assert.Null(ex);
+        }
+
         private static NetworkDiscovery CreateSut(
             Mock<IEndpointDiscovery> endpointDiscovery,
             Mock<IEventClient> eventClient,

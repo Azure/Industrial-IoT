@@ -92,8 +92,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             var ctx = context?.ToString() ?? "null";
             logger.DiscoveryEndpointReturnedEndpoints(ctx,
-                discoveryUrl, endpointUri, securityMode, securityPolicy ?? "any", endpoints.Select(
-                    ep => "      " + Format(ep)).Aggregate((a, b) => $"{a}\n{b}"));
+                discoveryUrl, endpointUri, securityMode, securityPolicy ?? "any", endpoints
+                    .Select(ep => "      " + Format(ep))
+                    .DefaultIfEmpty("      (none)")
+                    .Aggregate((a, b) => $"{a}\n{b}"));
 
             var filtered = endpoints
                 .Where(ep =>

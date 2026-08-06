@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Moq;
     using Xunit;
 
     public sealed class EventClientPubSubTransportTests
@@ -1356,6 +1357,171 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     }
                 ]
             };
+        }
+
+        // ── PubSubShadowTombstoneQueue validation ──────────────────────────────
+
+        [Fact]
+        public async Task TombstoneQueue_Persist_NullSettings_ThrowsArgumentNullExceptionAsync()
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+
+            Assert.Throws<ArgumentNullException>(() =>
+                queue.Persist(null!, "topic", 1));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task TombstoneQueue_Persist_NullOrEmptyTopic_ThrowsArgumentExceptionAsync(string? topic)
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+            var settings = CreateSettings();
+
+            Assert.Throws<ArgumentException>(() =>
+                queue.Persist(settings, topic!, 1));
+        }
+
+        [Fact]
+        public async Task TombstoneQueue_Restore_NullReactivation_ThrowsArgumentNullExceptionAsync()
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+
+            Assert.Throws<ArgumentNullException>(() =>
+                queue.Restore(null!));
+        }
+
+        [Fact]
+        public async Task TombstoneQueue_PendingCount_IsZeroOnFreshQueueAsync()
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+
+            Assert.Equal(0, queue.PendingCount);
+        }
+
+        [Fact]
+        public async Task TombstoneQueue_RetryCount_IsZeroOnFreshQueueAsync()
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+
+            Assert.Equal(0, queue.RetryCount);
+        }
+
+        [Fact]
+        public async Task TombstoneQueue_NextGeneration_ReturnsMonotonicallyIncreasingValuesAsync()
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+
+            var gen1 = queue.NextGeneration();
+            var gen2 = queue.NextGeneration();
+            var gen3 = queue.NextGeneration();
+
+            Assert.Equal(1L, gen1);
+            Assert.Equal(2L, gen2);
+            Assert.Equal(3L, gen3);
+        }
+
+        [Fact]
+        public async Task TombstoneQueue_ReactivateAsync_UnknownTopic_ReturnsNullAsync()
+        {
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+
+            var reactivation = await queue.ReactivateAsync("no-such-topic", 1);
+
+            Assert.Null(reactivation);
+        }
+
+        // ── PubSubShadowEgressRegistration ─────────────────────────────────────
+
+        [Fact]
+        public void EgressRegistration_Constructor_InitializesPropertiesCorrectly()
+        {
+            var client = Mock.Of<IEventClient>();
+            var selector = new PubSubShadowSingleEventClientSelector(client);
+            var options = new PubSubShadowEgressOptions();
+
+            var registration = new PubSubShadowEgressRegistration(selector, options);
+
+            Assert.Same(selector, registration.EventClients);
+            Assert.Same(options, registration.Options);
+            Assert.NotNull(registration.Settings);
+            Assert.NotNull(registration.Tombstones);
+            registration.Dispose();
+        }
+
+        [Fact]
+        public async Task EgressRegistration_DisposeAsync_CompletesCleanlyAsync()
+        {
+            var client = Mock.Of<IEventClient>();
+            var selector = new PubSubShadowSingleEventClientSelector(client);
+            var registration = new PubSubShadowEgressRegistration(selector,
+                new PubSubShadowEgressOptions());
+
+            var ex = await Record.ExceptionAsync(async () =>
+                await registration.DisposeAsync());
+
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public void EgressRegistration_Dispose_CompletesCleanly()
+        {
+            var client = Mock.Of<IEventClient>();
+            var selector = new PubSubShadowSingleEventClientSelector(client);
+            var registration = new PubSubShadowEgressRegistration(selector,
+                new PubSubShadowEgressOptions());
+
+            var ex = Record.Exception(() => registration.Dispose());
+
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public void EgressRegistration_NullEventClients_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                new PubSubShadowEgressRegistration(null!, new PubSubShadowEgressOptions()));
+        }
+
+        [Fact]
+        public void EgressRegistration_NullOptions_ThrowsArgumentNullException()
+        {
+            var selector = new PubSubShadowSingleEventClientSelector(Mock.Of<IEventClient>());
+
+            Assert.Throws<ArgumentNullException>(() =>
+                new PubSubShadowEgressRegistration(selector, null!));
+        }
+
+        // ── ValidateTombstoneCapability ─────────────────────────────────────────
+
+        [Fact]
+        public void ValidateTombstoneCapability_ClientWithoutInterface_ThrowsNotSupportedException()
+        {
+            var client = Mock.Of<IEventClient>();
+
+            Assert.Throws<NotSupportedException>(() =>
+                EventClientPubSubTransportFactory.ValidateTombstoneCapability(client));
+        }
+
+        [Fact]
+        public void ValidateTombstoneCapability_ClientReturnsFalse_ThrowsNotSupportedException()
+        {
+            var client = new RecordingEventClient { SupportsRetainedTombstones = false };
+
+            Assert.Throws<NotSupportedException>(() =>
+                EventClientPubSubTransportFactory.ValidateTombstoneCapability(client));
+        }
+
+        [Fact]
+        public void ValidateTombstoneCapability_ClientReturnsTrue_DoesNotThrow()
+        {
+            var client = new RecordingEventClient { SupportsRetainedTombstones = true };
+
+            var ex = Record.Exception(() =>
+                EventClientPubSubTransportFactory.ValidateTombstoneCapability(client));
+
+            Assert.Null(ex);
         }
 
         [Fact]

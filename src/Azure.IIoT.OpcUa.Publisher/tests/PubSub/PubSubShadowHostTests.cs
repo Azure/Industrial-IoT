@@ -39,6 +39,233 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     /// </summary>
     public sealed class PubSubShadowHostTests
     {
+        // ── ForceKeyFrameAsync validation ─────────────────────────────────────
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData("\t")]
+        public async Task ForceKeyFrameAsync_NullOrWhitespaceWriterGroupId_ThrowsArgumentExceptionAsync(
+            string writerGroupId)
+        {
+            var application = new Mock<IPubSubApplication>(MockBehavior.Strict);
+            var host = new PubSubShadowHost(
+                new PubSubIdentityRegistry(new PubSubTestIdentityStore()),
+                new PubSubConfigurationTranslator(),
+                new PubSubShadowRuntimeStateProvider(),
+                application.Object,
+                PubSubConfigurationTranslator.CreateEmpty());
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+                host.ForceKeyFrameAsync(writerGroupId).AsTask());
+            Assert.Equal("writerGroupId", ex.ParamName);
+        }
+
+        [Fact]
+        public async Task ForceKeyFrameAsync_HostNotStarted_ThrowsInvalidOperationExceptionAsync()
+        {
+            var application = new Mock<IPubSubApplication>(MockBehavior.Strict);
+            var host = new PubSubShadowHost(
+                new PubSubIdentityRegistry(new PubSubTestIdentityStore()),
+                new PubSubConfigurationTranslator(),
+                new PubSubShadowRuntimeStateProvider(),
+                application.Object,
+                PubSubConfigurationTranslator.CreateEmpty());
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                host.ForceKeyFrameAsync("group-a").AsTask());
+            Assert.Contains("running", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // ── PubSubShadowRollbackException ─────────────────────────────────────
+
+        [Fact]
+        public void PubSubShadowRollbackException_HasExpectedMessageAndInnerExceptions()
+        {
+            var update = new InvalidOperationException("update failed");
+            var rollback = new ArgumentException("rollback failed");
+
+            var ex = new PubSubShadowRollbackException(update, rollback);
+
+            Assert.NotNull(ex.Message);
+            Assert.Contains("shadow PubSub", ex.Message, StringComparison.OrdinalIgnoreCase);
+            var aggregate = Assert.IsType<AggregateException>(ex.InnerException);
+            Assert.Contains(aggregate.InnerExceptions, e => ReferenceEquals(e, update));
+            Assert.Contains(aggregate.InnerExceptions, e => ReferenceEquals(e, rollback));
+        }
+
+        // ── PubSubShadowEncodingRegistrySnapshot ──────────────────────────────
+
+        [Fact]
+        public void EncodingRegistrySnapshot_Add_EmptyConnectionName_ThrowsArgumentException()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+
+            var ex = Assert.Throws<ArgumentException>(() =>
+                snapshot.Add("", 1, PubSubShadowEncoding.Json));
+            Assert.Equal("connectionName", ex.ParamName);
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_Add_ZeroWriterGroupId_ThrowsArgumentOutOfRangeException()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+                snapshot.Add("connection", 0, PubSubShadowEncoding.Json));
+            Assert.Equal("writerGroupId", ex.ParamName);
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_Add_DuplicateConnectionName_ThrowsArgumentException()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+            snapshot.Add("connection", 1, PubSubShadowEncoding.Json);
+
+            Assert.Throws<ArgumentException>(() =>
+                snapshot.Add("connection", 2, PubSubShadowEncoding.Uadp));
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_TryGetUnambiguousProfile_EmptySnapshot_ReturnsFalse()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+
+            var result = snapshot.TryGetUnambiguousProfile(out var profile);
+
+            Assert.False(result);
+            Assert.Null(profile);
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_TryGetUnambiguousProfile_MultipleProfiles_ReturnsFalse()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+            var profile1 = new PubSubShadowMessageProfile
+            {
+                NetworkMessageContentMask = 1,
+                WriterGroupName = "group1",
+                DataSetClassId = Uuid.Empty,
+                Writers = new Dictionary<ushort, PubSubShadowWriterProfile>()
+            };
+            var profile2 = new PubSubShadowMessageProfile
+            {
+                NetworkMessageContentMask = 2,
+                WriterGroupName = "group2",
+                DataSetClassId = Uuid.Empty,
+                Writers = new Dictionary<ushort, PubSubShadowWriterProfile>()
+            };
+            snapshot.Add("connection1", 1, PubSubShadowEncoding.Json, profile1);
+            snapshot.Add("connection2", 2, PubSubShadowEncoding.Json, profile2);
+
+            var result = snapshot.TryGetUnambiguousProfile(out _);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_TryGetUnambiguousEncoding_EmptySnapshot_ReturnsFalse()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+
+            var result = snapshot.TryGetUnambiguousEncoding(out _);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_TryGetUnambiguousEncoding_DifferentEncodings_ReturnsFalse()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+            snapshot.Add("conn1", 1, PubSubShadowEncoding.Json);
+            snapshot.Add("conn2", 2, PubSubShadowEncoding.Uadp);
+
+            var result = snapshot.TryGetUnambiguousEncoding(out _);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void EncodingRegistrySnapshot_TryGetUnambiguousEncoding_SameEncodings_ReturnsTrue()
+        {
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+            snapshot.Add("conn1", 1, PubSubShadowEncoding.Json);
+            snapshot.Add("conn2", 2, PubSubShadowEncoding.Json);
+
+            var result = snapshot.TryGetUnambiguousEncoding(out var encoding);
+
+            Assert.True(result);
+            Assert.Equal(PubSubShadowEncoding.Json, encoding);
+        }
+
+        [Fact]
+        public void EncodingRegistry_Replace_NullSnapshot_ThrowsArgumentNullException()
+        {
+            var registry = new PubSubShadowEncodingRegistry();
+
+            Assert.Throws<ArgumentNullException>(() =>
+                registry.Replace(null!));
+        }
+
+        [Fact]
+        public void EncodingRegistry_Restore_NullGeneration_ThrowsArgumentNullException()
+        {
+            var registry = new PubSubShadowEncodingRegistry();
+
+            Assert.Throws<ArgumentNullException>(() =>
+                registry.Restore(null!));
+        }
+
+        [Fact]
+        public void EncodingRegistry_Replace_UpdatesActiveGeneration()
+        {
+            var registry = new PubSubShadowEncodingRegistry();
+            var initial = registry.ActiveGeneration;
+
+            registry.Replace(new PubSubShadowEncodingRegistrySnapshot());
+
+            var updated = registry.ActiveGeneration;
+            Assert.NotEqual(initial.Id, updated.Id);
+        }
+
+        [Fact]
+        public void EncodingRegistry_Restore_ResetsToSavedGeneration()
+        {
+            var registry = new PubSubShadowEncodingRegistry();
+            var initial = registry.ActiveGeneration;
+            registry.Replace(new PubSubShadowEncodingRegistrySnapshot());
+            Assert.NotEqual(initial.Id, registry.ActiveGeneration.Id);
+
+            registry.Restore(initial);
+
+            Assert.Equal(initial.Id, registry.ActiveGeneration.Id);
+        }
+
+        // ── EnsureSuccessfulReplacement (via ReplaceConfigurationAsync) ───────
+
+        [Fact]
+        public async Task ReplaceConfigurationAsync_RuntimeReturnsBadStatusCode_ThrowsRollbackExceptionAsync()
+        {
+            // Both the initial replace AND the rollback attempt return Bad,
+            // so the product wraps both failures in PubSubShadowRollbackException.
+            var application = new Mock<IPubSubApplication>(MockBehavior.Strict);
+            application.Setup(a => a.ReplaceConfigurationAsync(
+                    It.IsAny<PubSubConfigurationDataType>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask<ArrayOf<StatusCode>>([StatusCodes.Bad]));
+            var host = new PubSubShadowHost(
+                new PubSubIdentityRegistry(new PubSubTestIdentityStore()),
+                new PubSubConfigurationTranslator(),
+                new PubSubShadowRuntimeStateProvider(),
+                application.Object,
+                PubSubConfigurationTranslator.CreateEmpty());
+
+            var ex = await Assert.ThrowsAsync<PubSubShadowRollbackException>(() =>
+                host.ReplaceConfigurationAsync([CreateWriterGroup("group-a", "writer-a",
+                    MessageEncoding.Json)]).AsTask());
+            Assert.Contains("rollback", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
         [Fact]
         public async Task EmptyHostStartsAndStopsExactlyOnceAsync()
         {

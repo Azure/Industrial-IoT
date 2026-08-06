@@ -262,5 +262,124 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(0, scheduler.Count);
         }
+
+        [Fact]
+        public void ClassifiesAllSubscriptionStatusCodes()
+        {
+            // All communication-level codes should be Subscription
+            Assert.Equal(ManagedItemRetryKind.Subscription,
+                ManagedSubscriptionRetryPolicy.Classify(StatusCodes.BadCommunicationError));
+            Assert.Equal(ManagedItemRetryKind.Subscription,
+                ManagedSubscriptionRetryPolicy.Classify(StatusCodes.BadSecureChannelClosed));
+            Assert.Equal(ManagedItemRetryKind.Subscription,
+                ManagedSubscriptionRetryPolicy.Classify(StatusCodes.BadSessionClosed));
+            Assert.Equal(ManagedItemRetryKind.Subscription,
+                ManagedSubscriptionRetryPolicy.Classify(StatusCodes.BadSubscriptionIdInvalid));
+        }
+
+        [Fact]
+        public void GetDelay_NullOptions_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, null!, 1));
+        }
+
+        [Fact]
+        public void GetDelay_NoneKind_ReturnsTimeSpanMaxValue()
+        {
+            var options = new OpcUaSubscriptionOptions();
+            Assert.Equal(TimeSpan.MaxValue,
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.None, options, 1));
+        }
+
+        [Fact]
+        public void GetDelay_SubscriptionKindWithLargeExplicitDelay_ReturnsConstantDelay()
+        {
+            // delay > 10s and no maxDelay → constant (no backoff)
+            var options = new OpcUaSubscriptionOptions
+            {
+                SubscriptionErrorRetryDelay = TimeSpan.FromSeconds(30)
+            };
+            Assert.Equal(TimeSpan.FromSeconds(30),
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Subscription, options, 1));
+            Assert.Equal(TimeSpan.FromSeconds(30),
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Subscription, options, 5));
+        }
+
+        [Fact]
+        public void GetDelay_MaximumLessThanMinimum_ReturnsMinimum()
+        {
+            // maxDelay < delay: maximum <= minimum → returns minimum
+            var options = new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromSeconds(20),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromSeconds(5)
+            };
+            // minimum = 20s, maximum = 5s → maximum <= minimum → return minimum
+            Assert.Equal(TimeSpan.FromSeconds(20),
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, options, 1));
+        }
+
+        [Fact]
+        public void GetDelay_AttemptZero_ClampedToOne()
+        {
+            // attempt = 0 → exponent clamped to 1
+            var options = new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromSeconds(-1),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromMinutes(10)
+            };
+            var delay0 = ManagedSubscriptionRetryPolicy.GetDelay(
+                ManagedItemRetryKind.Invalid, options, 0);
+            var delay1 = ManagedSubscriptionRetryPolicy.GetDelay(
+                ManagedItemRetryKind.Invalid, options, 1);
+
+            Assert.Equal(delay1, delay0);
+        }
+
+        [Fact]
+        public void GetDelay_HighAttempt_ClampedAtTen()
+        {
+            // attempt > 10 → exponent clamped to 10
+            var options = new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromSeconds(-1),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromHours(24)
+            };
+            var delay10 = ManagedSubscriptionRetryPolicy.GetDelay(
+                ManagedItemRetryKind.Invalid, options, 10);
+            var delay100 = ManagedSubscriptionRetryPolicy.GetDelay(
+                ManagedItemRetryKind.Invalid, options, 100);
+
+            Assert.Equal(delay10, delay100);
+        }
+
+        [Fact]
+        public void GetDelay_SmallPositiveDelay_WithMaxDelay_ExponentialBackoff()
+        {
+            // delay > 0, has maxDelay, delay <= 10s → exponential
+            var options = new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromSeconds(1),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromSeconds(60)
+            };
+            // attempt 1: 1s * 2^1 = 2s
+            Assert.Equal(TimeSpan.FromSeconds(2),
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, options, 1));
+            // attempt 5: 1s * 2^5 = 32s
+            Assert.Equal(TimeSpan.FromSeconds(32),
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, options, 5));
+            // attempt 10: 1s * 2^10 = 1024s > 60s → capped at 60s
+            Assert.Equal(TimeSpan.FromSeconds(60),
+                ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, options, 10));
+        }
     }
 }

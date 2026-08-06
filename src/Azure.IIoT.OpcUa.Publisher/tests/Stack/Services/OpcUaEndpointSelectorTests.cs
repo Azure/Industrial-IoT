@@ -137,6 +137,291 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Same(connection, selector.Context);
         }
 
+        // ── Additional SelectEndpoint branch tests ────────────────────────────
+
+        [Fact]
+        public void SelectEndpoint_EmptyEndpoints_ReturnsNull()
+        {
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [],
+                new Uri("opc.tcp://host:4840/path"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            Assert.Null(selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_NoMatchingSecurityMode_ReturnsNull()
+        {
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.Sign,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 1
+            };
+
+            // Requesting None but endpoint uses Sign
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://host:4840/"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            Assert.Null(selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_SecurityPolicyFilter_FiltersToMatchingPolicy()
+        {
+            var wrongPolicy = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.SignAndEncrypt,
+                SecurityPolicyUri = SecurityPolicies.Aes256_Sha256_RsaPss,
+                SecurityLevel = 10
+            };
+            var rightPolicy = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.SignAndEncrypt,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 1
+            };
+
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [wrongPolicy, rightPolicy],
+                new Uri("opc.tcp://host:4840/"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.SignAndEncrypt,
+                "Basic256Sha256", NullLogger.Instance, null);
+
+            Assert.Same(rightPolicy, selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_PicksHighestSecurityLevelWhenPathMatches()
+        {
+            var lower = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/path",
+                SecurityMode = MessageSecurityMode.SignAndEncrypt,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 1
+            };
+            var higher = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/path",
+                SecurityMode = MessageSecurityMode.SignAndEncrypt,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 5
+            };
+
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [lower, higher],
+                new Uri("opc.tcp://host:4840/path"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.SignAndEncrypt,
+                "Basic256Sha256", NullLogger.Instance, null);
+
+            Assert.Same(higher, selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_ReverseConnect_WithSchemeMatch_ReturnsWithoutRewrite()
+        {
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://internal:4840/",
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                SecurityLevel = 0
+            };
+
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://internal:4840/"),
+                new Uri("opc.tcp://internal:4840/discovery"),
+                reverseConnect: true, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            // Reverse connect returns immediately without host rewrite
+            Assert.Same(endpoint, selected);
+            Assert.Equal("opc.tcp://internal:4840/", selected!.EndpointUrl);
+        }
+
+        [Fact]
+        public void SelectEndpoint_ReverseConnect_NoSchemeMatch_ReturnsNull()
+        {
+            // HTTP endpoint does not match an opc.tcp request
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "http://internal:4840/",
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                SecurityLevel = 0
+            };
+
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://internal:4840/"),
+                new Uri("opc.tcp://internal:4840/discovery"),
+                reverseConnect: true, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            Assert.Null(selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_FallbackToPathOnlyMatch_WhenSchemesDiffer()
+        {
+            // Endpoint uses http but we look by opc.tcp path — path-only fallback
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://internal:4840/mypath",
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                SecurityLevel = 0
+            };
+
+            // Endpoint path matches but let's ask for a different path — test AnyMatch fallback
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://external:5000/otherpath"),
+                new Uri("opc.tcp://external:5000/discovery"),
+                reverseConnect: false, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            // No scheme+path match, no scheme-only match (paths differ), no path-only match,
+            // final fallback matches any endpoint → should return the only available endpoint
+            Assert.Same(endpoint, selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_RewritesDiscoveryHostWhenSchemesMatch()
+        {
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://internal-host:4840/server",
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                SecurityLevel = 0
+            };
+
+            // Discovery URL has a different host/port but same scheme
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://internal-host:4840/server"),
+                new Uri("opc.tcp://public-host:9999/discovery"),
+                reverseConnect: false, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            Assert.NotNull(selected);
+            // Host and port are rewritten to the discovery URL's host:port
+            Assert.Contains("public-host", selected!.EndpointUrl,
+                StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("9999", selected.EndpointUrl, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void SelectEndpoint_NoRewriteWhenSchemesDiffer()
+        {
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://internal:4840/",
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                SecurityLevel = 0
+            };
+
+            // Discovery URL uses http scheme — no rewrite should happen
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://internal:4840/"),
+                new Uri("http://public.example:8080/discovery"),
+                reverseConnect: false, SecurityMode.None,
+                null, NullLogger.Instance, null);
+
+            Assert.NotNull(selected);
+            // No rewrite: original endpoint URL preserved
+            Assert.Equal("opc.tcp://internal:4840/", selected!.EndpointUrl);
+        }
+
+        [Fact]
+        public void SelectEndpoint_SecurityPolicyCanBeFullUri()
+        {
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.Sign,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 1
+            };
+
+            // Provide the full URI as policy
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://host:4840/"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.Sign,
+                SecurityPolicies.Basic256Sha256, NullLogger.Instance, null);
+
+            Assert.Same(endpoint, selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_NullSecurityPolicy_DoesNotFilterByPolicy()
+        {
+            var endpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.Sign,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 1
+            };
+
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [endpoint],
+                new Uri("opc.tcp://host:4840/"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.Sign,
+                null, NullLogger.Instance, null);
+
+            Assert.Same(endpoint, selected);
+        }
+
+        [Fact]
+        public void SelectEndpoint_NotNone_MatchesNoneMode()
+        {
+            var noneEndpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                SecurityLevel = 0
+            };
+            var signEndpoint = new EndpointDescription
+            {
+                EndpointUrl = "opc.tcp://host:4840/",
+                SecurityMode = MessageSecurityMode.Sign,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                SecurityLevel = 1
+            };
+
+            // NotNone should accept Sign but not None
+            var selected = OpcUaEndpointSelector.SelectEndpoint(
+                [noneEndpoint, signEndpoint],
+                new Uri("opc.tcp://host:4840/"),
+                new Uri("opc.tcp://host:4840/discovery"),
+                reverseConnect: false, SecurityMode.NotNone,
+                null, NullLogger.Instance, null);
+
+            Assert.Same(signEndpoint, selected);
+        }
+
         private static ApplicationConfiguration CreateApplicationConfiguration()
         {
             return new ApplicationConfiguration
