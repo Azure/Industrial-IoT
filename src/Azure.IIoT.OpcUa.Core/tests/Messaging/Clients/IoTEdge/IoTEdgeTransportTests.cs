@@ -255,6 +255,130 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             Assert.Throws<ObjectDisposedException>(() => transport.CreateEvent());
         }
 
+        [Fact]
+        public async Task MaxPayloadSizePropertiesHaveExpectedValuesAsync()
+        {
+            await using var transport = CreateTransport(new IoTEdgeTestModuleClient());
+
+            Assert.Equal((256 * 1024) - 4 * 1024, transport.MaxEventPayloadSizeInBytes);
+            Assert.Equal(120 * 1024, transport.MaxMethodPayloadSizeInBytes);
+        }
+
+        [Fact]
+        public async Task CapabilitiesIncludeExpectedFlagsAsync()
+        {
+            await using var transport = CreateTransport(new IoTEdgeTestModuleClient());
+
+            Assert.True(transport.Capabilities.HasFlag(EventClientCapabilities.Payload));
+            Assert.True(transport.Capabilities.HasFlag(EventClientCapabilities.Topic));
+            Assert.True(transport.Capabilities.HasFlag(EventClientCapabilities.CloudEvents));
+        }
+
+        [Fact]
+        public async Task StartIsANoopAsync()
+        {
+            await using var transport = CreateTransport(new IoTEdgeTestModuleClient());
+
+            // Start() must not throw.
+            transport.Start();
+        }
+
+        [Fact]
+        public async Task CallAsyncThrowsNotSupportedExceptionAsync()
+        {
+            await using var transport = CreateTransport(new IoTEdgeTestModuleClient());
+
+            await Assert.ThrowsAsync<NotSupportedException>(async () =>
+                await transport.CallAsync("target", "method",
+                    ReadOnlySequence<byte>.Empty, "application/json"));
+        }
+
+        [Fact]
+        public async Task SubscribeAsyncRejectsInvalidTopicFilterAsync()
+        {
+            await using var transport = CreateTransport(new IoTEdgeTestModuleClient());
+
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await transport.SubscribeAsync("+foo",
+                    IEventConsumer.Null));
+        }
+
+        [Fact]
+        public async Task AsCloudEvent_SetsStandardPropertiesOnEventAsync()
+        {
+            var sdk = new IoTEdgeTestModuleClient();
+            await using var transport = CreateTransport(sdk);
+            var header = new CloudEventHeader
+            {
+                Id = "evt-1",
+                Source = new Uri("urn:test"),
+                Type = "com.test.event",
+                Time = DateTimeOffset.UtcNow,
+                DataContentType = "application/json",
+                Subject = "subject1"
+            };
+            using var @event = transport.CreateEvent()
+                .AsCloudEvent(header)
+                .AddBuffers([new ReadOnlySequence<byte>(new byte[] { 1 })]);
+
+            await @event.SendAsync();
+
+            var sent = Assert.Single(sdk.Telemetry);
+            Assert.Equal("1.0", sent.Properties["specversion"]);
+            Assert.Equal("evt-1", sent.Properties["id"]);
+            Assert.Equal("com.test.event", sent.Properties["type"]);
+            Assert.Equal("subject1", sent.Properties["subject"]);
+        }
+
+        [Fact]
+        public async Task SetSchema_SetsDataSchemaPropertyAsync()
+        {
+            var sdk = new IoTEdgeTestModuleClient();
+            await using var transport = CreateTransport(sdk);
+            var schema = new Mock<IEventSchema>();
+            schema.SetupGet(s => s.Id).Returns("schema://v1");
+
+            using var @event = transport.CreateEvent()
+                .SetSchema(schema.Object)
+                .AddBuffers([new ReadOnlySequence<byte>(new byte[] { 1 })]);
+            await @event.SendAsync();
+
+            var sent = Assert.Single(sdk.Telemetry);
+            Assert.Equal("schema://v1", sent.Properties["dataschema"]);
+        }
+
+        [Fact]
+        public async Task SetRetain_IsAcceptedWithoutEffectAsync()
+        {
+            var sdk = new IoTEdgeTestModuleClient();
+            await using var transport = CreateTransport(sdk);
+
+            using var @event = transport.CreateEvent()
+                .SetRetain(true)
+                .SetTtl(TimeSpan.FromMinutes(1))
+                .AddBuffers([new ReadOnlySequence<byte>(new byte[] { 42 })]);
+            await @event.SendAsync();
+
+            Assert.Single(sdk.Telemetry);
+        }
+
+        [Fact]
+        public async Task AddBuffers_MultipleSegments_ConcatenatesPayloadAsync()
+        {
+            var sdk = new IoTEdgeTestModuleClient();
+            await using var transport = CreateTransport(sdk);
+
+            using var @event = transport.CreateEvent()
+                .AddBuffers([
+                    new ReadOnlySequence<byte>(new byte[] { 1, 2 }),
+                    new ReadOnlySequence<byte>(new byte[] { 3, 4 })
+                ]);
+            await @event.SendAsync();
+
+            var sent = Assert.Single(sdk.Telemetry);
+            Assert.Equal(new byte[] { 1, 2, 3, 4 }, sent.Payload.ToArray());
+        }
+
         private static IoTEdgeTransport CreateTransport(IoTEdgeTestModuleClient sdk,
             IoTEdgeTestIdentity? identity = null)
         {

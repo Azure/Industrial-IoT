@@ -271,5 +271,58 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 File.Delete(path);
             }
         }
+
+        [Fact]
+        public async Task ClientIdOptionBecomesTransportIdentityAsync()
+        {
+            await using var transport = new MqttClientTransport(
+                Options.Create(new MqttOptions { ClientId = "my-publisher" }),
+                NullLogger<MqttClientTransport>.Instance);
+
+            Assert.Equal("my-publisher", transport.Identity);
+        }
+
+        [Fact]
+        public async Task NullClientIdProducesGuidIdentityAsync()
+        {
+            await using var transport = new MqttClientTransport(
+                Options.Create(new MqttOptions()),
+                NullLogger<MqttClientTransport>.Instance);
+
+            Assert.True(Guid.TryParse(transport.Identity, out _));
+        }
+
+        [Fact]
+        public async Task MaxPayloadSizeMatchesPolicyLimitAsync()
+        {
+            await using var transport = new MqttClientTransport(
+                Options.Create(new MqttOptions()),
+                NullLogger<MqttClientTransport>.Instance);
+
+            Assert.Equal(transport.MaxEventPayloadSizeInBytes,
+                transport.MaxMethodPayloadSizeInBytes);
+            Assert.Equal(MqttClientTransportLimits.kMqttMaximumPacketSize,
+                transport.MaxMethodPayloadSizeInBytes);
+        }
+
+        [Fact]
+        public async Task SupportsRetainedTombstones_IsAlwaysTrueAsync()
+        {
+            await using var transport = new MqttClientTransport(
+                Options.Create(new MqttOptions()),
+                NullLogger<MqttClientTransport>.Instance);
+
+            Assert.True(transport.SupportsRetainedTombstones);
+        }
+
+        [Fact]
+        public async Task Connected_IsEmptyBeforeAnyHandlerIsRegisteredAsync()
+        {
+            await using var transport = new MqttClientTransport(
+                Options.Create(new MqttOptions()),
+                NullLogger<MqttClientTransport>.Instance);
+
+            Assert.Empty(transport.Connected);
+        }
     }
 }

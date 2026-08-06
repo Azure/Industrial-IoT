@@ -7,6 +7,7 @@
 
 namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr
 {
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
@@ -75,6 +76,51 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr
                     .SetTopic(topic)
                     .AddBuffers([new ReadOnlySequence<byte>(new byte[] { 1 })])
                     .SendAsync().ConfigureAwait(false));
+        }
+
+        [Fact]
+        public void Identity_ReturnsValidGuidString()
+        {
+            using var client = new DaprPubSubClient(Options.Create(new DaprOptions()));
+            Assert.True(Guid.TryParse(client.Identity, out _));
+        }
+
+        [Fact]
+        public void Capabilities_ContainsExpectedFlags()
+        {
+            using var client = new DaprPubSubClient(Options.Create(new DaprOptions()));
+            Assert.True(client.Capabilities.HasFlag(EventClientCapabilities.Payload));
+            Assert.True(client.Capabilities.HasFlag(EventClientCapabilities.Topic));
+        }
+
+        [Fact]
+        public void EventBuilderMethods_ReturnThis_ForFluentChaining()
+        {
+            using var client = new DaprPubSubClient(Options.Create(new DaprOptions()));
+            using var evt = client.CreateEvent();
+
+            var fluent = evt
+                .SetTopic("t/v")
+                .SetContentType("application/json")
+                .SetContentEncoding("utf-8")
+                .SetQoS(QoS.AtLeastOnce)
+                .SetTimestamp(DateTimeOffset.UtcNow)
+                .SetRetain(false)
+                .SetTtl(TimeSpan.FromSeconds(30))
+                .AddProperty("key", "value")
+                .AddProperty("key", null)     // removes the entry
+                .SetSchema(new StubSchema());
+
+            Assert.Same(evt, fluent);
+        }
+
+        private sealed class StubSchema : IEventSchema
+        {
+            public string Type => "application/json";
+            public string Name => "test";
+            public ulong Version => 1;
+            public string Schema => "{}";
+            public string? Id => "schema:1";
         }
     }
 }

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Runtime
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Microsoft.Extensions.Configuration;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using Xunit;
@@ -623,6 +624,318 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Runtime
             opts.Security.ApplicationCertificates = existingStore;
             config.PostConfigure(null, opts);
             Assert.Same(existingStore, opts.Security.ApplicationCertificates);
+        }
+
+        // ── TrustedIssuerCertificates ─────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_TrustedIssuerCertificates_PathContainsIssuer()
+        {
+            var opts = Configure();
+            Assert.NotNull(opts.Security.TrustedIssuerCertificates);
+            Assert.Contains("issuer", opts.Security.TrustedIssuerCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(CertificateStoreType.Directory, opts.Security.TrustedIssuerCertificates.StoreType);
+        }
+
+        [Fact]
+        public void Config_TrustedIssuerCertificatesPath_OverridesDefault()
+        {
+            var opts = Configure(P(OpcUaClientConfig.TrustedIssuerCertificatesPathKey, "/custom/issuer"));
+            Assert.Equal("/custom/issuer", opts.Security.TrustedIssuerCertificates!.StorePath);
+        }
+
+        [Fact]
+        public void Config_TrustedIssuerCertificatesType_FlatStoreUsesPrefixInPath()
+        {
+            var opts = Configure(P(OpcUaClientConfig.TrustedIssuerCertificatesTypeKey,
+                FlatCertificateStore.StoreTypePrefix));
+            Assert.Equal(FlatCertificateStore.StoreTypePrefix,
+                opts.Security.TrustedIssuerCertificates!.StoreType);
+            Assert.StartsWith(FlatCertificateStore.StoreTypePrefix,
+                opts.Security.TrustedIssuerCertificates.StorePath, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PreConfigured_TrustedIssuerCertificates_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var existingStore = new CertificateStore { StorePath = "already/issuer" };
+            var opts = new OpcUaClientOptions();
+            opts.Security.TrustedIssuerCertificates = existingStore;
+            config.PostConfigure(null, opts);
+            Assert.Same(existingStore, opts.Security.TrustedIssuerCertificates);
+        }
+
+        // ── TrustedUserCertificates ───────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_TrustedUserCertificates_PathContainsUser()
+        {
+            var opts = Configure();
+            Assert.NotNull(opts.Security.TrustedUserCertificates);
+            Assert.Contains("/user", opts.Security.TrustedUserCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void Config_TrustedUserCertificatesPath_OverridesDefault()
+        {
+            var opts = Configure(P(OpcUaClientConfig.TrustedUserCertificatesPathKey, "/custom/user"));
+            Assert.Equal("/custom/user", opts.Security.TrustedUserCertificates!.StorePath);
+        }
+
+        [Fact]
+        public void PreConfigured_TrustedUserCertificates_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var existingStore = new CertificateStore { StorePath = "already/user" };
+            var opts = new OpcUaClientOptions();
+            opts.Security.TrustedUserCertificates = existingStore;
+            config.PostConfigure(null, opts);
+            Assert.Same(existingStore, opts.Security.TrustedUserCertificates);
+        }
+
+        // ── TrustedHttpsCertificates ──────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_TrustedHttpsCertificates_PathContainsHttps()
+        {
+            var opts = Configure();
+            Assert.NotNull(opts.Security.TrustedHttpsCertificates);
+            Assert.Contains("https", opts.Security.TrustedHttpsCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void Config_TrustedHttpsCertificatesPath_OverridesDefault()
+        {
+            var opts = Configure(P(OpcUaClientConfig.TrustedHttpsCertificatesPathKey, "/custom/https"));
+            Assert.Equal("/custom/https", opts.Security.TrustedHttpsCertificates!.StorePath);
+        }
+
+        [Fact]
+        public void PreConfigured_TrustedHttpsCertificates_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var existingStore = new CertificateStore { StorePath = "already/https" };
+            var opts = new OpcUaClientOptions();
+            opts.Security.TrustedHttpsCertificates = existingStore;
+            config.PostConfigure(null, opts);
+            Assert.Same(existingStore, opts.Security.TrustedHttpsCertificates);
+        }
+
+        // ── HttpsIssuerCertificates ───────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_HttpsIssuerCertificates_PathContainsHttpsIssuer()
+        {
+            var opts = Configure();
+            Assert.NotNull(opts.Security.HttpsIssuerCertificates);
+            Assert.Contains("https", opts.Security.HttpsIssuerCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("issuer", opts.Security.HttpsIssuerCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void Config_HttpsIssuerCertificatesPath_OverridesDefault()
+        {
+            var opts = Configure(P(OpcUaClientConfig.HttpsIssuerCertificatesPathKey,
+                "/custom/https/issuer"));
+            Assert.Equal("/custom/https/issuer", opts.Security.HttpsIssuerCertificates!.StorePath);
+        }
+
+        [Fact]
+        public void PreConfigured_HttpsIssuerCertificates_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var existingStore = new CertificateStore { StorePath = "already/https/issuer" };
+            var opts = new OpcUaClientOptions();
+            opts.Security.HttpsIssuerCertificates = existingStore;
+            config.PostConfigure(null, opts);
+            Assert.Same(existingStore, opts.Security.HttpsIssuerCertificates);
+        }
+
+        // ── UserIssuerCertificates ────────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_UserIssuerCertificates_PathContainsUserIssuer()
+        {
+            var opts = Configure();
+            Assert.NotNull(opts.Security.UserIssuerCertificates);
+            Assert.Contains("user", opts.Security.UserIssuerCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("issuer", opts.Security.UserIssuerCertificates.StorePath,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void Config_UserIssuerCertificatesPath_OverridesDefault()
+        {
+            var opts = Configure(P(OpcUaClientConfig.UserIssuerCertificatesPathKey,
+                "/custom/user/issuer"));
+            Assert.Equal("/custom/user/issuer", opts.Security.UserIssuerCertificates!.StorePath);
+        }
+
+        [Fact]
+        public void PreConfigured_UserIssuerCertificates_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var existingStore = new CertificateStore { StorePath = "already/user/issuer" };
+            var opts = new OpcUaClientOptions();
+            opts.Security.UserIssuerCertificates = existingStore;
+            config.PostConfigure(null, opts);
+            Assert.Same(existingStore, opts.Security.UserIssuerCertificates);
+        }
+
+        // ── SecurityTokenLifetime ─────────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_SecurityTokenLifetime_IsDefault()
+        {
+            var opts = Configure();
+            Assert.Equal(OpcUaClientConfig.SecurityTokenLifetimeDefault,
+                opts.Quotas.SecurityTokenLifetime);
+        }
+
+        [Fact]
+        public void Config_SecurityTokenLifetime_OverridesDefault()
+        {
+            var opts = Configure(P(OpcUaClientConfig.SecurityTokenLifetimeKey, "7200000"));
+            Assert.Equal(7200000, opts.Quotas.SecurityTokenLifetime);
+        }
+
+        [Fact]
+        public void PreConfigured_SecurityTokenLifetime_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var opts = new OpcUaClientOptions();
+            opts.Quotas.SecurityTokenLifetime = 9999;
+            config.PostConfigure(null, opts);
+            Assert.Equal(9999, opts.Quotas.SecurityTokenLifetime);
+        }
+
+        // ── EnableOpcUaStackLogging ───────────────────────────────────────────
+
+        [Fact]
+        public void Defaults_EnableOpcUaStackLogging_IsNull()
+        {
+            var opts = Configure();
+            Assert.Null(opts.EnableOpcUaStackLogging);
+        }
+
+        [Fact]
+        public void Config_EnableOpcUaStackLogging_SetsTrue()
+        {
+            var opts = Configure(P(OpcUaClientConfig.EnableOpcUaStackLoggingKey, "true"));
+            Assert.True(opts.EnableOpcUaStackLogging);
+        }
+
+        [Fact]
+        public void Config_EnableOpcUaStackLogging_SetsFalse()
+        {
+            var opts = Configure(P(OpcUaClientConfig.EnableOpcUaStackLoggingKey, "false"));
+            Assert.False(opts.EnableOpcUaStackLogging);
+        }
+
+        // ── ApplicationCertificatePassword ────────────────────────────────────
+
+        [Fact]
+        public void Defaults_ApplicationCertificatePassword_IsNull()
+        {
+            var opts = Configure();
+            Assert.Null(opts.Security.ApplicationCertificatePassword);
+        }
+
+        [Fact]
+        public void Config_ApplicationCertificatePassword_SetsValue()
+        {
+            var opts = Configure(P(OpcUaClientConfig.ApplicationCertificatePasswordKey, "s3cr3t"));
+            Assert.Equal("s3cr3t", opts.Security.ApplicationCertificatePassword);
+        }
+
+        [Fact]
+        public void PreConfigured_ApplicationCertificatePassword_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var opts = new OpcUaClientOptions();
+            opts.Security.ApplicationCertificatePassword = "preset";
+            config.PostConfigure(null, opts);
+            Assert.Equal("preset", opts.Security.ApplicationCertificatePassword);
+        }
+
+        // ── TryUseConfigurationFromExistingAppCert ────────────────────────────
+
+        [Fact]
+        public void Defaults_TryUseConfigurationFromExistingAppCert_IsNull()
+        {
+            var opts = Configure();
+            Assert.Null(opts.Security.TryUseConfigurationFromExistingAppCert);
+        }
+
+        [Fact]
+        public void Config_TryUseConfigurationFromExistingAppCert_SetsTrue()
+        {
+            var opts = Configure(P(OpcUaClientConfig.TryConfigureFromExistingAppCertKey, "true"));
+            Assert.True(opts.Security.TryUseConfigurationFromExistingAppCert);
+        }
+
+        [Fact]
+        public void PreConfigured_TryUseConfigurationFromExistingAppCert_IsPreserved()
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var config = new OpcUaClientConfig(configuration);
+            var opts = new OpcUaClientOptions();
+            opts.Security.TryUseConfigurationFromExistingAppCert = false;
+            config.PostConfigure(null, opts);
+            Assert.False(opts.Security.TryUseConfigurationFromExistingAppCert);
+        }
+
+        // ── DisableComplexTypePreloading ──────────────────────────────────────
+
+        [Fact]
+        public void Defaults_DisableComplexTypePreloading_IsFalse()
+        {
+            var opts = Configure();
+            Assert.False(opts.DisableComplexTypePreloading);
+        }
+
+        [Fact]
+        public void Config_DisableComplexTypePreloading_SetsTrue()
+        {
+            var opts = Configure(P(OpcUaClientConfig.DisableComplexTypePreloadingKey, "true"));
+            Assert.True(opts.DisableComplexTypePreloading);
+        }
+
+        // ── GetStoreMoniker edge cases ─────────────────────────────────────────
+
+        [Fact]
+        public void Config_FlatCertificateStoreType_PrefixesTrustedPeerStorePath()
+        {
+            var opts = Configure(P(OpcUaClientConfig.TrustedPeerCertificatesTypeKey,
+                FlatCertificateStore.StoreTypePrefix));
+            Assert.Equal(FlatCertificateStore.StoreTypePrefix,
+                opts.Security.TrustedPeerCertificates!.StoreType);
+            Assert.StartsWith(FlatCertificateStore.StoreTypePrefix,
+                opts.Security.TrustedPeerCertificates.StorePath, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void Config_UnknownStoreType_ThrowsArgumentOutOfRangeException()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection([P(OpcUaClientConfig.TrustedPeerCertificatesTypeKey, "unknown")])
+                .Build();
+            var config = new OpcUaClientConfig(configuration);
+            Assert.Throws<ArgumentOutOfRangeException>(() => config.ToOptions());
         }
     }
 }

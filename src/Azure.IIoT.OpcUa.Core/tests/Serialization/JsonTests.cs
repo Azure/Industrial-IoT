@@ -240,6 +240,111 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
                     (JsonTypeInfo<DataContractModel>)null!));
         }
 
+        [Fact]
+        public void SerializeToString_Reflection_IndentedFormat()
+        {
+            var model = new DataContractModel { Value = "v" };
+
+            var result = Json.SerializeToString(model, SerializeOption.Indented);
+
+            Assert.Contains(Environment.NewLine, result);
+        }
+
+        [Fact]
+        public void SerializeObjectToString_Indented_ProducesFormattedJson()
+        {
+            var model = new DataContractModel { Value = "v" };
+
+            var result = Json.SerializeObjectToString(model, typeof(DataContractModel),
+                SerializeOption.Indented);
+
+            Assert.Contains(Environment.NewLine, result);
+        }
+
+        [Fact]
+        public void SerializeToMemory_Indented_ProducesFormattedBytes()
+        {
+            var model = new DataContractModel { Value = "v" };
+
+            var bytes = Json.SerializeToMemory(model, SerializeOption.Indented);
+            var text = Encoding.UTF8.GetString(bytes.Span);
+
+            Assert.Contains(Environment.NewLine, text);
+        }
+
+        [Fact]
+        public void SerializeObjectToMemory_Indented_ProducesFormattedBytes()
+        {
+            var model = new DataContractModel { Value = "v" };
+
+            var bytes = Json.SerializeObjectToMemory(model, typeof(DataContractModel),
+                SerializeOption.Indented);
+            var text = Encoding.UTF8.GetString(bytes.Span);
+
+            Assert.Contains(Environment.NewLine, text);
+        }
+
+        [Fact]
+        public void SerializeObject_Indented_ProducesFormattedOutput()
+        {
+            var buffer = new ArrayBufferWriter<byte>();
+            var model = new DataContractModel { Value = "v" };
+
+            Json.SerializeObject(buffer, model, typeof(DataContractModel),
+                SerializeOption.Indented);
+            var text = Encoding.UTF8.GetString(buffer.WrittenSpan);
+
+            Assert.Contains(Environment.NewLine, text);
+        }
+
+        [Fact]
+        public void Deserialize_ReadOnlyMemory_RuntimeType_ProducesTypedResult()
+        {
+            var bytes = Encoding.UTF8.GetBytes("""{"ExactName":"hello"}""");
+            ReadOnlyMemory<byte> memory = bytes;
+
+            var result = Json.Deserialize(memory, typeof(DataContractModel));
+
+            var model = Assert.IsType<DataContractModel>(result);
+            Assert.Equal("hello", model.Value);
+        }
+
+        [Fact]
+        public void RegisterTypeInfoResolver_NullArgumentThrows()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                Json.RegisterTypeInfoResolver(null!));
+        }
+
+        [Fact]
+        public void RegisterTypeInfoResolver_AcceptsNewContextWithoutThrowing()
+        {
+            // Just verifying the method itself doesn't throw for a valid resolver.
+            // Type resolution is tested via the pre-registered CoreJsonContext.
+            Json.RegisterTypeInfoResolver(JsonTestsContext.Default);
+        }
+
+        [Fact]
+        public void GetTypeInfo_ForUnknownType_Throws()
+        {
+            Assert.Throws<NotSupportedException>(() =>
+                Json.GetTypeInfo<UnknownType>());
+        }
+
+        private sealed class UnknownType { }
+
+        [Fact]
+        public void ApplyTo_NullArgumentThrows()
+        {
+            Assert.Throws<ArgumentNullException>(() => Json.ApplyTo(null!));
+        }
+
+        [Fact]
+        public void ApplyTo_RegisterTypeInfoResolver_NullArgumentThrows()
+        {
+            Assert.Throws<ArgumentNullException>(() => Json.RegisterTypeInfoResolver(null!));
+        }
+
     }
 
     [DataContract]

@@ -95,6 +95,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Scanner
             Assert.Null(ex);
         }
 
+        // ── GetNext exception paths ────────────────────────────────────────────
+
+        [Fact]
+        public void GetNext_ThrowsOperationCanceledException_CallsOnExit()
+        {
+            var logger = Mock.Of<ILogger>();
+            var probe = new ThrowingConnectProbe(0, new NullAsyncProbe(), logger,
+                new OperationCanceledException("cancelled"));
+
+            probe.Start();
+
+            Assert.Equal(1, probe.ExitCount);
+            Assert.Equal(0, probe.FailCount);
+        }
+
+        [Fact]
+        public void GetNext_ThrowsInvalidOperationException_ThenReturnsFalse_CallsOnExit()
+        {
+            // InvalidOperationException → continue (retry same GetNext loop),
+            // second call returns false → exit = true → OnExit()
+            var logger = Mock.Of<ILogger>();
+            var probe = new InvalidOpThenFalseConnectProbe(0, new NullAsyncProbe(), logger);
+
+            probe.Start();
+
+            Assert.Equal(1, probe.ExitCount);
+            Assert.Equal(0, probe.FailCount);
+        }
+
+        [Fact]
+        public void GetNext_ThrowsUnexpectedException_CallsOnExit()
+        {
+            var logger = Mock.Of<ILogger>();
+            var probe = new ThrowingConnectProbe(0, new NullAsyncProbe(), logger,
+                new ArgumentException("unexpected"));
+
+            probe.Start();
+
+            Assert.Equal(1, probe.ExitCount);
+            Assert.Equal(0, probe.FailCount);
+        }
+
         /// <summary>
         /// Concrete test subclass that has no endpoints and records callbacks.
         /// </summary>
@@ -141,6 +183,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Scanner
 
             public bool Reset() => false;
             public void Dispose() { }
+        }
+
+        /// <summary>Throws a configurable exception from GetNext.</summary>
+        private sealed class ThrowingConnectProbe : BaseConnectProbe
+        {
+            private readonly Exception _ex;
+
+            public int ExitCount { get; private set; }
+            public int FailCount { get; private set; }
+
+            public ThrowingConnectProbe(int index, IAsyncProbe probe, ILogger logger,
+                Exception ex) : base(index, probe, logger)
+            {
+                _ex = ex;
+            }
+
+            protected override bool GetNext(
+                [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IPEndPoint? ep,
+                out int timeout)
+            {
+                ep = null;
+                timeout = 0;
+                throw _ex;
+            }
+
+            protected override void OnFail(IPEndPoint ep) => FailCount++;
+            protected override void OnSuccess(IPEndPoint ep) { }
+            protected override void OnExit() => ExitCount++;
+        }
+
+        /// <summary>
+        /// Throws <see cref="InvalidOperationException"/> on the first call,
+        /// then returns false on the second call.
+        /// </summary>
+        private sealed class InvalidOpThenFalseConnectProbe : BaseConnectProbe
+        {
+            private int _callCount;
+
+            public int ExitCount { get; private set; }
+            public int FailCount { get; private set; }
+
+            public InvalidOpThenFalseConnectProbe(int index, IAsyncProbe probe, ILogger logger)
+                : base(index, probe, logger)
+            {
+            }
+
+            protected override bool GetNext(
+                [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IPEndPoint? ep,
+                out int timeout)
+            {
+                ep = null;
+                timeout = 0;
+                if (_callCount++ == 0)
+                {
+                    throw new InvalidOperationException("retry");
+                }
+                return false;
+            }
+
+            protected override void OnFail(IPEndPoint ep) => FailCount++;
+            protected override void OnSuccess(IPEndPoint ep) { }
+            protected override void OnExit() => ExitCount++;
         }
     }
 }

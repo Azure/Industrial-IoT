@@ -311,5 +311,166 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr
                 Channel.CreateUnbounded<IDictionary<string, JsonNode?>>();
             private readonly TaskCompletionSource? _load;
         }
+
+        // ── IDictionary<string,JsonNode?> interface members ──────────────────
+
+        [Fact]
+        public void Keys_ReturnsSnapshotOfCurrentKeys()
+        {
+            var store = new TestStore
+            {
+                InitialState = { ["a"] = JsonValue.Create(1), ["b"] = JsonValue.Create(2) }
+            };
+            store.Start();
+
+            var keys = store.Keys;
+
+            Assert.Equal(2, keys.Count);
+            Assert.Contains("a", keys);
+            Assert.Contains("b", keys);
+        }
+
+        [Fact]
+        public void Values_ReturnsSnapshotOfCurrentValues()
+        {
+            var store = new TestStore
+            {
+                InitialState = { ["x"] = JsonValue.Create(99) }
+            };
+            store.Start();
+
+            var values = store.Values;
+
+            Assert.Single(values);
+        }
+
+        [Fact]
+        public void Count_ReturnsNumberOfEntries()
+        {
+            var store = new TestStore
+            {
+                InitialState =
+                {
+                    ["one"] = JsonValue.Create(1),
+                    ["two"] = JsonValue.Create(2),
+                    ["three"] = JsonValue.Create(3)
+                }
+            };
+            store.Start();
+
+            Assert.Equal(3, store.Count);
+        }
+
+        [Fact]
+        public void IsReadOnly_IsFalse()
+        {
+            var store = new TestStore();
+            Assert.False(store.IsReadOnly);
+        }
+
+        [Fact]
+        public async Task Add_StringValue_AddsToStateAndSynchronizesAsync()
+        {
+            await using var store = new TestStore();
+            store.Start();
+            await store;
+
+            store.Add("newKey", JsonValue.Create("hello"));
+
+            Assert.True(store.TryGetValue("newKey", out var value));
+            Assert.Equal("\"hello\"", value!.ToJsonString());
+        }
+
+        [Fact]
+        public async Task Add_KeyValuePair_AddsToStateAsync()
+        {
+            await using var store = new TestStore();
+            store.Start();
+            await store;
+
+            ((System.Collections.Generic.IDictionary<string, JsonNode?>)store)
+                .Add(new System.Collections.Generic.KeyValuePair<string, JsonNode?>(
+                    "kp", JsonValue.Create(7)));
+
+            Assert.True(store.TryGetValue("kp", out var value));
+            Assert.Equal("7", value!.ToJsonString());
+        }
+
+        [Fact]
+        public void Contains_MatchingItem_ReturnsTrue()
+        {
+            var node = JsonValue.Create(42);
+            var store = new TestStore { InitialState = { ["k"] = node } };
+            store.Start();
+
+            var found = store.Contains(
+                new System.Collections.Generic.KeyValuePair<string, JsonNode?>("k", node));
+
+            Assert.True(found);
+        }
+
+        [Fact]
+        public void Contains_DifferentValue_ReturnsFalse()
+        {
+            var store = new TestStore { InitialState = { ["k"] = JsonValue.Create(1) } };
+            store.Start();
+
+            var found = store.Contains(
+                new System.Collections.Generic.KeyValuePair<string, JsonNode?>(
+                    "k", JsonValue.Create(999)));
+
+            Assert.False(found);
+        }
+
+        [Fact]
+        public void CopyTo_CopiesToArray()
+        {
+            var store = new TestStore { InitialState = { ["a"] = JsonValue.Create(1) } };
+            store.Start();
+
+            var array = new System.Collections.Generic.KeyValuePair<string, JsonNode?>[2];
+            store.CopyTo(array, 0);
+
+            Assert.Equal("a", array[0].Key);
+        }
+
+        [Fact]
+        public void GetEnumerator_EnumeratesEntries()
+        {
+            var store = new TestStore { InitialState = { ["e"] = JsonValue.Create(5) } };
+            store.Start();
+
+            var count = 0;
+            foreach (var _ in store)
+            {
+                count++;
+            }
+
+            Assert.Equal(1, count);
+        }
+
+        [Fact]
+        public async Task Remove_KeyValuePair_MatchingValue_RemovesEntryAsync()
+        {
+            var node = JsonValue.Create("match");
+            await using var store = new TestStore { InitialState = { ["k"] = node } };
+            store.Start();
+            await store;
+
+            var removed = store.Remove(
+                new System.Collections.Generic.KeyValuePair<string, JsonNode?>("k", node));
+
+            Assert.True(removed);
+            Assert.False(store.ContainsKey("k"));
+        }
+
+        [Fact]
+        public void Dispose_SynchronousPath_DoesNotThrow()
+        {
+            var store = new TestStore();
+            store.Start();
+            // IDisposable.Dispose() is also available — must not throw.
+            ((IDisposable)store).Dispose();
+        }
     }
 }

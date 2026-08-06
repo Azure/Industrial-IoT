@@ -337,6 +337,141 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                 }, ct: cts.Token).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
+        [Fact]
+        public async Task NameDirectiveWithValueIsAcceptedAsync()
+        {
+            var invocations = new List<Invocation>();
+
+            await ParseAsync("""
+                // @name MyRequest
+                NamedMethod
+
+                """, Capture(invocations)).ConfigureAwait(false);
+
+            Assert.Single(invocations);
+            Assert.Equal("NamedMethod", invocations[0].Method.String);
+        }
+
+        [Fact]
+        public async Task NameDirectiveWithoutValueThrowsFormatExceptionAsync()
+        {
+            await Assert.ThrowsAsync<FormatException>(async () =>
+                await ParseAsync("""
+                    // @name
+                    Method
+
+                    """).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task RetriesDirectiveWithNonIntegerThrowsFormatExceptionAsync()
+        {
+            await Assert.ThrowsAsync<FormatException>(async () =>
+                await ParseAsync("""
+                    // @retries notanumber
+                    Method
+
+                    """).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task ConnectionTimeoutDirectiveIsSkippedAsync()
+        {
+            var invocations = new List<Invocation>();
+
+            await ParseAsync("""
+                // @connection-timeout
+                Method
+
+                """, Capture(invocations)).ConfigureAwait(false);
+
+            Assert.Single(invocations);
+        }
+
+        [Fact]
+        public async Task SkipsSubsequentRequestAfterFailureWithoutOnErrorAsync()
+        {
+            var invocations = new List<Invocation>();
+            var output = await ParseAsync("""
+                FirstMethod
+
+                ###
+                SecondMethod
+
+                """, Capture(invocations, status: 500)).ConfigureAwait(false);
+
+            Assert.Single(invocations);
+            Assert.Equal("FirstMethod", invocations[0].Method.String);
+            Assert.Contains("// @skipped reason = error", output);
+        }
+
+        [Fact]
+        public async Task AppendToFileAppendsResponseAsync()
+        {
+            var file = Path.Combine(_root, "append.json");
+            await File.WriteAllTextAsync(file, "first").ConfigureAwait(false);
+
+            await ParseAsync("""
+                AppendMethod
+                Content-Type: application/json
+
+                >>! append.json
+                """, Capture([], response: "second"), root: _root)
+                .ConfigureAwait(false);
+
+            var content = await File.ReadAllTextAsync(file).ConfigureAwait(false);
+            Assert.Equal("firstsecond", content);
+        }
+
+        [Fact]
+        public async Task StreamOverloadProducesOutputAsync()
+        {
+            var invocations = new List<Invocation>();
+            var req = new System.IO.MemoryStream(
+                System.Text.Encoding.UTF8.GetBytes("StreamMethod\n\n"));
+            var res = new System.IO.MemoryStream();
+            await using (req.ConfigureAwait(false))
+            await using (res.ConfigureAwait(false))
+            {
+                await DotHttpFileParser.ParseAsync(req, res,
+                    Capture(invocations), NullLogger.Instance)
+                    .ConfigureAwait(false);
+            }
+
+            Assert.Single(invocations);
+            Assert.Equal("StreamMethod", invocations[0].Method.String);
+        }
+
+        [Fact]
+        public async Task ParsesHttpGetMethodAsync()
+        {
+            var invocations = new List<Invocation>();
+
+            await ParseAsync("""
+                GET http://localhost/data HTTP/1.1
+
+                """, Capture(invocations)).ConfigureAwait(false);
+
+            Assert.Single(invocations);
+            Assert.Equal("GET", invocations[0].Method.String);
+        }
+
+        [Fact]
+        public async Task ParsesHttpPutDeletePatchMethodsAsync()
+        {
+            foreach (var method in new[] { "PUT", "DELETE", "PATCH" })
+            {
+                var invocations = new List<Invocation>();
+                await ParseAsync($"""
+                    {method} http://localhost/resource HTTP/1.1
+
+                    """, Capture(invocations)).ConfigureAwait(false);
+
+                Assert.Single(invocations);
+                Assert.Equal(method, invocations[0].Method.String);
+            }
+        }
+
         private static Task<string> ParseAsync(string request, Execute? execute = null,
             string? root = null, CancellationToken ct = default)
         {

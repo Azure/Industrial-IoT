@@ -407,6 +407,283 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.Equal("False", result.CommandLine[PublisherConfig.DisableOpenApiEndpointKey]);
         }
 
+        // --sl (no value)  →  EnableOpcUaStackLoggingKey = "True"
+        [Fact]
+        public void StackLoggingWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--sl"]);
+
+            Assert.Equal("True", result.CommandLine[OpcUaClientConfig.EnableOpcUaStackLoggingKey]);
+        }
+
+        // --sl=false  →  EnableOpcUaStackLoggingKey = "False"
+        [Fact]
+        public void StackLoggingWithFalseValueSetsFalse()
+        {
+            var result = new CommandLineTest(["--sl=false"]);
+
+            Assert.Equal("False", result.CommandLine[OpcUaClientConfig.EnableOpcUaStackLoggingKey]);
+        }
+
+        // --ksf (no value)  →  OpcUaKeySetLogFolderNameKey = CurrentDirectory
+        [Fact]
+        public void KeySetLogFolderWithoutValueUsesCurrentDirectory()
+        {
+            var result = new CommandLineTest(["--ksf"]);
+
+            Assert.Equal(
+                System.IO.Directory.GetCurrentDirectory(),
+                result.CommandLine[OpcUaClientConfig.OpcUaKeySetLogFolderNameKey]);
+        }
+
+        // --ksf=custom/path  →  OpcUaKeySetLogFolderNameKey = "custom/path"
+        [Fact]
+        public void KeySetLogFolderWithValueSetsPath()
+        {
+            var result = new CommandLineTest(["--ksf=custom/path"]);
+
+            Assert.Equal("custom/path",
+                result.CommandLine[OpcUaClientConfig.OpcUaKeySetLogFolderNameKey]);
+        }
+
+        // --ecw (no value)  →  Configuration.ConsoleWriter.EnableKey = "True"
+        [Fact]
+        public void EnableConsoleWriterWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--ecw"]);
+
+            Assert.Equal("True", result.CommandLine[Configuration.ConsoleWriter.EnableKey]);
+        }
+
+        // --di=30  →  DiagnosticsIntervalKey = TimeSpan.FromSeconds(30)
+        [Fact]
+        public void DiagnosticsIntervalOptionConvertsSecondsToTimeSpan()
+        {
+            var result = new CommandLineTest(["--di=30"]);
+
+            Assert.Equal(
+                TimeSpan.FromSeconds(30).ToString(),
+                result.CommandLine[PublisherConfig.DiagnosticsIntervalKey]);
+        }
+
+        // --pd=Events  →  DiagnosticsTargetKey = "Events"
+        [Fact]
+        public void DiagnosticsTargetOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--pd=Events"]);
+
+            Assert.Equal(
+                nameof(PublisherDiagnosticTargetType.Events),
+                result.CommandLine[PublisherConfig.DiagnosticsTargetKey]);
+        }
+
+        // --dr (no value)  →  DisableResourceMonitoringKey = "True"
+        [Fact]
+        public void DisableResourceMonitoringWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--dr"]);
+
+            Assert.Equal("True", result.CommandLine[PublisherConfig.DisableResourceMonitoringKey]);
+        }
+
+        // --ln (no value)  →  DebugLogNotificationsKey = "True"
+        [Fact]
+        public void LogNotificationsWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--ln"]);
+
+            Assert.Equal("True", result.CommandLine[PublisherConfig.DebugLogNotificationsKey]);
+        }
+
+        // --lnh (no value)  →  DebugLogNotificationsWithHeartbeatKey = "True"
+        [Fact]
+        public void LogNotificationsWithHeartbeatWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--lnh"]);
+
+            Assert.Equal("True",
+                result.CommandLine[PublisherConfig.DebugLogNotificationsWithHeartbeatKey]);
+        }
+
+        // --lnf=MyFilter  →  DebugLogNotificationsFilterKey = "MyFilter"
+        [Fact]
+        public void LogNotificationsFilterWithValueSetsKey()
+        {
+            var result = new CommandLineTest(["--lnf=MyFilter"]);
+
+            Assert.Equal("MyFilter",
+                result.CommandLine[PublisherConfig.DebugLogNotificationsFilterKey]);
+        }
+
+        // --len (no value)  →  DebugLogEncodedNotificationsKey = "True"
+        [Fact]
+        public void LogEncodedNotificationsWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--len"]);
+
+            Assert.Equal("True",
+                result.CommandLine[PublisherConfig.DebugLogEncodedNotificationsKey]);
+        }
+
+        // --oc=http://collector:4317  →  OtlpCollectorEndpointKey
+        [Fact]
+        public void OtlpCollectorEndpointOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--oc=http://collector:4317"]);
+
+            Assert.Equal("http://collector:4317",
+                result.CommandLine[Configuration.Otel.OtlpCollectorEndpointKey]);
+        }
+
+        // --eol (no value)  →  EnableOtelLoggingKey = "True"
+        [Fact]
+        public void EnableOtelLoggingWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--eol"]);
+
+            Assert.Equal("True", result.CommandLine[Configuration.Otel.EnableOtelLoggingKey]);
+        }
+
+        // --eot (no value)  →  EnableOtelTracesKey = "True"
+        [Fact]
+        public void EnableOtelTracesWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--eot"]);
+
+            Assert.Equal("True", result.CommandLine[Configuration.Otel.EnableOtelTracesKey]);
+        }
+
+        // --oxi=5000  →  OtlpExportIntervalMillisecondsKey = TimeSpan.FromMilliseconds(5000)
+        [Fact]
+        public void OtlpExportIntervalOptionConvertsMillisecondsToTimeSpan()
+        {
+            var result = new CommandLineTest(["--oxi=5000"]);
+
+            Assert.Equal(
+                TimeSpan.FromMilliseconds(5000).ToString(),
+                result.CommandLine[Configuration.Otel.OtlpExportIntervalMillisecondsKey]);
+        }
+
+        // --mms=2000  →  OtlpMaxMetricStreamsKey = "2000"
+        [Fact]
+        public void MaxMetricStreamsOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--mms=2000"]);
+
+            Assert.Equal("2000",
+                result.CommandLine[Configuration.Otel.OtlpMaxMetricStreamsKey]);
+        }
+
+        // --em (no value)  →  EnableMetricsKey = "True"
+        [Fact]
+        public void EnablePrometheusEndpointWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--em"]);
+
+            Assert.Equal("True", result.CommandLine[Configuration.Otel.EnableMetricsKey]);
+        }
+
+        // --ari (no value)  →  OtlpRuntimeInstrumentationKey = "True"
+        [Fact]
+        public void AddRuntimeInstrumentationWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--ari"]);
+
+            Assert.Equal("True",
+                result.CommandLine[Configuration.Otel.OtlpRuntimeInstrumentationKey]);
+        }
+
+        // --ats (no value)  →  OtlpTotalNameSuffixForCountersKey = "True"
+        [Fact]
+        public void AddTotalNameSuffixWithoutValueDefaultsToTrue()
+        {
+            var result = new CommandLineTest(["--ats"]);
+
+            Assert.Equal("True",
+                result.CommandLine[Configuration.Otel.OtlpTotalNameSuffixForCountersKey]);
+        }
+
+        // --sc=5  →  ScaleTestCountKey = "5"
+        [Fact]
+        public void ScaleTestCountOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--sc=5"]);
+
+            Assert.Equal("5", result.CommandLine[PublisherConfig.ScaleTestCountKey]);
+        }
+
+        // --tp=<path>  →  TrustedPeerCertificatesPathKey
+        [Fact]
+        public void TrustedCertStorePathOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--tp=/certs/trusted"]);
+
+            Assert.Equal("/certs/trusted",
+                result.CommandLine[OpcUaClientConfig.TrustedPeerCertificatesPathKey]);
+        }
+
+        // --tpt=Directory  →  TrustedPeerCertificatesTypeKey
+        [Fact]
+        public void TrustedCertStoreTypeDirectoryOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--tpt=Directory"]);
+
+            Assert.Equal("Directory",
+                result.CommandLine[OpcUaClientConfig.TrustedPeerCertificatesTypeKey]);
+        }
+
+        // --rp=<path>  →  RejectedCertificateStorePathKey
+        [Fact]
+        public void RejectedCertStorePathOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--rp=/certs/rejected"]);
+
+            Assert.Equal("/certs/rejected",
+                result.CommandLine[OpcUaClientConfig.RejectedCertificateStorePathKey]);
+        }
+
+        // --ip=<path>  →  TrustedIssuerCertificatesPathKey
+        [Fact]
+        public void IssuerCertStorePathOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--ip=/certs/issuers"]);
+
+            Assert.Equal("/certs/issuers",
+                result.CommandLine[OpcUaClientConfig.TrustedIssuerCertificatesPathKey]);
+        }
+
+        // --up=<path>  →  TrustedUserCertificatesPathKey
+        [Fact]
+        public void UserCertStorePathOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--up=/certs/user"]);
+
+            Assert.Equal("/certs/user",
+                result.CommandLine[OpcUaClientConfig.TrustedUserCertificatesPathKey]);
+        }
+
+        // --uip=<path>  →  UserIssuerCertificatesPathKey
+        [Fact]
+        public void UserIssuerCertStorePathOptionSetsKey()
+        {
+            var result = new CommandLineTest(["--uip=/certs/user/issuer"]);
+
+            Assert.Equal("/certs/user/issuer",
+                result.CommandLine[OpcUaClientConfig.UserIssuerCertificatesPathKey]);
+        }
+
+        // --cp is a legacy option — it is silently accepted but does NOT
+        // inject ApplicationCertificatePasswordKey into configuration.
+        [Fact]
+        public void LegacyCertPasswordOptionIsAcceptedWithoutThrowing()
+        {
+            // Must not throw; the option is recognised and discarded.
+            var result = new CommandLineTest(["--cp=s3cr3t"]);
+
+            Assert.False(result.CommandLine.ContainsKey(
+                OpcUaClientConfig.ApplicationCertificatePasswordKey));
+        }
+
         private readonly string? _deviceId;
     }
 }
