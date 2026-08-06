@@ -891,9 +891,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     continue;
                 }
                 MarkKeyFrameDelivered(owner, message.MessageType == MessageType.KeyFrame);
-                Deliver(owner, message,
-                    static (subscriber, notification) =>
-                        subscriber.OnSubscriptionDataChangeReceived(notification));
+                lock (_deliveryGate)
+                {
+                    Deliver(owner, message,
+                        static (subscriber, notification) =>
+                            subscriber.OnSubscriptionDataChangeReceived(notification));
+                }
                 if (IsLiveOwner(owner))
                 {
                     InvokeSubscriber(owner, subscriber =>
@@ -929,9 +932,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (binding.Condition != null)
                 {
-                    await ProcessConditionAsync(subscription, binding, sequenceNumber,
-                        publishTime, item.Fields).ConfigureAwait(false);
-                    continue;
+                    if (binding.Condition.RefreshOnly)
+                    {
+                        // Refresh-only: suppress RefreshStart/End marker events and
+                        // re-issue on RefreshRequired; let all other events fall through
+                        // to normal event delivery so retained conditions surface as
+                        // regular ua-event messages without any snapshot caching.
+                        lock (binding.Condition._lock)
+                        {
+                            if (binding.Condition.Superseded)
+                            {
+                                continue;
+                            }
+                        }
+                        if (binding.Condition.EventTypeIndex >= 0 &&
+                            binding.Condition.EventTypeIndex < item.Fields.Count &&
+                            item.Fields[binding.Condition.EventTypeIndex]
+                                .TryGetValue(out NodeId refreshEventType))
+                        {
+                            if (refreshEventType == ObjectTypeIds.RefreshStartEventType ||
+                                refreshEventType == ObjectTypeIds.RefreshEndEventType)
+                            {
+                                continue; // Suppress start/end markers
+                            }
+                            if (refreshEventType == ObjectTypeIds.RefreshRequiredEventType)
+                            {
+                                try
+                                {
+                                    await subscription.ConditionRefreshAsync()
+                                        .ConfigureAwait(false);
+                                }
+                                catch (Exception ex) when (ex is not OperationCanceledException)
+                                {
+                                    RecordBackgroundError(ex);
+                                    _logger.ConditionRefreshFailed(ex);
+                                }
+                                continue;
+                            }
+                        }
+                        // Fall through: deliver as a regular event notification.
+                    }
+                    else
+                    {
+                        await ProcessConditionAsync(subscription, binding, sequenceNumber,
+                            publishTime, item.Fields).ConfigureAwait(false);
+                        continue;
+                    }
                 }
                 var delivery = (binding.Owner, binding.Template.DisplayName);
                 if (!deliveries.TryGetValue(delivery, out var notifications))
@@ -985,9 +1031,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         MarkKeyFrameDelivered(owner, true);
                         using (keyFrame)
                         {
-                            Deliver(owner, keyFrame,
-                                static (subscriber, notification) =>
-                                    subscriber.OnSubscriptionDataChangeReceived(notification));
+                            lock (_deliveryGate)
+                            {
+                                Deliver(owner, keyFrame,
+                                    static (subscriber, notification) =>
+                                        subscriber.OnSubscriptionDataChangeReceived(notification));
+                            }
                         }
                     }
                 }
@@ -1084,9 +1133,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         MarkKeyFrameDelivered(owner, true);
                         using (keyFrame)
                         {
-                            Deliver(owner, keyFrame,
-                                static (subscriber, notification) =>
-                                    subscriber.OnSubscriptionDataChangeReceived(notification));
+                            lock (_deliveryGate)
+                            {
+                                Deliver(owner, keyFrame,
+                                    static (subscriber, notification) =>
+                                        subscriber.OnSubscriptionDataChangeReceived(notification));
+                            }
                         }
                     }
                 }
@@ -3156,18 +3208,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var diagnosticsOnly = (heartbeat.Behavior &
                 HeartbeatBehavior.WatchdogLKVDiagnosticsOnly) ==
                 HeartbeatBehavior.WatchdogLKVDiagnosticsOnly;
-            if (!TryGetBindingByName(binding.Name, out current) ||
-                !ReferenceEquals(current, binding) ||
-                !IsLiveOwner(binding.Owner) ||
-                !binding.IsHeartbeatCurrent(heartbeat.ItemSequenceNumber))
+            // Hold the delivery gate across the final staleness check and delivery so
+            // that a heartbeat (timer thread) cannot slip between the value-change path's
+            // RecordDataChange call and its own Deliver call.  All binding/heartbeat locks
+            // are released before entering the gate; see _deliveryGate documentation for
+            // the full lock-ordering argument.
+            lock (_deliveryGate)
             {
-                return;
-            }
-            if (!diagnosticsOnly)
-            {
-                Deliver(binding.Owner, message,
-                    static (subscriber, heartbeatNotification) =>
-                        subscriber.OnSubscriptionDataChangeReceived(heartbeatNotification));
+                if (!TryGetBindingByName(binding.Name, out current) ||
+                    !ReferenceEquals(current, binding) ||
+                    !IsLiveOwner(binding.Owner) ||
+                    !binding.IsHeartbeatCurrent(heartbeat.ItemSequenceNumber))
+                {
+                    return;
+                }
+                if (!diagnosticsOnly)
+                {
+                    Deliver(binding.Owner, message,
+                        static (subscriber, heartbeatNotification) =>
+                            subscriber.OnSubscriptionDataChangeReceived(heartbeatNotification));
+                }
             }
             if (IsLiveOwner(binding.Owner))
             {
@@ -3420,9 +3480,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     MarkKeyFrameDelivered(owner, true);
                     using (notification)
                     {
-                        Deliver(owner, notification,
-                            static (subscriber, keyFrame) =>
-                                subscriber.OnSubscriptionDataChangeReceived(keyFrame));
+                        lock (_deliveryGate)
+                        {
+                            Deliver(owner, notification,
+                                static (subscriber, keyFrame) =>
+                                    subscriber.OnSubscriptionDataChangeReceived(keyFrame));
+                        }
                     }
                 }
             }
@@ -4377,7 +4440,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         ConditionHandling: { SnapshotInterval: not null }
                     } ? existing is { } current && current.Matches(eventTemplate) ? current :
-                        new ConditionState(eventTemplate) : null;
+                        new ConditionState(eventTemplate)
+                  : eventTemplate is
+                    {
+                        ConditionHandling.RefreshRetainedConditionsOnStart: true,
+                        ConditionHandling.SnapshotInterval: null
+                    } ? existing is { RefreshOnly: true } refreshCurrent &&
+                            refreshCurrent.Matches(eventTemplate) ? refreshCurrent :
+                        new ConditionState(eventTemplate, refreshOnly: true)
+                  : null;
                 for (var index = 0; index < filter.SelectClauses.Count; index++)
                 {
                     var clause = filter.SelectClauses[index];
@@ -4388,23 +4459,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             clause.BrowsePath[0] == BrowseNames.EventType)
                         {
                             condition.EventTypeIndex = index;
-                            fields.Add(null);
-                            continue;
+                            if (!condition.RefreshOnly)
+                            {
+                                // For snapshot conditions, hide EventType from event
+                                // notifications; it is consumed only for marker detection.
+                                fields.Add(null);
+                                continue;
+                            }
+                            // For refresh-only conditions the EventType field is preserved
+                            // so that retained conditions appear in regular event messages
+                            // with all their configured fields intact.
                         }
-                        if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                            clause.AttributeId == Attributes.NodeId)
+                        if (!condition.RefreshOnly)
                         {
-                            condition.ConditionIdIndex = index;
-                            fields.Add(null);
-                            continue;
-                        }
-                        if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                            clause.BrowsePath.Count != 0 &&
-                            clause.BrowsePath[0] == BrowseNames.Retain)
-                        {
-                            condition.RetainIndex = index;
-                            fields.Add(null);
-                            continue;
+                            if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                clause.AttributeId == Attributes.NodeId)
+                            {
+                                condition.ConditionIdIndex = index;
+                                fields.Add(null);
+                                continue;
+                            }
+                            if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                clause.BrowsePath.Count != 0 &&
+                                clause.BrowsePath[0] == BrowseNames.Retain)
+                            {
+                                condition.RetainIndex = index;
+                                fields.Add(null);
+                                continue;
+                            }
                         }
                     }
 
@@ -4767,17 +4849,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool Refreshing { get; set; }
             public bool Superseded { get; set; }
             public long Generation { get; }
+            /// <summary>
+            /// When <see langword="true"/> this is a refresh-only condition:
+            /// <see cref="SnapshotInterval"/> and <see cref="UpdateInterval"/> are
+            /// unused.  <see cref="RefreshStartEventType"/> and
+            /// <see cref="RefreshEndEventType"/> are suppressed;
+            /// <see cref="RefreshRequiredEventType"/> re-issues the refresh;
+            /// all other events are forwarded as regular ua-event messages.
+            /// </summary>
+            public bool RefreshOnly { get; }
             public Dictionary<string, List<MonitoredItemNotificationModel>> Active { get; } = [];
 
-            public ConditionState(EventMonitoredItemModel template)
+            public ConditionState(EventMonitoredItemModel template, bool refreshOnly = false)
             {
                 Generation = Interlocked.Increment(ref s_generation);
-                SnapshotInterval = template.ConditionHandling!.SnapshotInterval!.Value;
-                UpdateInterval = template.ConditionHandling.UpdateInterval ?? SnapshotInterval;
+                RefreshOnly = refreshOnly;
+                if (!refreshOnly)
+                {
+                    SnapshotInterval = template.ConditionHandling!.SnapshotInterval!.Value;
+                    UpdateInterval = template.ConditionHandling.UpdateInterval ?? SnapshotInterval;
+                }
             }
 
             public bool Matches(EventMonitoredItemModel template)
             {
+                if (RefreshOnly)
+                {
+                    return template.ConditionHandling?.RefreshRetainedConditionsOnStart == true &&
+                        template.ConditionHandling?.SnapshotInterval == null;
+                }
                 return SnapshotInterval == template.ConditionHandling!.SnapshotInterval!.Value &&
                     UpdateInterval == (template.ConditionHandling.UpdateInterval ?? SnapshotInterval);
             }
@@ -4955,6 +5055,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private readonly Lock _bindingsLock = new();
+        /// <summary>
+        /// Serializes heartbeat delivery against value-change and key-frame delivery
+        /// on the same <see cref="OnSubscriptionDataChangeReceived"/> path.
+        /// <para>
+        /// Lock ordering rule: every other lock (<see cref="_bindingsLock"/>,
+        /// <c>HeartbeatState._lock</c>, <c>binding._dataLock</c>) must be
+        /// released before acquiring <see cref="_deliveryGate"/>.  Inside the
+        /// gate, <see cref="_bindingsLock"/> and <c>HeartbeatState._lock</c> may
+        /// be re-acquired (heartbeat staleness re-check); no path holds those
+        /// locks when it tries to acquire the gate, so no cycle is possible.
+        /// Subscriber callbacks are invoked while the gate is held; correctness
+        /// (preventing stale heartbeats from arriving after fresher values) takes
+        /// precedence over throughput on both the timer and publish paths.
+        /// </para>
+        /// </summary>
+        private readonly Lock _deliveryGate = new();
         private readonly Dictionary<uint, ManagedSubscriptionItemBinding> _bindingsByHandle = [];
         private readonly Dictionary<string, ManagedSubscriptionItemBinding> _bindingsByName =
             new(StringComparer.Ordinal);

@@ -3324,6 +3324,369 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(0u, manager.Subscription.Collection.Count);
         }
 
+        // ── Task 1: _deliveryGate serialises heartbeat vs value-change delivery ──────────────
+
+        [Fact]
+        public async Task HeartbeatCarriesCurrentSequenceAfterValueChanges()
+        {
+            // After two value changes (seq=1 then seq=2) the heartbeat must carry seq=2 —
+            // the current item sequence — not the stale seq=1.  This verifies that
+            // TryCaptureHeartbeat always snapshots the latest sequence, so a heartbeat
+            // never re-delivers an outdated value.
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = (FakeMonitoredItem)Assert.Single(manager.Subscription!.Collection.Items);
+
+            // Deliver value seq=1.
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(1)), null) },
+                PublishState.None, []);
+
+            // Advance seq to 2.
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 2,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(2)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // Flush heartbeat — must carry the current seq=2, never the stale seq=1.
+            adapter.FlushHeartbeats(force: true);
+
+            Assert.Equal(1, owner.DataChanges.Count);
+            Assert.True(owner.DataChanges[0].Notifications.Any(n =>
+                n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat)));
+            // Item sequence number in the heartbeat matches the last delivered seq.
+            var hbSeq = owner.DataChanges[0].Notifications.Max(n => n.SequenceNumber);
+            Assert.Equal(2u, hbSeq);
+        }
+
+        [Fact]
+        public async Task DeliveryGateSerializesHeartbeatAndValueChangeDuringConcurrentDelivery()
+        {
+            // Stress test: run 50 rounds of concurrent heartbeat-flush and value-change
+            // delivery and verify the ordering invariant: a heartbeat notification whose
+            // item sequence number is N must never appear *after* a value-change notification
+            // whose item sequence number is greater than N.
+            //
+            // Without the _deliveryGate inner re-check a heartbeat can pass the outer
+            // IsHeartbeatCurrent test, be preempted, have a newer value delivered, and
+            // then be delivered after it — publishing a stale value after a fresh one.
+            // The gate's inner re-check drops the heartbeat in that window.
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = (FakeMonitoredItem)Assert.Single(manager.Subscription!.Collection.Items);
+
+            // Seed seq=1 so the heartbeat has a cached value to re-deliver.
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(0)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            for (var round = 0; round < 50; round++)
+            {
+                // Race: heartbeat (seq=current) vs value-change (seq=current+1).
+                var valueTask = Task.Run(() =>
+                    manager.Handler.OnDataChangeNotificationAsync(manager.Subscription,
+                        (uint)(round + 2), DateTime.UtcNow,
+                        new[] { new DataValueChange(item,
+                            new DataValue(Variant.From(round + 1)), null) },
+                        PublishState.None, []).AsTask());
+                adapter.FlushHeartbeats(force: true);
+                await valueTask;
+
+                // Invariant: a heartbeat with seq=N must not follow a value-change with
+                // seq>N in the delivery list.
+                for (var i = 1; i < owner.DataChanges.Count; i++)
+                {
+                    var prev = owner.DataChanges[i - 1];
+                    var curr = owner.DataChanges[i];
+                    var prevIsHeartbeat = prev.Notifications.Any(n =>
+                        n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat));
+                    var currIsHeartbeat = curr.Notifications.Any(n =>
+                        n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat));
+                    if (!prevIsHeartbeat && currIsHeartbeat)
+                    {
+                        var valueSeq = prev.Notifications.Max(n => n.SequenceNumber);
+                        var hbSeq = curr.Notifications.Max(n => n.SequenceNumber);
+                        Assert.True(hbSeq >= valueSeq,
+                            $"Round {round}: heartbeat seq {hbSeq} appeared after " +
+                            $"value-change seq {valueSeq}");
+                    }
+                }
+                owner.DataChanges.Clear();
+            }
+        }
+
+        [Fact]
+        public async Task DeliveryGateBlocksHeartbeatWhileValueChangeIsBeingDelivered()
+        {
+            // Verifies that the delivery gate serialises heartbeat and value-change delivery:
+            // a heartbeat that is currently executing its subscriber callback (holding the
+            // gate) will complete *before* a concurrent value-change delivery can run its
+            // subscriber callback.  Without the gate both callbacks would race, potentially
+            // corrupting the shared DataChanges list or producing wrong ordering.
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = (FakeMonitoredItem)Assert.Single(manager.Subscription!.Collection.Items);
+
+            // Seed initial value seq=1 so heartbeat has something to re-deliver.
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(0)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // Set up coordination: signal when the heartbeat subscriber callback fires
+            // (we are now inside the delivery gate), then block until released.
+            var heartbeatInGate = new SemaphoreSlim(0);
+            var releaseHeartbeat = new SemaphoreSlim(0);
+            owner.OnDataChangeAction = () =>
+            {
+                heartbeatInGate.Release();
+                releaseHeartbeat.Wait(TimeSpan.FromSeconds(5));
+            };
+
+            // Flush heartbeat from background — it will hold the gate while blocked.
+            var heartbeatTask = Task.Run(() => adapter.FlushHeartbeats(force: true));
+
+            // Wait until the heartbeat subscriber callback is executing (gate is held).
+            await heartbeatInGate.WaitAsync(TimeSpan.FromSeconds(5));
+
+            // Clear the action so the value change callback won't block.
+            owner.OnDataChangeAction = null;
+
+            // Start a value-change delivery; with the gate it must wait for the heartbeat.
+            var valueTask = Task.Run(async () =>
+                await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 2,
+                    DateTime.UtcNow,
+                    new[] { new DataValueChange(item, new DataValue(Variant.From(1)), null) },
+                    PublishState.None, []));
+
+            // Release the heartbeat — it exits the gate, then the value change gets it.
+            releaseHeartbeat.Release();
+            await heartbeatTask;
+            await valueTask;
+
+            // Both notifications must have arrived: heartbeat first, then the value change.
+            Assert.Equal(2, owner.DataChanges.Count);
+            Assert.True(owner.DataChanges[0].Notifications.Any(n =>
+                n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat)),
+                "First notification must be the heartbeat.");
+            Assert.False(owner.DataChanges[1].Notifications.Any(n =>
+                n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat)),
+                "Second notification must be the value change.");
+        }
+
+        // ── Task 2: RefreshRetainedConditionsOnStart ──────────────────────────────────────
+
+        [Fact]
+        public async Task SnapshotIntervalTakesPrecedenceOverRefreshRetainedConditionsOnStart()
+        {
+            // When both SnapshotInterval and RefreshRetainedConditionsOnStart are set the
+            // snapshot path must win: events are cached and emitted as ua-condition messages.
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var item = CreateConditionItem("stable", snapshotInterval: 2, updateInterval: 1) with
+            {
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = 2,
+                    UpdateInterval = 1,
+                    RefreshRetainedConditionsOnStart = true   // must be ignored
+                }
+            };
+            await adapter.UpdateAsync([(owner, item)]);
+            var monItem = (FakeMonitoredItem)Assert.Single(
+                manager.Subscription!.Collection.Items);
+
+            // Send a condition event using the snapshot-filter layout (4 fields).
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow, CreateConditionNotification(monItem, "cond1"),
+                PublishState.None, []);
+
+            // Not yet visible (cached for snapshot).
+            Assert.Empty(owner.Events);
+
+            adapter.FlushConditions(force: true);
+
+            // Snapshot path: ua-condition message.
+            Assert.Equal(1, owner.Events.Count);
+            Assert.Equal(MessageType.Condition, owner.Events[0].MessageType);
+        }
+
+        [Fact]
+        public async Task RefreshOnlyModeDeliversRetainedConditionsAsRegularUaEvents()
+        {
+            // When only RefreshRetainedConditionsOnStart=true (no SnapshotInterval) the
+            // adapter must operate in refresh-only mode: retained conditions arrive as
+            // ordinary ua-event messages immediately, not as ua-condition snapshots.
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateRefreshOnlyEventItem("ns=2;s=events"))]);
+            var monItem = (FakeMonitoredItem)Assert.Single(
+                manager.Subscription!.Collection.Items);
+
+            var publishTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                publishTime,
+                new EventNotification[]
+                {
+                    new EventNotification(monItem, ArrayOf.Wrapped(
+                        Variant.From(ObjectTypeIds.BaseEventType),
+                        Variant.From("retained-cond")))
+                },
+                PublishState.None, []);
+
+            // Delivered immediately as ua-event (not buffered for snapshot).
+            Assert.Equal(1, owner.Events.Count);
+            Assert.Equal(MessageType.Event, owner.Events[0].MessageType);
+
+            // FlushConditions must not re-deliver: no snapshot cache.
+            adapter.FlushConditions(force: true);
+            Assert.Equal(1, owner.Events.Count);
+        }
+
+        [Fact]
+        public async Task RefreshStartAndEndEventsAreSuppressedForRefreshOnlyBinding()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateRefreshOnlyEventItem("ns=2;s=events"))]);
+            var monItem = (FakeMonitoredItem)Assert.Single(
+                manager.Subscription!.Collection.Items);
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new EventNotification(monItem, ArrayOf.Wrapped(
+                        Variant.From(ObjectTypeIds.RefreshStartEventType))),
+                    new EventNotification(monItem, ArrayOf.Wrapped(
+                        Variant.From(ObjectTypeIds.BaseEventType),
+                        Variant.From("retained-cond"))),
+                    new EventNotification(monItem, ArrayOf.Wrapped(
+                        Variant.From(ObjectTypeIds.RefreshEndEventType)))
+                },
+                PublishState.None, []);
+
+            // Markers suppressed; only the regular condition event is delivered.
+            Assert.Equal(1, owner.Events.Count);
+            Assert.Equal(MessageType.Event, owner.Events[0].MessageType);
+        }
+
+        [Fact]
+        public async Task RefreshRequiredEventReIssuesConditionRefreshForRefreshOnlyBinding()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateRefreshOnlyEventItem("ns=2;s=events"))]);
+            var monItem = (FakeMonitoredItem)Assert.Single(
+                manager.Subscription!.Collection.Items);
+
+            Assert.Equal(0, manager.Subscription!.ConditionRefreshCount);
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new EventNotification(monItem, ArrayOf.Wrapped(
+                        Variant.From(ObjectTypeIds.RefreshRequiredEventType)))
+                },
+                PublishState.None, []);
+
+            // RefreshRequired triggers a new ConditionRefresh call.
+            Assert.Equal(1, manager.Subscription.ConditionRefreshCount);
+            // The event itself is not forwarded to subscribers.
+            Assert.Empty(owner.Events);
+        }
+
+        [Fact]
+        public async Task RefreshOnlyBindingIssuesConditionRefreshOnSubscriptionCreated()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateRefreshOnlyEventItem("ns=2;s=events"))]);
+
+            Assert.Equal(0, manager.Subscription!.ConditionRefreshCount);
+
+            // Simulating the subscription being created triggers the initial condition refresh.
+            await manager.Handler!.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Created, PublishState.None);
+
+            Assert.Equal(1, manager.Subscription.ConditionRefreshCount);
+        }
+
+        [Fact]
+        public async Task RefreshOnlyBindingIssuesConditionRefreshOnReconnect()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateRefreshOnlyEventItem("ns=2;s=events"))]);
+
+            // Establish the subscription first.
+            await manager.Handler!.OnSubscriptionStateChangedAsync(manager.Subscription!,
+                SubscriptionState.Created, PublishState.None);
+            Assert.Equal(1, manager.Subscription!.ConditionRefreshCount);
+
+            // Reconnect: a second Created notification must re-issue the refresh.
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, PublishState.Recovered);
+            Assert.Equal(2, manager.Subscription.ConditionRefreshCount);
+        }
+
+        private static EventMonitoredItemModel CreateRefreshOnlyEventItem(string nodeId)
+        {
+            return new EventMonitoredItemModel
+            {
+                StartNodeId = nodeId,
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    RefreshRetainedConditionsOnStart = true
+                    // SnapshotInterval deliberately left null → refresh-only mode
+                },
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        // EventType must be first so EventTypeIndex=0 and marker detection works.
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = "i=2041",  // BaseEventType
+                            BrowsePath = ["EventType"],
+                            DisplayName = "EventType"
+                        },
+                        new SimpleAttributeOperandModel
+                        {
+                            DisplayName = "Value"
+                        }
+                    ]
+                }
+            };
+        }
+
         private static Variant GetSingleValue(
             OpcUaSubscriptionNotification notification)
         {
