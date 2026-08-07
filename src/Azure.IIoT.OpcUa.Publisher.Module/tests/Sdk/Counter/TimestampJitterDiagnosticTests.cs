@@ -80,7 +80,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             await RunAsync("monotonic source (control)", useScheduledTimestamps: true);
         }
 
-        private async Task RunAsync(string label, bool useScheduledTimestamps)
+        /// <summary>
+        /// <para>
+        /// The customer's actual configuration: a monotonic (perfect) source,
+        /// plus a two second heartbeat using
+        /// <c>WatchdogLKVWithUpdatedTimestamps</c>.
+        /// </para>
+        /// <para>
+        /// That behaviour is the one place in the product that synthesizes a
+        /// source timestamp. It re-sends the last known value with
+        /// </para>
+        /// <code>
+        /// SourceTimestamp += (timerFireTime - valueReceiveTime)
+        /// </code>
+        /// <para>
+        /// which adds an interval measured on the publisher's wall clock to a
+        /// timestamp taken from the server's clock. The constant offset
+        /// between the two clocks cancels, but every bit of receive path
+        /// jitter - network latency, publish cycle phase, processing delay -
+        /// is injected straight into the emitted source timestamp.
+        /// </para>
+        /// <para>
+        /// The source here is monotonic, so the source contributes exactly
+        /// zero jitter. Anything this arm reports is therefore attributable to
+        /// the publisher.
+        /// </para>
+        /// </summary>
+        [SkippableFact]
+        public async Task MonotonicSourceWithUpdatedTimestampHeartbeatAsync()
+        {
+            Skip.IfNot(Enabled, $"Set {kVariable}=1 to run the jitter diagnostic.");
+            await RunAsync("monotonic source + WatchdogLKVWithUpdatedTimestamps",
+                useScheduledTimestamps: true, heartbeatSeconds: 2,
+                heartbeatBehavior: "WatchdogLKVWithUpdatedTimestamps");
+        }
+
+        private async Task RunAsync(string label, bool useScheduledTimestamps,
+            int heartbeatSeconds = 0, string heartbeatBehavior = null)
         {
             var interval = TimeSpan.FromSeconds(2);
             var nodeCount = 50;
@@ -96,15 +132,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             }, loggerFactory);
             EndpointUrl = server.EndpointUrl;
 
-            var configuration = WriteConfiguration(nodeCount, interval);
+            var configuration = WriteConfiguration(nodeCount, interval, heartbeatSeconds);
             try
             {
-                StartPublisher(label, configuration,
-                    ["--mm=FullSamples", "--me=Json", "--bs=50", "--bi=10000"]);
+                var args = new List<string>
+                {
+                    "--mm=FullSamples", "--me=Json", "--bs=50", "--bi=10000"
+                };
+                if (heartbeatBehavior != null)
+                {
+                    args.Add($"--hbb={heartbeatBehavior}");
+                }
+                StartPublisher(label, configuration, args.ToArray());
 
                 // deltas per node, in milliseconds
                 var last = new Dictionary<string, DateTime>();
                 var deltas = new List<double>();
+                var heartbeats = 0L;
+                var total = 0L;
 
                 await ConsumeMessagesAsync(TimeSpan.FromMinutes(4), message =>
                 {
@@ -115,12 +160,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     {
                         return;
                     }
-                    // Heartbeats resend a timestamp; exclude them.
+                    total++;
                     if (message.TryGetProperty("Heartbeat", out var hb) &&
                         hb.ValueKind == JsonValueKind.True)
                     {
-                        return;
+                        heartbeats++;
                     }
+                    //
+                    // Deliberately include heartbeats. Under
+                    // WatchdogLKVWithUpdatedTimestamps a heartbeat carries a
+                    // shifted, non-duplicate timestamp, so a consumer that
+                    // does not inspect the Heartbeat indicator - which only
+                    // exists in the full featured profiles - cannot tell it
+                    // apart from a real sample. This is what the customer's
+                    // query sees.
+                    //
                     var id = n.GetString()!;
                     parsed = parsed.ToUniversalTime();
                     if (last.TryGetValue(id, out var prev))
@@ -130,6 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     last[id] = parsed;
                 }, Ct).ConfigureAwait(false);
 
+                _output.WriteLine($"  samples={total}, heartbeats={heartbeats}");
                 Report(label, deltas, interval);
             }
             finally
@@ -192,7 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             _output.WriteLine($"  self-correcting late/early pairs: {pairs}");
         }
 
-        private static string WriteConfiguration(int nodeCount, TimeSpan interval)
+        private static string WriteConfiguration(int nodeCount, TimeSpan interval,
+            int heartbeatSeconds)
         {
             var path = Path.Combine(Path.GetTempPath(),
                 Path.GetRandomFileName() + ".pn.json");
@@ -214,6 +270,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     writer.WriteNumber("OpcSamplingInterval",
                         (int)interval.TotalMilliseconds);
                     writer.WriteNumber("QueueSize", 10);
+                    if (heartbeatSeconds > 0)
+                    {
+                        writer.WriteNumber("HeartbeatInterval", heartbeatSeconds);
+                    }
                     writer.WriteEndObject();
                 }
                 writer.WriteEndArray();

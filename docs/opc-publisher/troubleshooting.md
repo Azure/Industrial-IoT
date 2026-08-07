@@ -16,6 +16,7 @@ In this document you find information about
     - [IoT Hub Metrics](#iot-hub-metrics)
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
   - [Duplicated, stale or unevenly spaced values](#duplicated-stale-or-unevenly-spaced-values)
+    - [Jittered timestamps without duplicates](#jittered-timestamps-without-duplicates)
 - [Restart the module](#restart-the-module)
 - [Analyzing network capture files](#analyzing-network-capture-files)
   - [Netcap](#netcap)
@@ -176,6 +177,25 @@ To rule out that values were actually dropped or that the server queue overflowe
 | `serverQueueOverflows` | The OPC UA server dropped queued values. Increase `QueueSize` or the publishing interval. |
 
 If all of these are zero, no value was lost inside OPC Publisher.
+
+#### Jittered timestamps without duplicates
+
+The section above assumes the default heartbeat behavior, which re-sends the original `SourceTimestamp`. If `--hbb=WatchdogLKVWithUpdatedTimestamps` is configured the symptoms look different, and in particular the tell-tale duplicate timestamp is absent:
+
+- no value is missing and no `SourceTimestamp` is repeated, so a naive completeness check passes,
+- but a share of the `SourceTimestamp` distances is far from the sampling interval,
+- and occasionally a timestamp is *earlier* than the previous one, which looks like reordering.
+
+This is the [legacy behavior](./readme.md#legacy-behavior) working as designed: it shifts the re-sent timestamp forward by the time elapsed since the value was received, measured on the OPC Publisher clock. Every heartbeat therefore lands at an arbitrary point inside the sampling period and carries a unique timestamp.
+
+Measured against a perfectly regular simulated source at a two second sampling and two second heartbeat interval, this produced roughly 29 % of samples as heartbeats and roughly 29 % of `SourceTimestamp` distances outside a 2 % tolerance band, including negative distances - while the value sequence itself was complete and gap free.
+
+Remedies, in order of preference:
+
+1. Upgrade to a version that contains the [watchdog grace period](./readme.md#watchdog-grace-period). With it, a heartbeat configured at or below the publishing interval no longer races the value it is waiting for, and stops firing while data is flowing.
+2. Switch to the default `WatchdogLKV` behavior, which never modifies a timestamp.
+3. Set the heartbeat interval well above the sampling interval, so it only fires when data genuinely stops.
+4. Use `--mm=FullSamples` / `--fm=True` and filter on the `Heartbeat` indicator.
 
 ## Restart the module
 

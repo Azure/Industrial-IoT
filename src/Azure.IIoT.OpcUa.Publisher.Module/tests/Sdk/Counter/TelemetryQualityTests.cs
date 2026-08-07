@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
     using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -135,6 +136,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         }
 
         /// <summary>
+        /// <para>
+        /// The customer scenario with the legacy
+        /// <c>WatchdogLKVWithUpdatedTimestamps</c> heartbeat behaviour, which
+        /// is the only behaviour in the product that <em>synthesizes</em> a
+        /// source timestamp: it re-sends the last known value with
+        /// </para>
+        /// <code>
+        /// SourceTimestamp += (timerFireTime - valueReceiveTime)
+        /// </code>
+        /// <para>
+        /// The shift is measured on the publisher's wall clock while the
+        /// timestamp it is added to comes from the server clock, so every bit
+        /// of receive path jitter lands in the emitted source timestamp. The
+        /// result is not a duplicate timestamp, which means a consumer that
+        /// does not evaluate the heartbeat indicator cannot tell such a
+        /// message apart from a real sample - it simply sees the source
+        /// timestamp distance jump around, and where a heartbeat lands close
+        /// to a real value, go backwards.
+        /// </para>
+        /// <para>
+        /// Measured against the pre grace period watchdog this arm produced
+        /// roughly three in ten samples as heartbeats and the same share of
+        /// source timestamp distances outside a two percent band, including
+        /// negative ones. It is therefore the sharpest available regression
+        /// detector for the watchdog race and the reason it is exercised here
+        /// even though the behaviour is legacy.
+        /// </para>
+        /// </summary>
+        [SkippableFact]
+        public async Task UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync()
+        {
+            SkipUnlessEnabled();
+            var report = await RunScenarioAsync(
+                nameof(UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync),
+                MessagingMode.FullSamples, NodeCount, kInterval, kInterval, kInterval,
+                kQueueSize, (int)kInterval.TotalSeconds, RunDuration,
+                heartbeatBehavior: "WatchdogLKVWithUpdatedTimestamps").ConfigureAwait(false);
+
+            AssertClean(report);
+
+            //
+            // Under this behaviour a heartbeat carries a shifted timestamp by
+            // design, and each shifted message can break the spacing of at
+            // most the two gaps it sits between. Anything beyond that budget
+            // means the displacement came from the value path rather than
+            // from a legitimately fired heartbeat.
+            //
+            var budget = report.HeartbeatSamples * 2;
+            Assert.True(report.MessageIntervalViolations <= budget,
+                $"{report.MessageIntervalViolations} message(s) were not one update " +
+                $"interval apart, which exceeds the {budget} that " +
+                $"{report.HeartbeatSamples} heartbeat(s) can account for.\n{report}");
+        }
+
+        /// <summary>
         /// Run one scenario and return the resulting quality report.
         /// </summary>
         /// <param name="test"></param>
@@ -146,10 +202,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         /// <param name="queueSize"></param>
         /// <param name="heartbeatSeconds"></param>
         /// <param name="duration">How long telemetry is analysed</param>
+        /// <param name="heartbeatBehavior">Optional <c>--hbb</c> value</param>
         private async Task<TelemetryQualityReport> RunScenarioAsync(string test,
             MessagingMode mode, int nodeCount, TimeSpan updateInterval,
             TimeSpan publishingInterval, TimeSpan samplingInterval, uint queueSize,
-            int heartbeatSeconds, TimeSpan duration)
+            int heartbeatSeconds, TimeSpan duration, string heartbeatBehavior = null)
         {
             using var loggerFactory = Log.ConsoleFactory(LogLevel.Warning);
             using var server = CounterServer.Create(nodeCount, updateInterval, loggerFactory);
@@ -159,8 +216,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                 samplingInterval, queueSize, heartbeatSeconds);
             try
             {
-                StartPublisher(test, configuration,
-                [
+                var arguments = new List<string>
+                {
                     $"--mm={mode}",
                     "--me=Json",
                     //
@@ -169,7 +226,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     //
                     "--bs=50",
                     "--bi=10000"
-                ]);
+                };
+                if (heartbeatBehavior != null)
+                {
+                    arguments.Add($"--hbb={heartbeatBehavior}");
+                }
+                StartPublisher(test, configuration, [.. arguments]);
 
                 var validator = new TelemetryQualityValidator(new TelemetryQualityOptions
                 {
