@@ -4,6 +4,8 @@
 
 In this document you find information about
 
+> IMPORTANT: This documentation always describes the latest released version of OPC Publisher. Before investigating any issue, make sure you are running the [latest release](https://github.com/Azure/Industrial-IoT/releases). Issues are only diagnosed and fixed against it, and a problem you are seeing may already be resolved.
+
 ## Table Of Contents <!-- omit in toc -->
 
 - [Debugging Telemetry data issues](#debugging-telemetry-data-issues)
@@ -186,16 +188,18 @@ The section above assumes the default heartbeat behavior, which re-sends the ori
 - but a share of the `SourceTimestamp` distances is far from the sampling interval,
 - and occasionally a timestamp is *earlier* than the previous one, which looks like reordering.
 
-This is the [legacy behavior](./readme.md#legacy-behavior) working as designed: it shifts the re-sent timestamp forward by the time elapsed since the value was received, measured on the OPC Publisher clock. Every heartbeat therefore lands at an arbitrary point inside the sampling period and carries a unique timestamp.
+This is the [legacy behavior](./readme.md#legacy-behavior) working as designed: it shifts the re-sent timestamp forward by the time elapsed since the value was received, measured on the OPC Publisher clock rather than the server clock. Every heartbeat therefore lands at an arbitrary point inside the sampling period and carries a unique timestamp, and where one lands close to a real value the resulting distance can even be negative.
 
-Measured against a perfectly regular simulated source at a two second sampling and two second heartbeat interval, this produced roughly 29 % of samples as heartbeats and roughly 29 % of `SourceTimestamp` distances outside a 2 % tolerance band, including negative distances - while the value sequence itself was complete and gap free.
+Because the shift is measured on the OPC Publisher clock, it also absorbs network latency, publish cycle phase and processing delay, none of which the server's own timestamps are subject to.
+
+The watchdog only fires when a value has not arrived for the heartbeat interval plus a [grace period](./readme.md#watchdog-grace-period), so while data flows normally no timestamp is displaced. Seeing this symptom therefore means values are genuinely missing their deadline. Compare `ingressHeartbeats` with `ingressValueChanges` in the [diagnostics output](./observability.md) to confirm how often that happens.
 
 Remedies, in order of preference:
 
-1. Upgrade to a version that contains the [watchdog grace period](./readme.md#watchdog-grace-period). With it, a heartbeat configured at or below the publishing interval no longer races the value it is waiting for, and stops firing while data is flowing.
-2. Switch to the default `WatchdogLKV` behavior, which never modifies a timestamp.
-3. Set the heartbeat interval well above the sampling interval, so it only fires when data genuinely stops.
-4. Use `--mm=FullSamples` / `--fm=True` and filter on the `Heartbeat` indicator.
+1. Switch to the default `WatchdogLKV` behavior, which re-sends the original timestamp and never modifies it.
+2. Set the heartbeat interval well above the sampling interval, so it only fires when data genuinely stops rather than when a single value is late.
+3. Use `--mm=FullSamples` / `--fm=True` and filter on the `Heartbeat` indicator.
+4. Analyze the message `Timestamp` instead of `SourceTimestamp`, which is never synthesized.
 
 ## Restart the module
 
