@@ -29,6 +29,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
 /// and will be counted as <c>UnflaggedRepeats</c> when this flag is absent.
 /// Only the wire indicator reliably identifies that behaviour.
 /// </para>
+/// Whether the sample originates from a <c>ua-keyframe</c> data set
+/// message. Key-frames republish all current field values regardless of
+/// whether they changed since the last publish cycle, so a repeated
+/// value inside a key-frame is a snapshot artefact, not a heartbeat.
+/// Structural heartbeat inference is suppressed for key-frame samples
+/// to avoid misclassifying those snapshots as WatchdogLKV resends.
 /// </param>
     /// <param name="MessageTimestamp">
     /// Time at which the notification was produced by the publisher. A
@@ -40,7 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
     /// </param>
     public readonly record struct TelemetrySample(string NodeId, long Value,
         DateTime? SourceTimestamp, bool IsHeartbeat,
-        DateTime? MessageTimestamp = null, uint? SequenceNumber = null);
+        DateTime? MessageTimestamp = null, uint? SequenceNumber = null,
+        bool IsKeyFrame = false);
 
     /// <summary>
     /// <para>

@@ -73,12 +73,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 return;
             }
 
-            _totalSamples++;
-
             if (!_nodes.TryGetValue(sample.NodeId, out var state))
             {
                 _nodes.Add(sample.NodeId, state = new NodeState());
             }
+
+            //
+            // Key-frame messages republish a snapshot of all current field values
+            // unconditionally. A key-frame that repeats both the counter value and
+            // the SourceTimestamp of the last observed sample for this node is a
+            // snapshot confirmation, not a new event. Skip it so it does not affect
+            // gap, ordering, or heartbeat metrics.
+            //
+            if (sample.IsKeyFrame && state.HasSample
+                && sample.Value == state.LastSampleValue
+                && sample.SourceTimestamp == state.LastSampleTimestamp)
+            {
+                return;
+            }
+
+            _totalSamples++;
 
             //
             // Infer whether this sample is a heartbeat even when the wire indicator
@@ -98,6 +112,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             // value but not the timestamp. They cannot be detected by this inference
             // and will be counted as UnflaggedRepeats. Only the wire indicator reliably
             // identifies that behaviour.
+            //
+            // Key-frame repeats with the same value and source timestamp are silently
+            // dropped above before reaching this point, so structural inference here
+            // only fires for delta-frame repeats, which are genuine heartbeat resends.
             //
             var isHeartbeat = sample.IsHeartbeat
                 || (state.HasSample
@@ -396,6 +414,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             var heartbeat = IsHeartbeat(dataSetMessage);
             var timestamp = ReadTimestamp(dataSetMessage);
             //
+            // Key-frame messages republish all current field values regardless
+            // of whether they changed. A key-frame that repeats the last known
+            // value is a snapshot, not a WatchdogLKV heartbeat, so structural
+            // heartbeat inference must be suppressed for those samples.
+            //
+            var isKeyFrame = dataSetMessage.TryGetProperty("MessageType", out var mt) &&
+                mt.ValueKind == JsonValueKind.String &&
+                mt.GetString() == "ua-keyframe";
+            //
             // A data set message carries one sequence number for all of its
             // fields, so it can only be used to deduplicate when the data set
             // holds a single field.
@@ -407,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 if (TryReadDataValue(field.Value, out var counter, out var sourceTimestamp))
                 {
                     Add(new TelemetrySample(field.Name, counter, sourceTimestamp, heartbeat,
-                        timestamp, sequenceNumber));
+                        timestamp, sequenceNumber, isKeyFrame));
                 }
             }
         }
@@ -452,7 +479,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             {
                 inner = body;
             }
-            return inner.ValueKind == JsonValueKind.Number && inner.TryGetInt64(out value);
+            if (inner.ValueKind == JsonValueKind.Number)
+            {
+                return inner.TryGetInt64(out value);
+            }
+            //
+            // The 3.0 native PubSub stack encodes UInt64 (and Int64) as JSON
+            // strings because their range exceeds the IEEE-754 double that
+            // JSON numbers normally carry. Accept a string representation of
+            // any integer the counter can produce.
+            //
+            if (inner.ValueKind == JsonValueKind.String)
+            {
+                var s = inner.GetString();
+                if (long.TryParse(s, out value))
+                {
+                    return true;
+                }
+                // Also accept unsigned values that fit a signed long.
+                if (ulong.TryParse(s, out var u) && u <= (ulong)long.MaxValue)
+                {
+                    value = (long)u;
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
