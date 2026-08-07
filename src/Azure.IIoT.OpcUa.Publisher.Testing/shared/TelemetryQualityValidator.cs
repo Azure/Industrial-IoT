@@ -74,18 +74,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             }
 
             _totalSamples++;
-            if (sample.IsHeartbeat)
+
+            if (!_nodes.TryGetValue(sample.NodeId, out var state))
+            {
+                _nodes.Add(sample.NodeId, state = new NodeState());
+            }
+
+            //
+            // Infer whether this sample is a heartbeat even when the wire indicator
+            // (sample.IsHeartbeat) is absent. The wire indicator is authoritative when
+            // present, preserving correct behaviour for 2.9-shaped messages. For
+            // 3.0-shaped messages, which are published through the standards-compliant
+            // OPC UA Part 14 encoder and carry no Heartbeat member, a heartbeat is
+            // detected structurally: a WatchdogLKV heartbeat resends the last known
+            // value unchanged with its original SourceTimestamp.
+            //
+            // This comparison must precede the state update below; after the update,
+            // state.LastSampleValue and state.LastSampleTimestamp reflect the current
+            // sample and the comparison would always be true for consecutive samples.
+            //
+            // Limitation: HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps advances
+            // the SourceTimestamp on each heartbeat, so those heartbeats repeat the
+            // value but not the timestamp. They cannot be detected by this inference
+            // and will be counted as UnflaggedRepeats. Only the wire indicator reliably
+            // identifies that behaviour.
+            //
+            var isHeartbeat = sample.IsHeartbeat
+                || (state.HasSample
+                    && sample.Value == state.LastSampleValue
+                    && sample.SourceTimestamp == state.LastSampleTimestamp);
+
+            if (isHeartbeat)
             {
                 _heartbeatSamples++;
             }
             else
             {
                 _valueSamples++;
-            }
-
-            if (!_nodes.TryGetValue(sample.NodeId, out var state))
-            {
-                _nodes.Add(sample.NodeId, state = new NodeState());
             }
 
             if (sample.SourceTimestamp == null)
@@ -108,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                     AddExample(
                         $"{sample.NodeId}: message source timestamp distance {delta} " +
                         $"(value {state.LastSampleValue} -> {sample.Value}, " +
-                        $"heartbeat={sample.IsHeartbeat})");
+                        $"heartbeat={isHeartbeat})");
                 }
             }
 
@@ -117,18 +142,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 if (sample.Value < state.LastSampleValue)
                 {
                     _outOfOrderIncludingHeartbeats++;
-                    if (!sample.IsHeartbeat)
+                    if (!isHeartbeat)
                     {
                         _outOfOrderValues++;
                     }
                     AddExample(
                         $"{sample.NodeId}: value went backwards {state.LastSampleValue} -> " +
-                        $"{sample.Value} (heartbeat={sample.IsHeartbeat})");
+                        $"{sample.Value} (heartbeat={isHeartbeat})");
                 }
                 else if (sample.Value == state.LastSampleValue)
                 {
                     _repeatedValues++;
-                    if (sample.IsHeartbeat)
+                    if (isHeartbeat)
                     {
                         _repeatedValuesFromHeartbeat++;
                     }
@@ -145,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             state.LastSampleValue = sample.Value;
             state.LastSampleTimestamp = sample.SourceTimestamp;
 
-            if (sample.IsHeartbeat)
+            if (isHeartbeat)
             {
                 AnalyzeHeartbeat(sample, state);
                 return;

@@ -60,16 +60,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         }
 
         [Fact]
-        public void RepeatWithoutTheHeartbeatIndicatorIsCountedUnflagged()
+        public void RepeatWithMatchingValueAndTimestampIsInferredAsHeartbeat()
         {
+            // When a sample repeats both the value and the SourceTimestamp of its
+            // predecessor and carries no wire indicator, it is structurally
+            // indistinguishable from a WatchdogLKV heartbeat and is inferred as one.
+            // A 3.0 publisher emits exactly this shape — no Heartbeat member — so
+            // inference is the only way to classify these samples correctly.
+            //
+            // Before the structural inference was added, this test expected
+            // UnflaggedRepeats=1 / RepeatedValuesFromHeartbeat=0 because the
+            // wire indicator was the only discriminator. That encoded the broken
+            // 3.0 behaviour: every heartbeat counted as an unflagged repeat.
             var validator = Create(kTwoSeconds, nodes: 1);
             validator.Add(Value(1));
-            validator.Add(Value(1));
+            validator.Add(Value(1)); // same value AND same SourceTimestamp → inferred heartbeat
 
             var report = validator.CreateReport();
             Assert.Equal(1, report.RepeatedValues);
-            Assert.Equal(0, report.RepeatedValuesFromHeartbeat);
-            Assert.Equal(1, report.UnflaggedRepeats);
+            Assert.Equal(1, report.RepeatedValuesFromHeartbeat); // inferred, not wire-flagged
+            Assert.Equal(0, report.UnflaggedRepeats);
         }
 
         [Fact]
@@ -238,6 +248,91 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             Assert.Equal(4, report.NodesMissing);
         }
 
+        [Fact]
+        public void RepeatWithNewTimestampIsGenuineUnflaggedRepeat()
+        {
+            // A sample that repeats the value but carries a new SourceTimestamp is
+            // NOT a heartbeat — inference requires both value and timestamp to match.
+            // This test exists to prevent the inference from being over-broad: a
+            // genuine duplicate value with a different timestamp must still be counted
+            // so that UnflaggedRepeats remains a reliable signal.
+            var validator = Create(kTwoSeconds, nodes: 1);
+            validator.Add(Value(1));
+            // Same value, but timestamp has advanced → genuine duplicate, not a heartbeat.
+            validator.Add(new TelemetrySample("a", 1L, kEpoch.AddSeconds(5), false, null));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.RepeatedValues);
+            Assert.Equal(0, report.RepeatedValuesFromHeartbeat);
+            Assert.Equal(1, report.UnflaggedRepeats);
+        }
+
+        [Fact]
+        public void EarlyHeartbeatIsDetectedByInferenceWithoutWireIndicator()
+        {
+            // This is the signal the soak_smoke CI job asserts on. Verify that
+            // EarlyHeartbeats is non-zero when a 3.0-shaped message (no Heartbeat
+            // member) repeats the last value and timestamp but arrives before the
+            // watchdog grace period elapsed.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            // Value published at message-time t=2s.
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(2)));
+
+            // No-wire-flag repeat at message-time t=8s: only 6s after the value,
+            // but the earliest legitimate heartbeat is heartbeatInterval + publishing
+            // interval = 10s + 2s = 12s after the value.
+            validator.Add(NoFlagHeartbeat(1, kEpoch.AddSeconds(2), kEpoch.AddSeconds(8)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.EarlyHeartbeats);
+            Assert.Equal(1, report.HeartbeatSamples);
+            Assert.Equal(0, report.UnflaggedRepeats);
+        }
+
+        [Fact]
+        public void WireIndicatorTakesEffectOnTwoPointNineShapedMessages()
+        {
+            // 2.9-shaped messages carry the Heartbeat wire member. Verify that
+            // the wire indicator is still honoured so that existing behaviour is
+            // preserved after the structural inference was added.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(2)));
+            validator.Add(Heartbeat(1, kEpoch.AddSeconds(2), kEpoch.AddSeconds(14)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.HeartbeatSamples);
+            Assert.Equal(0, report.UnflaggedRepeats);
+            Assert.Equal(0, report.EarlyHeartbeats);
+            Assert.Equal(0, report.HeartbeatsWithChangedTimestamp);
+        }
+
+        [Fact]
+        public void WireIndicatorRecognizesHeartbeatWithUpdatedTimestamp()
+        {
+            // WatchdogLKVWithUpdatedTimestamps advances the SourceTimestamp on each
+            // heartbeat. The structural inference cannot detect this (timestamps differ),
+            // but the wire indicator makes it explicit. This test verifies the wire
+            // indicator is the authoritative path and is not bypassed.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(2)));
+            // Wire flag present; source timestamp advanced (inference would NOT fire).
+            validator.Add(Heartbeat(1, kEpoch.AddSeconds(14), kEpoch.AddSeconds(14)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.HeartbeatSamples);
+            Assert.Equal(0, report.UnflaggedRepeats);
+            Assert.Equal(1, report.HeartbeatsWithChangedTimestamp);
+        }
+
         private static TelemetryQualityValidator Create(TimeSpan updateInterval, int nodes,
             TimeSpan? heartbeatInterval = null, TimeSpan? heartbeatTolerance = null)
         {
@@ -263,6 +358,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             DateTime messageTimestamp, string node = "a")
         {
             return new TelemetrySample(node, value, sourceTimestamp, true,
+                messageTimestamp);
+        }
+
+        /// <summary>
+        /// Creates a sample that structurally looks like a heartbeat — same value
+        /// and same SourceTimestamp as its predecessor — but carries no wire indicator.
+        /// This is the shape a 3.0 publisher emits for WatchdogLKV heartbeats.
+        /// </summary>
+        private static TelemetrySample NoFlagHeartbeat(long value, DateTime sourceTimestamp,
+            DateTime messageTimestamp, string node = "a")
+        {
+            return new TelemetrySample(node, value, sourceTimestamp, false,
                 messageTimestamp);
         }
     }
