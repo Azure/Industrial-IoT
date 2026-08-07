@@ -1,23 +1,23 @@
 {
   "Azure.IIoT.OpcUa": {
-    "line": 84.26,
+    "line": 85.0,
     "branch": 70.0
   },
   "Azure.IIoT.OpcUa.Core": {
-    "line": 67.4,
-    "branch": 62.64
+    "line": 85.0,
+    "branch": 70.0
   },
   "Azure.IIoT.OpcUa.Publisher": {
-    "line": 76.73,
-    "branch": 64.15
+    "line": 85.0,
+    "branch": 70.0
   },
   "Azure.IIoT.OpcUa.Publisher.Models": {
     "line": 85.0,
     "branch": 70.0
   },
   "Azure.IIoT.OpcUa.Publisher.Module": {
-    "line": 74.61,
-    "branch": 57.72
+    "line": 85.0,
+    "branch": 70.0
   },
   "Azure.IIoT.OpcUa.Publisher.Sdk": {
     "line": 85.0,

@@ -144,18 +144,46 @@ foreach ($file in $reportFiles) {
 # the build was stale.
 #
 $staleAssemblies = @()
+#
+# The suite is the first directory under the report root. Taking a fixed
+# number of parents instead breaks whenever the runner nests results deeper
+# than <suite>/<guid>/ - the data collector sometimes writes an extra In/
+# <machine>/ pair, and the guard then names every such report "In", which is
+# useless precisely when it matters.
+#
+$reportRoot = $null
+if (Test-Path $ReportPath -PathType Container) {
+    $reportRoot = (Resolve-Path $ReportPath).ProviderPath.TrimEnd([IO.Path]::DirectorySeparatorChar)
+}
+function Get-SuiteName([string] $reportFile) {
+    if ($reportRoot) {
+        $full = (Resolve-Path -LiteralPath $reportFile).ProviderPath
+        if ($full.StartsWith($reportRoot, [StringComparison]::OrdinalIgnoreCase)) {
+            $relative = $full.Substring($reportRoot.Length).TrimStart(
+                [IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+            $first = ($relative -split '[\\/]')[0]
+            if ($first -and $first -ne (Split-Path -Leaf $reportFile)) { return $first }
+        }
+    }
+    return Split-Path -Leaf (Split-Path -Parent $reportFile)
+}
 foreach ($name in ($perReportTotals.Keys | Sort-Object)) {
     $totals = $perReportTotals[$name]
     $distinct = $totals.Values | Sort-Object -Unique
     if ($distinct.Count -le 1) { continue }
-    $detail = ($totals.GetEnumerator() | Sort-Object Value | ForEach-Object {
-        #
-        # Results land in <dir>/<suite>/<guid>/coverage.cobertura.xml, so the
-        # suite is two levels above the file. Naming it is the whole point -
-        # it says which test project to rebuild.
-        #
-        $suite = Split-Path -Leaf (Split-Path -Parent (Split-Path -Parent $_.Key))
-        "      {0,6} lines  {1}" -f $_.Value, $suite
+    #
+    # One suite can emit more than one report, so collapse by suite and keep
+    # the line totals seen for it. Listing the same suite eight times buries
+    # the one line that differs.
+    #
+    $bySuite = [ordered]@{}
+    foreach ($entry in ($totals.GetEnumerator() | Sort-Object Value)) {
+        $suite = Get-SuiteName $entry.Key
+        if (-not $bySuite.Contains($suite)) { $bySuite[$suite] = @() }
+        $bySuite[$suite] += $entry.Value
+    }
+    $detail = ($bySuite.GetEnumerator() | ForEach-Object {
+        "      {0,6} lines  {1}" -f (($_.Value | Sort-Object -Unique) -join '/'), $_.Key
     }) -join "`n"
     $staleAssemblies += "  $name reports $($distinct -join ' / ') lines across reports:`n$detail"
 }

@@ -37,7 +37,7 @@ CI enforces a coverage floor **per shipping assembly**, not across the solution.
 
 The target is **85% line and 70% branch** for each of the six shipping assemblies. The scope — which assemblies count, and which harness, CLI and generated sources are excluded — is declared in `coverage.runsettings`.
 
-Floors are data rather than policy baked into CI, in `tools/scripts/coverage-thresholds.json`. While an assembly is being brought up to the target its floor sits a couple of points below whatever was last measured, so it can only ever ratchet upwards. Lowering an entry needs a stated reason.
+Floors are data rather than policy baked into CI, in `tools/scripts/coverage-thresholds.json`. All six shipping assemblies are now **at** the target, so every floor is 85/70. While an assembly is being brought up to the target its floor sits a couple of points below whatever was last measured, so it can only ever ratchet upwards. Lowering an entry needs a stated reason.
 
 To measure locally:
 
@@ -59,6 +59,8 @@ Three things about the measurement are worth knowing, because each of them produ
 * **The branch figure is a lower bound.** Cobertura reports per-line branch counts rather than branch identities, so branches merged across suites can only be combined conservatively. Treat a branch number as "at least this".
 
 Coverage also varies slightly between runs of the same commit, which is why the floors carry a small margin rather than sitting exactly at the last measurement.
+
+The gate has been shown to fail, not just to pass. All four of its failure modes were exercised deliberately: a line figure below floor, a branch figure below floor, a missing report (which fails rather than silently passing), and a measurement taken against mismatched builds. A gate that has only ever been seen to pass is not known to work.
 
 GitHub Actions CI
 =================
