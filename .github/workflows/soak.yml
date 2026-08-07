@@ -68,6 +68,12 @@ jobs:
             test: PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync
           - name: QueuedValues
             test: QueuedValuesArriveCompleteAndInOrderAsync
+          - name: UpdatedTimestampHeartbeat
+            test: UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync
+          - name: SlowSourceHeartbeat
+            test: SlowSourceHeartbeatsKeepTimestampsOrderedAsync
+          - name: SlowSourceUpdatedTimestampHeartbeat
+            test: SlowSourceUpdatedTimestampHeartbeatsShiftTimestampsAsync
     steps:
       - uses: actions/checkout@v4
         with:

@@ -110,6 +110,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                         $"(value {state.LastSampleValue} -> {sample.Value}, " +
                         $"heartbeat={sample.IsHeartbeat})");
                 }
+                //
+                // A source timestamp that moves backwards is symptom (d) as
+                // a consumer sees it when it cannot evaluate the heartbeat
+                // indicator: an "old" message arriving after a newer one.
+                // Distinct from the value based ordering check below, which
+                // a repeated value cannot trip.
+                //
+                if (delta < TimeSpan.Zero)
+                {
+                    _sourceTimestampRegressions++;
+                    AddExample(
+                        $"{sample.NodeId}: source timestamp went backwards by {-delta} " +
+                        $"(value {state.LastSampleValue} -> {sample.Value}, " +
+                        $"heartbeat={sample.IsHeartbeat})");
+                }
             }
 
             if (state.HasSample)
@@ -264,6 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 RepeatedValuesFromHeartbeat = _repeatedValuesFromHeartbeat,
                 ValueIntervalViolations = _valueIntervalViolations,
                 MessageIntervalViolations = _messageIntervalViolations,
+                SourceTimestampRegressions = _sourceTimestampRegressions,
                 SamplesWithoutSourceTimestamp = _samplesWithoutSourceTimestamp,
                 HeartbeatsWithChangedTimestamp = _heartbeatsWithChangedTimestamp,
                 EarlyHeartbeats = _earlyHeartbeats,
@@ -521,6 +537,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         private long _repeatedValuesFromHeartbeat;
         private long _valueIntervalViolations;
         private long _messageIntervalViolations;
+        private long _sourceTimestampRegressions;
         private long _samplesWithoutSourceTimestamp;
         private long _heartbeatsWithChangedTimestamp;
         private long _earlyHeartbeats;

@@ -114,6 +114,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         /// </summary>
         public long MessageIntervalViolations { get; init; }
 
+        /// <summary>
+        /// <para>
+        /// (d) Samples whose source timestamp was <em>earlier</em> than that
+        /// of the preceding sample for the same node.
+        /// </para>
+        /// <para>
+        /// This is symptom (d) as a consumer sees it when it cannot evaluate
+        /// the heartbeat indicator: an "old" message arriving shortly after a
+        /// newer one. It is deliberately distinct from
+        /// <see cref="OutOfOrderIncludingHeartbeats"/>, which compares the
+        /// counter values and therefore cannot trip on a repeated value no
+        /// matter what timestamp it carries.
+        /// </para>
+        /// <para>
+        /// Must be zero for every heartbeat behavior. Even
+        /// <c>WatchdogLKVWithUpdatedTimestamps</c>, which shifts the resent
+        /// timestamp, only ever shifts it forward.
+        /// </para>
+        /// </summary>
+        public long SourceTimestampRegressions { get; init; }
+
         /// <summary> Samples that carried no source timestamp at all </summary>
         public long SamplesWithoutSourceTimestamp { get; init; }
 
@@ -179,6 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 .AppendLine(CultureInfo.InvariantCulture, $"(b) out of order    : {OutOfOrderValues} (incl. heartbeats: {OutOfOrderIncludingHeartbeats})")
                 .AppendLine(CultureInfo.InvariantCulture, $"(c) value interval  : {ValueIntervalViolations} violations")
                 .AppendLine(CultureInfo.InvariantCulture, $"(c) message interval: {MessageIntervalViolations} violations")
+                .AppendLine(CultureInfo.InvariantCulture, $"(d) ts regressions  : {SourceTimestampRegressions}")
                 .AppendLine(CultureInfo.InvariantCulture, $"(d) repeated values : {RepeatedValues} ({RepeatedValuesFromHeartbeat} heartbeat, {UnflaggedRepeats} unflagged)")
                 .AppendLine(CultureInfo.InvariantCulture, $"    no timestamp    : {SamplesWithoutSourceTimestamp}")
                 .AppendLine(CultureInfo.InvariantCulture, $"    heartbeats/node : {MinHeartbeatsPerNode} min, {MaxHeartbeatsPerNode} max")
