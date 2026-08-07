@@ -404,6 +404,69 @@ jobs:
           retention-days: 14
 
   # --------------------------------------------------------------------------
+  # soak_smoke: run the telemetry quality soaks at a deliberately small size
+  # so the heartbeat watchdog is actually exercised on every pull request.
+  #
+  # build_test excludes Category=LongRunning, so without this job the soaks
+  # would compile but never execute here, and a regression in the watchdog
+  # would only be caught by the nightly soak (or, as happened once, by the
+  # internal build which cannot be filtered).
+  #
+  # 50 nodes x 1 minute is enough: with the pre-fix watchdog this
+  # configuration reports ~900 early heartbeats per scenario, so the signal
+  # is three orders of magnitude above the noise floor of zero. The full
+  # 500-node / 30-minute runs stay in soak.yml.
+  #
+  # The assertions this job relies on are load independent -- it asserts that
+  # no heartbeat fired *before* the watchdog deadline, which a busy runner
+  # cannot cause -- so a shared GitHub runner is a valid host for it.
+  # --------------------------------------------------------------------------
+  soak_smoke:
+    name: Telemetry quality smoke
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PROJECT: src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore
+        run: dotnet restore "$PROJECT" -s https://api.nuget.org/v3/index.json
+        shell: bash
+      - name: Build
+        run: dotnet build "$PROJECT" -c Release --no-restore
+        shell: bash
+      - name: Soak (smoke)
+        shell: bash
+        env:
+          IIOT_TELEMETRY_SOAK: '1'
+          IIOT_TELEMETRY_SOAK_NODES: '50'
+          IIOT_TELEMETRY_SOAK_MINUTES: '1'
+        run: |
+          dotnet test "$PROJECT" --no-build -c Release \
+            --blame-hang-timeout 30m --blame-hang-dump-type none \
+            --filter "Category=LongRunning" \
+            --logger "trx;LogFileName=soak-smoke.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./testresults/soak-smoke
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults-soak-smoke
+          path: ./testresults
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # coverage_report: merge all per-shard cobertura files into a single
   # report, render a markdown summary into $GITHUB_STEP_SUMMARY, and
   # upload the merged HTML report as an artifact.
   # --------------------------------------------------------------------------

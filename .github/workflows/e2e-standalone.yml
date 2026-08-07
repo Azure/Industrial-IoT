@@ -152,20 +152,46 @@ jobs:
   init:
     name: Compute run variables
     runs-on: ubuntu-latest
+    # This job only computes strings; it never talks to Azure. Drop the
+    # workflow-level `id-token: write` so it cannot mint an OIDC assertion for
+    # the E2E service principal. That closes the escalation path structurally:
+    # even if a future edit reintroduces an unsafe `${{ }}` interpolation into
+    # the script below, there is no token for injected code to steal.
+    permissions:
+      contents: read
     outputs:
       resource_group_name: ${{ steps.compute.outputs.rg }}
       soak_timeout_minutes: ${{ steps.compute.outputs.soak_timeout }}
     steps:
       - id: compute
         shell: bash
+        # Workflow inputs are passed through `env:` and dereferenced as shell
+        # variables rather than interpolated with `${{ }}` directly into the
+        # script. GitHub substitutes `${{ }}` textually before bash parses the
+        # line, so an input containing a quote would break out of the string
+        # and execute as shell -- in a job that holds `id-token: write` and can
+        # therefore mint an Azure OIDC assertion for the E2E service principal.
+        env:
+          RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name || '<generated>' }}
+          SOAK_MINUTES: ${{ inputs.soak_minutes || '30' }}
+          RUN_ID: ${{ github.run_id }}
         run: |
+          set -euo pipefail
+
           # Use github.run_id (globally unique per workflow run) -- not
           # github.run_number which is per-workflow and could collide with
           # other workflows generating RGs the same day.
-          if [ "${{ inputs.resource_group_name || '<generated>' }}" = "<generated>" ]; then
-            rg="e2etesting$(date -u +%Y%m%d)${{ github.run_id }}"
+          if [ "$RESOURCE_GROUP_NAME" = "<generated>" ]; then
+            rg="e2etesting$(date -u +%Y%m%d)${RUN_ID}"
           else
-            rg="${{ inputs.resource_group_name }}"
+            rg="$RESOURCE_GROUP_NAME"
+          fi
+          # Azure resource group names allow letters, digits, '_', '-', '.' and
+          # parentheses. Reject anything else rather than passing it on to the
+          # deployment scripts.
+          if ! [[ "$rg" =~ ^[A-Za-z0-9._()-]{1,90}$ ]]; then
+            echo "::error::Invalid resource group name: $rg"
+            exit 1
           fi
           echo "rg=${rg}" >> "$GITHUB_OUTPUT"
           echo "Resource group: ${rg}"
@@ -173,9 +199,12 @@ jobs:
           # Observation window plus headroom for restoring and building the
           # test solution, deploying the publisher module, creating the
           # simulation container, warming up and tearing everything down.
-          soak_minutes="${{ inputs.soak_minutes || '30' }}"
-          echo "soak_timeout=$((soak_minutes + 60))" >> "$GITHUB_OUTPUT"
-          echo "Soak job timeout: $((soak_minutes + 60)) minutes"
+          if ! [[ "$SOAK_MINUTES" =~ ^[0-9]{1,4}$ ]]; then
+            echo "::error::soak_minutes must be a number, got: $SOAK_MINUTES"
+            exit 1
+          fi
+          echo "soak_timeout=$((SOAK_MINUTES + 60))" >> "$GITHUB_OUTPUT"
+          echo "Soak job timeout: $((SOAK_MINUTES + 60)) minutes"
 
   # --------------------------------------------------------------------------
   # deploy_standalone: deploys the standalone IIoT infrastructure (KeyVault,
@@ -187,6 +216,11 @@ jobs:
     name: Deploy standalone resources
     needs: init
     runs-on: windows-latest
+    # Gate every job that authenticates to Azure behind the `e2e` environment,
+    # matching e2e-gc.yml. The environment is where the deployment credentials
+    # and any required-reviewer rules live, so a workflow_dispatch alone is not
+    # sufficient to reach the subscription.
+    environment: e2e
     timeout-minutes: 60
     outputs:
       key_vault_name: ${{ steps.kv.outputs.KeyVaultName }}
@@ -245,6 +279,7 @@ jobs:
     name: Deploy test resources (PLCs + IoT Edge VM)
     needs: [init, deploy_standalone]
     runs-on: windows-latest
+    environment: e2e
     timeout-minutes: 90
     outputs:
       fqdn: ${{ steps.deploy_edge.outputs.Fqdn }}
@@ -425,6 +460,7 @@ jobs:
             run_tests_soak_counters, run_tests_soak_heartbeat]
     if: always() && (inputs.cleanup == null || inputs.cleanup == true) && !cancelled()
     runs-on: ubuntu-latest
+    environment: e2e
     timeout-minutes: 30
     env:
       ResourceGroupName: ${{ needs.init.outputs.resource_group_name }}
