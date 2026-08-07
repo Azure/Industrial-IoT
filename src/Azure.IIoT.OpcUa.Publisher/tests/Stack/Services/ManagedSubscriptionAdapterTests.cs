@@ -1866,6 +1866,209 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(1, Assert.Single(owner.DataDiagnostics).Heartbeats);
         }
 
+        // ---- heartbeat timing regression tests (PR #2517) --------------------------
+
+        [Fact]
+        public async Task WatchdogDoesNotFireWhenValuesArriveAtPublishingInterval()
+        {
+            // Regression: with heartbeatInterval == publishingInterval the watchdog
+            // used to fire on almost every cycle because it armed for exactly _interval
+            // and the next value cannot arrive before one publishing interval has passed.
+            // After the fix the deadline is heartbeat + min(publishing, heartbeat) = 4 s,
+            // so a flush at 2.1 s must NOT emit a heartbeat.
+            var timeProvider = new ControlledTimeProvider();
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions
+                {
+                    DefaultPublishingInterval = TimeSpan.FromSeconds(2)
+                },
+                timeProvider: timeProvider);
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromSeconds(2)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            // Simulate the initial value arriving at T = 0.
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                timeProvider.GetUtcNow().UtcDateTime,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // At exactly one heartbeat interval (2.1 s) the old code fired a heartbeat;
+            // the fix extends the deadline to 4 s, so this flush must be silent.
+            timeProvider.Advance(TimeSpan.FromSeconds(2.1));
+            adapter.FlushHeartbeats();
+
+            Assert.Empty(owner.DataChanges);
+        }
+
+        [Fact]
+        public async Task WatchdogFiresHeartbeatAtDeadlineForSilentNode()
+        {
+            // A genuinely silent node must still produce a heartbeat, but only after
+            // the full deadline: heartbeat (2 s) + min(publishing, heartbeat) (2 s) = 4 s.
+            var timeProvider = new ControlledTimeProvider();
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions
+                {
+                    DefaultPublishingInterval = TimeSpan.FromSeconds(2)
+                },
+                timeProvider: timeProvider);
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromSeconds(2)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                timeProvider.GetUtcNow().UtcDateTime,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // Just before the 4 s deadline: no heartbeat yet.
+            timeProvider.Advance(TimeSpan.FromSeconds(3.9));
+            adapter.FlushHeartbeats();
+            Assert.Empty(owner.DataChanges);
+
+            // Just past the 4 s deadline: heartbeat fires exactly once.
+            timeProvider.Advance(TimeSpan.FromSeconds(0.2));
+            adapter.FlushHeartbeats();
+
+            Assert.Single(owner.DataChanges);
+        }
+
+        [Fact]
+        public async Task WatchdogDeadlineIsCappedAtTwiceTheHeartbeatInterval()
+        {
+            // When heartbeat (1 s) << publishing (10 s) the grace is capped at the
+            // heartbeat interval, giving deadline = 1 s + min(10 s, 1 s) = 2 s,
+            // not 11 s.
+            var timeProvider = new ControlledTimeProvider();
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions
+                {
+                    DefaultPublishingInterval = TimeSpan.FromSeconds(10)
+                },
+                timeProvider: timeProvider);
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromSeconds(1)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                timeProvider.GetUtcNow().UtcDateTime,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // Just before 2 × heartbeat: no heartbeat.
+            timeProvider.Advance(TimeSpan.FromSeconds(1.9));
+            adapter.FlushHeartbeats();
+            Assert.Empty(owner.DataChanges);
+
+            // Just past 2 × heartbeat: heartbeat fires (not at 11 s).
+            timeProvider.Advance(TimeSpan.FromSeconds(0.2));
+            adapter.FlushHeartbeats();
+
+            Assert.Single(owner.DataChanges);
+        }
+
+        [Fact]
+        public async Task PeriodicLkvFiresAtBareIntervalWithoutGrace()
+        {
+            // PeriodicLKV must keep its fixed cadence regardless of publishing interval.
+            var timeProvider = new ControlledTimeProvider();
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions
+                {
+                    DefaultPublishingInterval = TimeSpan.FromSeconds(2)
+                },
+                timeProvider: timeProvider);
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromSeconds(2),
+                HeartbeatBehavior = HeartbeatBehavior.PeriodicLKV
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                timeProvider.GetUtcNow().UtcDateTime,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // PeriodicLKV does not reset the timer on data changes; the deadline is
+            // the bare interval (2 s) measured from activation, so a flush just past
+            // 2 s must fire even though the publishing interval would add 2 s of grace
+            // under the Watchdog behaviors.
+            timeProvider.Advance(TimeSpan.FromSeconds(2.1));
+            adapter.FlushHeartbeats();
+
+            Assert.Single(owner.DataChanges);
+            Assert.True(Assert.Single(owner.DataChanges[0].Notifications).Flags
+                .HasFlag(MonitoredItemSourceFlags.Heartbeat));
+        }
+
+        [Fact]
+        public async Task WatchdogPrematureElapseReArmsForRemainder()
+        {
+            // A premature flush (timer fires before deadline) must re-arm for the
+            // remaining time so the eventual heartbeat is not pushed out by a full
+            // extra deadline on top of the one already waited.
+            var timeProvider = new ControlledTimeProvider();
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions
+                {
+                    DefaultPublishingInterval = TimeSpan.FromSeconds(2)
+                },
+                timeProvider: timeProvider);
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromSeconds(2)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            // Value arrives at T = 0; deadline is 4 s from now.
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                timeProvider.GetUtcNow().UtcDateTime,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            // Premature flush at T = 1 s: elapsed < deadline(4 s), re-arms for 3 s.
+            timeProvider.Advance(TimeSpan.FromSeconds(1));
+            adapter.FlushHeartbeats();
+            Assert.Empty(owner.DataChanges);
+
+            // Another premature flush at T = 3.9 s: still < deadline.
+            timeProvider.Advance(TimeSpan.FromSeconds(2.9));
+            adapter.FlushHeartbeats();
+            Assert.Empty(owner.DataChanges);
+
+            // Flush at T = 4.1 s: elapsed >= deadline(4 s) → exactly one heartbeat,
+            // not delayed to T = 1 + 4 = 5 s or T = 3.9 + 4 = 7.9 s.
+            timeProvider.Advance(TimeSpan.FromSeconds(0.2));
+            adapter.FlushHeartbeats();
+
+            Assert.Single(owner.DataChanges);
+        }
+
+        // ---- end heartbeat timing regression tests ----------------------------------
+
         [Fact]
         public async Task ReenablingAfterEmptyWaitsForMonitoredItemApplication()
         {
@@ -3887,6 +4090,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             private long _offsetTicks;
+        }
+
+        /// <summary>
+        /// A deterministic time provider for heartbeat timing tests. Timestamps are
+        /// advanced manually via <see cref="Advance"/>; timers are no-ops so the test
+        /// controls all time progression through <see cref="ManagedSubscriptionAdapter.FlushHeartbeats"/>.
+        /// </summary>
+        private sealed class ControlledTimeProvider : TimeProvider
+        {
+            // Use TicksPerSecond as the frequency so that one tick == one 100-ns interval
+            // and GetElapsedTime returns TimeSpan values that match Advance exactly.
+            public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+            public override long GetTimestamp() => Volatile.Read(ref _timestamp);
+
+            public override DateTimeOffset GetUtcNow() => _now;
+
+            public void Advance(TimeSpan duration)
+            {
+                Interlocked.Add(ref _timestamp, duration.Ticks);
+                _now += duration;
+            }
+
+            public override ITimer CreateTimer(TimerCallback callback, object? state,
+                TimeSpan dueTime, TimeSpan period)
+            {
+                return new NoOpTimer();
+            }
+
+            private sealed class NoOpTimer : ITimer
+            {
+                public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+                public void Dispose() { }
+                public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+            }
+
+            private long _timestamp;
+            private DateTimeOffset _now =
+                new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         }
 
         private sealed class FakeSubscription : IPartitionedSubscription

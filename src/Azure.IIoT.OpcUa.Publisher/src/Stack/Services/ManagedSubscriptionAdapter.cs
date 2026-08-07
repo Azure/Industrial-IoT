@@ -87,6 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _timeProvider = timeProvider ?? TimeProvider.System;
             _watchdogTimeout = template.MonitoredItemWatchdogTimeout ??
                 options.DefaultMonitoredItemWatchdogTimeout ?? TimeSpan.Zero;
+            _publishingInterval = template.PublishingInterval
+                ?? options.DefaultPublishingInterval ?? TimeSpan.Zero;
             _watchdogCondition = template.WatchdogCondition ??
                 options.DefaultMonitoredItemWatchdogCondition ??
                 MonitoredItemWatchdogCondition.WhenAnyIsLate;
@@ -2623,7 +2625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ManagedSubscriptionOptionsAdapter.ToManagedOptions(effective, _options, _codec,
                     rootName ?? name, triggeredByNames),
                 rootName ?? name, triggeredByNames, _codec.Context, _timeProvider,
-                OnHeartbeatTimer);
+                OnHeartbeatTimer, _publishingInterval);
         }
 
         private async ValueTask<(List<(string Name, ISubscriber Owner,
@@ -3952,7 +3954,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 string rootName, IReadOnlyList<string> triggeredByNames,
                 IServiceMessageContext messageContext,
                 TimeProvider timeProvider,
-                Action<ManagedSubscriptionItemBinding> heartbeatCallback)
+                Action<ManagedSubscriptionItemBinding> heartbeatCallback,
+                TimeSpan publishingInterval = default)
             {
                 Name = name;
                 Owner = owner;
@@ -3968,6 +3971,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _publishedMetadata = CreateMetadataSnapshot();
                 _timeProvider = timeProvider;
                 _heartbeatCallback = heartbeatCallback;
+                _publishingInterval = publishingInterval;
                 UpdateHeartbeat(template);
             }
 
@@ -4414,7 +4418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         () => _heartbeatCallback(this));
                     _heartbeat.Update(interval,
                         data.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV,
-                        Registered);
+                        Registered, _publishingInterval);
                     if (created && _lastDataValue.HasValue &&
                         _lastDataReceivedAt.HasValue)
                     {
@@ -4589,6 +4593,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly IServiceMessageContext _messageContext;
             private readonly TimeProvider _timeProvider;
             private readonly Action<ManagedSubscriptionItemBinding> _heartbeatCallback;
+            private readonly TimeSpan _publishingInterval;
         }
 
         private readonly record struct HeartbeatSnapshot(
@@ -4628,7 +4633,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _callback = callback;
             }
 
-            public void Update(TimeSpan interval, HeartbeatBehavior behavior, bool active)
+            public void Update(TimeSpan interval, HeartbeatBehavior behavior, bool active,
+                TimeSpan publishingInterval = default)
             {
                 lock (_lock)
                 {
@@ -4636,9 +4642,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         return;
                     }
-                    var changed = _interval != interval || _behavior != behavior;
+                    var changed = _interval != interval || _behavior != behavior
+                        || _publishingInterval != publishingInterval;
                     _interval = interval;
                     _behavior = behavior;
+                    _publishingInterval = publishingInterval;
                     _registered = active;
                     ReconcileTimer(changed);
                 }
@@ -4725,9 +4733,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!force)
                     {
                         var elapsed = _timeProvider.GetElapsedTime(_armedTimestamp);
-                        if (elapsed < _interval)
+                        var deadline = EffectiveDeadline;
+                        if (elapsed < deadline)
                         {
-                            _timer!.Change(_interval - elapsed,
+                            _timer!.Change(deadline - elapsed,
                                 Timeout.InfiniteTimeSpan);
                             heartbeat = default;
                             return false;
@@ -4781,8 +4790,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void ArmTimer()
             {
                 _armedTimestamp = _timeProvider.GetTimestamp();
-                _timer!.Change(_interval, Timeout.InfiniteTimeSpan);
+                _timer!.Change(EffectiveDeadline, Timeout.InfiniteTimeSpan);
             }
+
+            private TimeSpan EffectiveDeadline =>
+                (_behavior & HeartbeatBehavior.PeriodicLKV) != 0
+                    ? _interval
+                    : _interval + TimeSpan.FromTicks(
+                        Math.Min(_publishingInterval.Ticks, _interval.Ticks));
 
             private void DisableTimer()
             {
@@ -4827,6 +4842,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private DateTimeOffset? _lastReceivedAt;
             private long _armedTimestamp;
             private TimeSpan _interval;
+            private TimeSpan _publishingInterval;
             private HeartbeatBehavior _behavior;
             private uint _lastSequenceNumber;
             private bool _registered;
@@ -5121,6 +5137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Lock _watchdogLock = new();
         private readonly ITimer _watchdogTimer;
         private readonly TimeSpan _watchdogTimeout;
+        private readonly TimeSpan _publishingInterval;
 #pragma warning disable CA2213 // Retained so pre-disposal waiters can release safely.
         private readonly SemaphoreSlim _updateGate = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
