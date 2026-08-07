@@ -174,7 +174,8 @@ namespace Vehicles.Types
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
             if ((browseName).IsNull)
             {
@@ -233,7 +234,7 @@ namespace Vehicles.Types
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 

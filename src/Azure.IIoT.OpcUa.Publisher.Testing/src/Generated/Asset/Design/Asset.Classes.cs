@@ -153,7 +153,8 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
             if ((browseName).IsNull)
             {
@@ -212,7 +213,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -341,7 +342,8 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
             if ((browseName).IsNull)
             {
@@ -379,7 +381,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -508,7 +510,8 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
             if ((browseName).IsNull)
             {
@@ -546,7 +549,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -672,7 +675,8 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
             if ((browseName).IsNull)
             {
@@ -710,7 +714,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
