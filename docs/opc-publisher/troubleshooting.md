@@ -188,18 +188,20 @@ The section above assumes the default heartbeat behavior, which re-sends the ori
 - but a share of the `SourceTimestamp` distances is far from the sampling interval,
 - and occasionally a timestamp is *earlier* than the previous one, which looks like reordering.
 
-This is the [legacy behavior](./readme.md#legacy-behavior) working as designed: it shifts the re-sent timestamp forward by the time elapsed since the value was received, measured on the OPC Publisher clock rather than the server clock. Every heartbeat therefore lands at an arbitrary point inside the sampling period and carries a unique timestamp, and where one lands close to a real value the resulting distance can even be negative.
+This is the [legacy behavior](./readme.md#legacy-behavior) working as designed: it shifts the re-sent timestamp forward by the time elapsed since the value was received, measured on the OPC Publisher clock rather than the server clock. Every heartbeat therefore lands at an arbitrary point inside the sampling period and carries a unique timestamp.
 
-Because the shift is measured on the OPC Publisher clock, it also absorbs network latency, publish cycle phase and processing delay, none of which the server's own timestamps are subject to.
+Because the shift is measured on the OPC Publisher clock, it also absorbs network latency, publish cycle phase and processing delay, none of which the server's own timestamps are subject to. The elapsed time is measured from the moment the value was *received*, which is already later than the timestamp the server put on it. A heartbeat that fires shortly before the next real value therefore carries a timestamp slightly *beyond* the one that value will carry, and the consumer sees the source timestamp sequence move backwards - an "old" value arriving right after a newer one, even though no value was lost or reordered.
 
-The watchdog only fires when a value has not arrived for the heartbeat interval plus a [grace period](./readme.md#watchdog-grace-period), so while data flows normally no timestamp is displaced. Seeing this symptom therefore means values are genuinely missing their deadline. Compare `ingressHeartbeats` with `ingressValueChanges` in the [diagnostics output](./observability.md) to confirm how often that happens.
+This is inherent to the behavior, not a defect, and it is the reason to prefer the default `WatchdogLKV` whenever `SourceTimestamp` spacing is analyzed. Measured against a perfectly regular simulated source with a counter changing every ten seconds and a two second heartbeat, about one in three value transitions was preceded by a heartbeat whose timestamp had overtaken it. Under `WatchdogLKV` the same scenario produced none, because the re-sent timestamp is never modified.
+
+The watchdog only fires when a value has not arrived for the heartbeat interval plus a [grace period](./readme.md#watchdog-grace-period), so while data flows normally no timestamp is displaced at all. Compare `ingressHeartbeats` with `ingressValueChanges` in the [diagnostics output](./observability.md) to confirm how often the watchdog is reporting.
 
 Remedies, in order of preference:
 
 1. Switch to the default `WatchdogLKV` behavior, which re-sends the original timestamp and never modifies it.
 2. Set the heartbeat interval well above the sampling interval, so it only fires when data genuinely stops rather than when a single value is late.
 3. Use `--mm=FullSamples` / `--fm=True` and filter on the `Heartbeat` indicator.
-4. Analyze the message `Timestamp` instead of `SourceTimestamp`, which is never synthesized.
+4. Analyze the message `Timestamp` instead of `SourceTimestamp`, which OPC Publisher never synthesizes from a server timestamp. Note that this requires option 3 as well: the message `Timestamp` is not emitted by the plain `Samples` profile. Note also that with `--mts=PublishTime` heartbeats carry no message timestamp at all, because they are generated locally rather than as the result of a publish response.
 
 ## Restart the module
 

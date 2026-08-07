@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -151,12 +152,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                 var heartbeats = 0L;
                 var total = 0L;
 
-                await ConsumeMessagesAsync(TimeSpan.FromMinutes(4), message =>
+                //
+                // Skip a warm up window. Monitored items are not all created
+                // at once, so the first delta of a node spans its creation
+                // and is legitimately larger than the interval. Counting it
+                // would put a floor of one outlier per node under the very
+                // metric this diagnostic reports.
+                //
+                var warmup = TimeSpan.FromSeconds(30);
+                var stopWatch = Stopwatch.StartNew();
+                await ConsumeMessagesAsync(warmup + TimeSpan.FromMinutes(4), message =>
                 {
                     if (!message.TryGetProperty("NodeId", out var n) ||
                         !message.TryGetProperty("Value", out var v) ||
                         !v.TryGetProperty("SourceTimestamp", out var ts) ||
                         !ts.TryGetDateTime(out var parsed))
+                    {
+                        return;
+                    }
+                    if (stopWatch.Elapsed < warmup)
                     {
                         return;
                     }

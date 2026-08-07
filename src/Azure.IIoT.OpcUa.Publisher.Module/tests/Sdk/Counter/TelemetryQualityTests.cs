@@ -7,10 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Telemetry;
     using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -163,6 +165,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         /// detector for the watchdog race and the reason it is exercised here
         /// even though the behaviour is legacy.
         /// </para>
+        /// <para>
+        /// Note that when the watchdog behaves correctly this arm sees no
+        /// heartbeat at all, so the shift arithmetic never runs. Coverage of
+        /// the arithmetic itself is the job of
+        /// <see cref="SlowSourceUpdatedTimestampHeartbeatsShiftTimestampsAsync"/>;
+        /// what this arm establishes is that the behaviour does not cause the
+        /// watchdog to fire in the first place.
+        /// </para>
         /// </summary>
         [SkippableFact]
         public async Task UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync()
@@ -172,22 +182,132 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                 nameof(UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync),
                 MessagingMode.FullSamples, NodeCount, kInterval, kInterval, kInterval,
                 kQueueSize, (int)kInterval.TotalSeconds, RunDuration,
-                heartbeatBehavior: "WatchdogLKVWithUpdatedTimestamps").ConfigureAwait(false);
+                HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps).ConfigureAwait(false);
 
             AssertClean(report);
+        }
+
+        /// <summary>
+        /// <para>
+        /// A slowly changing counter, where heartbeats are expected and
+        /// wanted. With the default <c>WatchdogLKV</c> behaviour the resent
+        /// value carries the original source timestamp, so the timestamp
+        /// sequence a consumer observes never moves backwards.
+        /// </para>
+        /// <para>
+        /// This is deterministic rather than load dependent: the server
+        /// simply does not produce a value for
+        /// <see cref="kSlowUpdateSeconds"/> seconds, so the watchdog must
+        /// report regardless of how busy the machine is. It is the
+        /// counterpart to
+        /// <see cref="UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync"/>,
+        /// which asserts that a heartbeat configured at the sampling interval
+        /// does <em>not</em> fire while data flows.
+        /// </para>
+        /// </summary>
+        [SkippableFact]
+        public async Task SlowSourceHeartbeatsKeepTimestampsOrderedAsync()
+        {
+            SkipUnlessEnabled();
+            var report = await RunSlowSourceScenarioAsync(
+                nameof(SlowSourceHeartbeatsKeepTimestampsOrderedAsync),
+                heartbeatBehavior: null).ConfigureAwait(false);
+
+            AssertValuesAreCleanAndHeartbeatsWellFormed(report);
+
+            // The default behaviour resends the value untouched.
+            Assert.True(report.HeartbeatsWithChangedTimestamp == 0,
+                $"{report.HeartbeatsWithChangedTimestamp} heartbeat(s) changed the source " +
+                $"timestamp of the value they resend although the default WatchdogLKV " +
+                $"behaviour is configured.\n{report}");
 
             //
-            // Under this behaviour a heartbeat carries a shifted timestamp by
-            // design, and each shifted message can break the spacing of at
-            // most the two gaps it sits between. Anything beyond that budget
-            // means the displacement came from the value path rather than
-            // from a legitimately fired heartbeat.
+            // Symptom (d) as the customer observes it: an "old" message
+            // arriving after a newer one. Must never happen with the default
+            // behaviour, no matter how many heartbeats fire.
             //
-            var budget = report.HeartbeatSamples * 2;
-            Assert.True(report.MessageIntervalViolations <= budget,
-                $"{report.MessageIntervalViolations} message(s) were not one update " +
-                $"interval apart, which exceeds the {budget} that " +
-                $"{report.HeartbeatSamples} heartbeat(s) can account for.\n{report}");
+            Assert.True(report.SourceTimestampRegressions == 0,
+                $"{report.SourceTimestampRegressions} message(s) carried a source " +
+                $"timestamp earlier than the message before it.\n{report}");
+        }
+
+        /// <summary>
+        /// <para>
+        /// The same slow counter with the legacy
+        /// <c>WatchdogLKVWithUpdatedTimestamps</c> behaviour, which is where
+        /// the shift arithmetic in <c>SendHeartbeatNotification</c> actually
+        /// runs. It pins the two properties that make the behaviour
+        /// observably different from the default:
+        /// </para>
+        /// <list type="number">
+        /// <item>every heartbeat carries a <em>changed</em> source timestamp,
+        /// so it is not a duplicate and a consumer that cannot evaluate the
+        /// heartbeat indicator cannot recognise it;</item>
+        /// <item>the source timestamp sequence can move <em>backwards</em>,
+        /// which is customer symptom (d).</item>
+        /// </list>
+        /// <para>
+        /// The second property is inherent to the design rather than a
+        /// defect. The shift added is <c>now - receiveTime</c>, and
+        /// <c>receiveTime</c> lags the value's own source timestamp by the
+        /// publish cycle phase, the network round trip and processing. A
+        /// heartbeat that fires shortly before the next real value therefore
+        /// carries a timestamp slightly <em>beyond</em> the one that value
+        /// will carry, and the consumer sees the sequence go backwards. This
+        /// arm deliberately does not assert that away - it records it, so the
+        /// documented recommendation to prefer <c>WatchdogLKV</c> when source
+        /// timestamp spacing is analysed stays evidence backed.
+        /// </para>
+        /// </summary>
+        [SkippableFact]
+        public async Task SlowSourceUpdatedTimestampHeartbeatsShiftTimestampsAsync()
+        {
+            SkipUnlessEnabled();
+            var report = await RunSlowSourceScenarioAsync(
+                nameof(SlowSourceUpdatedTimestampHeartbeatsShiftTimestampsAsync),
+                HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps).ConfigureAwait(false);
+
+            //
+            // Positive control: without this the assertions below would hold
+            // vacuously on a build where the shift silently stopped running.
+            //
+            Assert.True(report.HeartbeatsWithChangedTimestamp == report.HeartbeatSamples,
+                $"only {report.HeartbeatsWithChangedTimestamp} of {report.HeartbeatSamples} " +
+                $"heartbeat(s) carried a shifted source timestamp, so the shift under test " +
+                $"did not run for all of them.\n{report}");
+
+            //
+            // Whatever the shift does to the timestamps, the value stream
+            // itself must stay complete, ordered and correctly flagged.
+            //
+            AssertValuesAreCleanAndHeartbeatsWellFormed(report);
+
+            _output.WriteLine(
+                $"Source timestamp regressions caused by the shift: " +
+                $"{report.SourceTimestampRegressions} of {report.TotalSamples} sample(s)");
+        }
+
+        /// <summary>
+        /// Run the slow source scenario: the server counts up several times
+        /// slower than the heartbeat interval, so heartbeats are guaranteed
+        /// to fire.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="heartbeatBehavior"></param>
+        private async Task<TelemetryQualityReport> RunSlowSourceScenarioAsync(string test,
+            HeartbeatBehavior? heartbeatBehavior)
+        {
+            var report = await RunScenarioAsync(test, MessagingMode.FullSamples,
+                NodeCount, TimeSpan.FromSeconds(kSlowUpdateSeconds),
+                publishingInterval: kInterval, samplingInterval: kInterval,
+                queueSize: kQueueSize, heartbeatSeconds: (int)kInterval.TotalSeconds,
+                duration: RunDuration, heartbeatBehavior: heartbeatBehavior)
+                .ConfigureAwait(false);
+
+            Assert.True(report.HeartbeatSamples > 0,
+                $"No heartbeat was emitted although the server only counted up every " +
+                $"{kSlowUpdateSeconds} s with a {kInterval.TotalSeconds} s heartbeat.\n{report}");
+            return report;
         }
 
         /// <summary>
@@ -206,7 +326,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         private async Task<TelemetryQualityReport> RunScenarioAsync(string test,
             MessagingMode mode, int nodeCount, TimeSpan updateInterval,
             TimeSpan publishingInterval, TimeSpan samplingInterval, uint queueSize,
-            int heartbeatSeconds, TimeSpan duration, string heartbeatBehavior = null)
+            int heartbeatSeconds, TimeSpan duration,
+            HeartbeatBehavior? heartbeatBehavior = null)
         {
             using var loggerFactory = Log.ConsoleFactory(LogLevel.Warning);
             using var server = CounterServer.Create(nodeCount, updateInterval, loggerFactory);
@@ -232,6 +353,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     arguments.Add($"--hbb={heartbeatBehavior}");
                 }
                 StartPublisher(test, configuration, [.. arguments]);
+
+                //
+                // An unrecognised command line option is only warned about,
+                // not rejected, so a renamed switch would silently leave the
+                // default behaviour in place and every assertion below would
+                // still hold - the test would pass while covering nothing.
+                // Assert the option actually took effect.
+                //
+                if (heartbeatBehavior != null)
+                {
+                    var options = ResolveFromPublisher<IOptions<OpcUaSubscriptionOptions>>();
+                    Assert.Equal(heartbeatBehavior,
+                        options?.Value.DefaultHeartbeatBehavior);
+                }
 
                 var validator = new TelemetryQualityValidator(new TelemetryQualityOptions
                 {
@@ -314,6 +449,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         /// <param name="report"></param>
         private static void AssertClean(TelemetryQualityReport report)
         {
+            AssertValuesAreCleanAndHeartbeatsWellFormed(report);
+
+            //
+            // Values arrive on every publish cycle, so heartbeats should be
+            // rare. A generous ceiling still catches a systematic regression
+            // (the bug emitted one on roughly six out of ten cycles) while
+            // tolerating the occasional genuine stall on a busy agent.
+            //
+            var budget = Math.Max(kMinimumHeartbeatBudget, report.ValueSamples / 4);
+            Assert.True(report.HeartbeatSamples <= budget,
+                $"{report.HeartbeatSamples} heartbeat(s) were emitted although a value was " +
+                $"produced on every publish cycle, which exceeds the ceiling of {budget}.\n{report}");
+        }
+
+        /// <summary>
+        /// The subset of <see cref="AssertClean"/> that holds regardless of
+        /// how often the server produces a value, and therefore also applies
+        /// to scenarios in which heartbeats are expected to fire. It asserts
+        /// that the value stream is complete, ordered and evenly spaced, and
+        /// that every heartbeat is well formed - flagged as such and not
+        /// emitted before the watchdog deadline.
+        /// </summary>
+        /// <param name="report"></param>
+        private static void AssertValuesAreCleanAndHeartbeatsWellFormed(
+            TelemetryQualityReport report)
+        {
             Assert.True(report.TotalSamples > 0, "No telemetry was received at all.");
             Assert.True(report.NodesMissing == 0,
                 $"{report.NodesMissing} node(s) never reported a value.\n{report}");
@@ -346,17 +507,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             Assert.True(report.UnflaggedRepeats == 0,
                 $"{report.UnflaggedRepeats} value(s) were repeated without the heartbeat " +
                 $"indicator, so a consumer cannot tell them apart from real data.\n{report}");
-
-            //
-            // Values arrive on every publish cycle, so heartbeats should be
-            // rare. A generous ceiling still catches a systematic regression
-            // (the bug emitted one on roughly six out of ten cycles) while
-            // tolerating the occasional genuine stall on a busy agent.
-            //
-            var budget = Math.Max(kMinimumHeartbeatBudget, report.ValueSamples / 4);
-            Assert.True(report.HeartbeatSamples <= budget,
-                $"{report.HeartbeatSamples} heartbeat(s) were emitted although a value was " +
-                $"produced on every publish cycle, which exceeds the ceiling of {budget}.\n{report}");
         }
 
         /// <summary>
@@ -503,8 +653,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         /// not failed by a single genuine stall.
         /// </summary>
         private const int kMinimumHeartbeatBudget = 10;
-        private const int kDefaultNodeCount = 500;
-        private const int kDefaultDurationMinutes = 2;
+
+        /// <summary>
+        /// Rate at which the server counts up in the scenario that requires
+        /// heartbeats to fire. Several multiples of the heartbeat interval so
+        /// the watchdog must report regardless of machine load.
+        /// </summary>
+        private const int kSlowUpdateSeconds = 10;
+        private const int kDefaultNodeCount = 500;        private const int kDefaultDurationMinutes = 2;
         private const int kFullScaleNodeCount = 3000;
         private const uint kQueueSize = 10;
         private static readonly TimeSpan kInterval = TimeSpan.FromSeconds(2);
