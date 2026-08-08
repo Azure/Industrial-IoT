@@ -333,6 +333,106 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             Assert.Equal(1, report.HeartbeatsWithChangedTimestamp);
         }
 
+        [Fact]
+        public void MonotonicSourceDetectsUpdatedTimestampHeartbeatByValueAlone()
+        {
+            // WatchdogLKVWithUpdatedTimestamps advances the SourceTimestamp on each
+            // heartbeat, so the conservative inference (value AND timestamp match)
+            // cannot detect it. With MonotonicSource=true the repeated value alone
+            // is enough: a genuinely new sample on a strictly increasing source
+            // always carries a strictly higher value, so a repeated value can only
+            // be a heartbeat.
+            var validator = new TelemetryQualityValidator(new TelemetryQualityOptions
+            {
+                UpdateInterval = kTwoSeconds,
+                ExpectedNodeCount = 1,
+                HeartbeatInterval = TimeSpan.FromSeconds(10),
+                PublishingInterval = kTwoSeconds,
+                HeartbeatTolerance = TimeSpan.FromSeconds(1),
+                MonotonicSource = true
+            });
+
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(2)));
+            // Same value as above, but SourceTimestamp advanced by the watchdog shift.
+            // No wire indicator. Without MonotonicSource this would be UnflaggedRepeat=1.
+            validator.Add(new TelemetrySample("a", 1L,
+                kEpoch.AddSeconds(14), false, kEpoch.AddSeconds(14)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.HeartbeatSamples);
+            Assert.Equal(0, report.UnflaggedRepeats);
+        }
+
+        [Fact]
+        public void MonotonicSourceDoesNotAffectNonMonotonicDefault()
+        {
+            // Without MonotonicSource=true the default conservative rule applies:
+            // a repeated value with a changed SourceTimestamp is an UnflaggedRepeat,
+            // not a heartbeat. This test pins that boundary so the stronger path
+            // cannot silently spread.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(2)));
+            // Same value, SourceTimestamp advanced — but MonotonicSource is off.
+            validator.Add(new TelemetrySample("a", 1L,
+                kEpoch.AddSeconds(14), false, kEpoch.AddSeconds(14)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(0, report.HeartbeatSamples);
+            Assert.Equal(1, report.UnflaggedRepeats);
+        }
+
+        [Fact]
+        public void LegitimateHeartbeatNotFlaggedEarlyWhenTimestampsCoverage()
+        {
+            // The early-heartbeat check compares the heartbeat's MessageTimestamp
+            // against the value's SourceTimestamp (≈ T_recv in an in-process test).
+            // For a legitimate heartbeat that fires at exactly EffectiveDeadline after
+            // the value was received, sinceValue = T_hb_msg − ts_N ≈ EffectiveDeadline
+            // + hb_skew, which is never below the threshold even when the value's
+            // MessageTimestamp lags its receipt time by a full publishing interval.
+            //
+            // Scenario (EffectiveDeadline = heartbeatInterval + grace = 10s + 2s = 12s):
+            //   - Value SourceTimestamp = kEpoch + 2s  (server clock ≈ T_recv)
+            //   - Value MessageTimestamp = kEpoch + 3.8s (batched 1.8s after receipt)
+            //   - Heartbeat fires at T_recv + 12s, MessageTimestamp = kEpoch + 14.1s
+            //   - sinceValue = 14.1s − 2s = 12.1s
+            //   - 12.1s + 1s = 13.1s ≥ 12s → not flagged
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(3.8)));
+            validator.Add(Heartbeat(1, kEpoch.AddSeconds(2), kEpoch.AddSeconds(14.1)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(0, report.EarlyHeartbeats);
+            Assert.Equal(1, report.HeartbeatSamples);
+        }
+
+        [Fact]
+        public void GenuinelyEarlyHeartbeatIsDetectable()
+        {
+            // A heartbeat that fires well before EffectiveDeadline from T_recv is
+            // correctly flagged. The scenario has EffectiveDeadline = 12s but the
+            // heartbeat MessageTimestamp arrives only 8s after the value SourceTimestamp,
+            // which is substantially earlier than the grace period.
+            //
+            // sinceValue = (kEpoch + 10s) − (kEpoch + 2s) = 8s
+            // 8s + 1s = 9s < 12s → flagged
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            validator.Add(Value(1));
+            validator.Add(Heartbeat(1, kEpoch.AddSeconds(2), kEpoch.AddSeconds(10)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.EarlyHeartbeats);
+        }
+
         private static TelemetryQualityValidator Create(TimeSpan updateInterval, int nodes,
             TimeSpan? heartbeatInterval = null, TimeSpan? heartbeatTolerance = null)
         {

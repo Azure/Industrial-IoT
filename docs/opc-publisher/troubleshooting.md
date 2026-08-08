@@ -4,6 +4,8 @@
 
 In this document you find information about
 
+> IMPORTANT: This documentation always describes the latest released version of OPC Publisher. Before investigating any issue, make sure you are running the [latest release](https://github.com/Azure/Industrial-IoT/releases). Issues are only diagnosed and fixed against it, and a problem you are seeing may already be resolved.
+
 ## Table Of Contents <!-- omit in toc -->
 
 - [Debugging Telemetry data issues](#debugging-telemetry-data-issues)
@@ -16,6 +18,7 @@ In this document you find information about
     - [IoT Hub Metrics](#iot-hub-metrics)
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
   - [Duplicated, stale or unevenly spaced values](#duplicated-stale-or-unevenly-spaced-values)
+    - [Jittered timestamps without duplicates](#jittered-timestamps-without-duplicates)
 - [Restart the module](#restart-the-module)
 - [Analyzing network capture files](#analyzing-network-capture-files)
   - [Netcap](#netcap)
@@ -176,6 +179,29 @@ To rule out that values were actually dropped or that the server queue overflowe
 | `serverQueueOverflows` | The OPC UA server dropped queued values. Increase `QueueSize` or the publishing interval. |
 
 If all of these are zero, no value was lost inside OPC Publisher.
+
+#### Jittered timestamps without duplicates
+
+The section above assumes the default heartbeat behavior, which re-sends the original `SourceTimestamp`. If `--hbb=WatchdogLKVWithUpdatedTimestamps` is configured the symptoms look different, and in particular the tell-tale duplicate timestamp is absent:
+
+- no value is missing and no `SourceTimestamp` is repeated, so a naive completeness check passes,
+- but a share of the `SourceTimestamp` distances is far from the sampling interval,
+- and occasionally a timestamp is *earlier* than the previous one, which looks like reordering.
+
+This is the [legacy behavior](./readme.md#legacy-behavior) working as designed: it shifts the re-sent timestamp forward by the time elapsed since the value was received, measured on the OPC Publisher clock rather than the server clock. Every heartbeat therefore lands at an arbitrary point inside the sampling period and carries a unique timestamp.
+
+Because the shift is measured on the OPC Publisher clock, it also absorbs network latency, publish cycle phase and processing delay, none of which the server's own timestamps are subject to. The elapsed time is measured from the moment the value was *received*, which is already later than the timestamp the server put on it. A heartbeat that fires shortly before the next real value therefore carries a timestamp slightly *beyond* the one that value will carry, and the consumer sees the source timestamp sequence move backwards - an "old" value arriving right after a newer one, even though no value was lost or reordered.
+
+This is inherent to the behavior, not a defect, and it is the reason to prefer the default `WatchdogLKV` whenever `SourceTimestamp` spacing is analyzed. Measured against a perfectly regular simulated source with a counter changing every ten seconds and a two second heartbeat, about one in three value transitions was preceded by a heartbeat whose timestamp had overtaken it. Under `WatchdogLKV` the same scenario produced none, because the re-sent timestamp is never modified.
+
+The watchdog only fires when a value has not arrived for the heartbeat interval plus a [grace period](./readme.md#watchdog-grace-period), so while data flows normally no timestamp is displaced at all. Compare `ingressHeartbeats` with `ingressValueChanges` in the [diagnostics output](./observability.md) to confirm how often the watchdog is reporting.
+
+Remedies, in order of preference:
+
+1. Switch to the default `WatchdogLKV` behavior, which re-sends the original timestamp and never modifies it.
+2. Set the heartbeat interval well above the sampling interval, so it only fires when data genuinely stops rather than when a single value is late.
+3. Use `--mm=FullSamples` / `--fm=True` and filter on the `Heartbeat` indicator.
+4. Analyze the message `Timestamp` instead of `SourceTimestamp`, which OPC Publisher never synthesizes from a server timestamp. Note that this requires option 3 as well: the message `Timestamp` is not emitted by the plain `Samples` profile. Note also that with `--mts=PublishTime` heartbeats carry no message timestamp at all, because they are generated locally rather than as the result of a publish response.
 
 ## Restart the module
 
