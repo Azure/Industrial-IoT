@@ -746,17 +746,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, KestrelServerOptions options)
             {
-                if (_options.Value.UnsecureHttpServerPort != null)
+                var (unsecurePort, securePort) = GetListenPorts(_options.Value);
+
+                if (unsecurePort != null)
                 {
-                    options.ListenAnyIP(_options.Value.UnsecureHttpServerPort.Value);
+                    options.ListenAnyIP(unsecurePort.Value);
                 }
 
-                if (_options.Value.HttpServerPort != null)
+                if (securePort != null)
                 {
-                    options.Listen(IPAddress.Any, _options.Value.HttpServerPort.Value,
+                    options.Listen(IPAddress.Any, securePort.Value,
                         listenOptions => listenOptions.UseHttps(httpsOptions => httpsOptions
                             .ServerCertificateSelector = (_, _) => _certificates.Certificate));
                 }
+            }
+
+            /// <summary>
+            /// Resolve the ports to listen on. The MCP tool server is mapped onto
+            /// these listeners rather than opening one of its own, so enabling it
+            /// has to guarantee that at least one exists: when the configuration
+            /// left both off, the default https port is used.
+            /// </summary>
+            /// <param name="options"></param>
+            internal static (int? UnsecurePort, int? SecurePort) GetListenPorts(
+                PublisherOptions options)
+            {
+                var securePort = options.HttpServerPort;
+                if (options.EnableMcpServer == true &&
+                    options.UnsecureHttpServerPort == null && securePort == null)
+                {
+                    securePort = PublisherConfig.HttpServerPortDefault;
+                }
+                return (options.UnsecureHttpServerPort, securePort);
             }
 
             private readonly IOptions<PublisherOptions> _options;

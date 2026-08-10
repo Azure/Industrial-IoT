@@ -350,6 +350,7 @@ OPC Publisher has several interfaces that can be used to configure it.
 - [Command Line options configuration](./commandline.md)
 - [Configuration via API](./directmethods.md)
 - [Configuration via init file](#configuration-via-init-file)
+- [MCP tool server for AI agents](./mcp.md)
 - [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File

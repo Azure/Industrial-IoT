@@ -8,15 +8,22 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
+    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Json;
+    using Microsoft.AspNetCore.Routing;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
+    using ModelContextProtocol.Server;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Text;
     using System.Text.Json;
@@ -93,9 +100,100 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.False(emptyDocument.RootElement.TryGetProperty("DataSetClassId", out _));
         }
 
-        private static ServiceProvider BuildServiceProvider()
+        [Fact]
+        public void McpToolsAreNotRegisteredUnlessEnabled()
         {
-            var configuration = new ConfigurationBuilder().Build();
+            using var provider = BuildServiceProvider();
+
+            Assert.Empty(provider.GetServices<McpServerTool>());
+        }
+
+        [Fact]
+        public void McpToolsAreRegisteredWhenEnabled()
+        {
+            using var provider = BuildServiceProvider(mcpEnabled: true);
+
+            var tools = provider.GetServices<McpServerTool>()
+                .Select(tool => tool.ProtocolTool.Name)
+                .ToHashSet(StringComparer.Ordinal);
+
+            // The core service tools and the diagnostics tools, which follow
+            // --mcp rather than being separately opted into.
+            Assert.Contains("Connect", tools);
+            Assert.Contains("Browse", tools);
+            Assert.Contains("start_capture", tools);
+        }
+
+        /// <summary>
+        /// The MCP endpoint must be protected exactly like the REST api. Mapping it
+        /// inside the authenticated pipeline is necessary but not sufficient, so this
+        /// asserts the authorization metadata is actually present on the endpoint the
+        /// production Startup produces.
+        /// </summary>
+        [Fact]
+        public void McpEndpointRequiresAuthorization()
+        {
+            var (app, _) = BuildApplication(mcpEnabled: true);
+            using (app)
+            {
+                var mcpEndpoints = app.Services.GetRequiredService<EndpointDataSource>()
+                    .Endpoints
+                    .OfType<RouteEndpoint>()
+                    .Where(e => e.RoutePattern.RawText?.StartsWith("/mcp",
+                        StringComparison.Ordinal) == true)
+                    .ToList();
+
+                Assert.NotEmpty(mcpEndpoints);
+                Assert.All(mcpEndpoints, endpoint =>
+                    Assert.NotEmpty(endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()));
+            }
+        }
+
+        [Fact]
+        public void McpEndpointIsAbsentUnlessEnabled()
+        {
+            var (app, _) = BuildApplication(mcpEnabled: false);
+            using (app)
+            {
+                var mcpEndpoints = app.Services.GetRequiredService<EndpointDataSource>()
+                    .Endpoints
+                    .OfType<RouteEndpoint>()
+                    .Where(e => e.RoutePattern.RawText?.StartsWith("/mcp",
+                        StringComparison.Ordinal) == true);
+
+                Assert.Empty(mcpEndpoints);
+            }
+        }
+
+        private static (WebApplication App, Startup Startup) BuildApplication(bool mcpEnabled)
+        {
+            var builder = WebApplication.CreateBuilder();
+            builder.WebHost.UseTestServer();
+            builder.Configuration.AddInMemoryCollection(McpSettings(mcpEnabled));
+
+            var startup = new Startup(builder.Configuration);
+            startup.ConfigureServices(builder.Services);
+
+            var app = builder.Build();
+            startup.Configure(app);
+            return (app, startup);
+        }
+
+        private static Dictionary<string, string?> McpSettings(bool mcpEnabled)
+        {
+            return mcpEnabled
+                ? new Dictionary<string, string?>
+                {
+                    [PublisherConfig.EnableMcpServerKey] = "true"
+                }
+                : [];
+        }
+
+        private static ServiceProvider BuildServiceProvider(bool mcpEnabled = false)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(McpSettings(mcpEnabled))
+                .Build();
             var services = new ServiceCollection();
             new Startup(configuration).ConfigureServices(services);
             return services.BuildServiceProvider();

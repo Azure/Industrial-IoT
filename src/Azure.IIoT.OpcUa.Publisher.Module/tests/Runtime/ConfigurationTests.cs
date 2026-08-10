@@ -29,6 +29,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     [Collection("EnvironmentVariables")]
     public sealed class ConfigurationTests
     {
+        // The MCP tool server is served by the module's own http listeners, so
+        // asking for it must guarantee one exists rather than silently starting
+        // an endpoint nobody can reach.
+        [Fact]
+        public void McpServerEnablesTheDefaultHttpPortWhenNoneIsConfigured()
+        {
+            var options = new PublisherOptions
+            {
+                EnableMcpServer = true,
+                HttpServerPort = null,
+                UnsecureHttpServerPort = null
+            };
+
+            var (unsecurePort, securePort) = Configuration.Kestrel.GetListenPorts(options);
+
+            Assert.Null(unsecurePort);
+            Assert.Equal(PublisherConfig.HttpServerPortDefault, securePort);
+        }
+
+        [Fact]
+        public void McpServerDoesNotOverrideAConfiguredHttpPort()
+        {
+            var options = new PublisherOptions
+            {
+                EnableMcpServer = true,
+                HttpServerPort = 8443,
+                UnsecureHttpServerPort = null
+            };
+
+            var (unsecurePort, securePort) = Configuration.Kestrel.GetListenPorts(options);
+
+            Assert.Null(unsecurePort);
+            Assert.Equal(8443, securePort);
+        }
+
+        // An unsecure listener already satisfies the requirement, so no second
+        // listener is opened behind the operator's back.
+        [Fact]
+        public void McpServerIsSatisfiedByAnUnsecureListener()
+        {
+            var options = new PublisherOptions
+            {
+                EnableMcpServer = true,
+                HttpServerPort = null,
+                UnsecureHttpServerPort = 9071
+            };
+
+            var (unsecurePort, securePort) = Configuration.Kestrel.GetListenPorts(options);
+
+            Assert.Equal(9071, unsecurePort);
+            Assert.Null(securePort);
+        }
+
+        // Without the flag nothing changes: no listener is conjured up.
+        [Fact]
+        public void WithoutMcpServerNoPortIsAdded()
+        {
+            var options = new PublisherOptions
+            {
+                EnableMcpServer = null,
+                HttpServerPort = null,
+                UnsecureHttpServerPort = null
+            };
+
+            var (unsecurePort, securePort) = Configuration.Kestrel.GetListenPorts(options);
+
+            Assert.Null(unsecurePort);
+            Assert.Null(securePort);
+        }
+
         [Fact]
         public void OtelDefaultsEnablePrometheusMetrics()
         {

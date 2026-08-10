@@ -106,6 +106,19 @@ General
                              Disable the OPC Publisher Open API endpoint
                                exposed by the built-in HTTP server.
                                Default: `false` (enabled).
+      --mcp, --EnableMcpServer[=VALUE]
+                             Expose the OPC UA Model Context Protocol (MCP)
+                               tool server at the `/mcp` path of the built-in
+                               HTTP server so an agent can be pointed at it.
+                               The endpoint uses the same port and the same api
+                               key authentication as the REST api; no separate
+                               port is opened. If no http port is configured one
+                               is enabled on the default port.
+                               The tools can browse, read, write and call into
+                               connected servers, and capture, decode and replay
+                               OPC UA traffic. Only enable this on a trusted
+                               network.
+                               Default: `false` (disabled).
 
 Messaging configuration
 -----------------------

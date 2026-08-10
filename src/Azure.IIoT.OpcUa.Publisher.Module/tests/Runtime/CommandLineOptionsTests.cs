@@ -260,6 +260,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.Equal("9090", result.CommandLine[PublisherConfig.UnsecureHttpServerPortKey]);
         }
 
+        // --mcp (no value)  →  EnableMcpServerKey = "True"
+        [Fact]
+        public void McpOptionWithoutValueEnablesMcpServer()
+        {
+            var result = new CommandLineTest(["--mcp"]);
+
+            Assert.Equal("True", result.CommandLine[PublisherConfig.EnableMcpServerKey]);
+        }
+
+        // --mcp=false  →  explicit opt out is honored
+        [Fact]
+        public void McpOptionAcceptsExplicitBoolean()
+        {
+            var result = new CommandLineTest(["--mcp=false"]);
+
+            Assert.Equal("False", result.CommandLine[PublisherConfig.EnableMcpServerKey]);
+        }
+
+        // The MCP tool server is off unless asked for.
+        [Fact]
+        public void McpServerIsNotEnabledByDefault()
+        {
+            var result = new CommandLineTest([]);
+
+            Assert.False(result.CommandLine.ContainsKey(PublisherConfig.EnableMcpServerKey));
+        }
+
         // --apt=Directory  →  SetStoreType valid branch → ApplicationCertificateStoreTypeKey = "Directory"
         [Fact]
         public void AppCertStoreTypeDirectoryOptionSetsKey()

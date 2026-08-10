@@ -95,6 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DisableResourceMonitoringKey = "DisableResourceMonitoring";
         public const string HttpServerPortKey = "HttpServerPort";
         public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
+        public const string EnableMcpServerKey = "EnableMcpServer";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -408,6 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                     UnsecureHttpServerPortKey, UnsecureHttpServerPortDefault);
             options.HttpServerPort ??= GetIntOrNull(
                     HttpServerPortKey, HttpServerPortDefault);
+            options.EnableMcpServer ??= GetBoolOrNull(EnableMcpServerKey);
 
             options.ApiKeyOverride ??= GetStringOrDefault(ApiKeyOverrideKey);
 
@@ -567,6 +569,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 UnsecureHttpServerPort = GetIntOrNull(
                     nameof(PublisherOptions.UnsecureHttpServerPort)),
                 HttpServerPort = GetIntOrNull(nameof(PublisherOptions.HttpServerPort)),
+                EnableMcpServer = GetBoolOrNull(nameof(PublisherOptions.EnableMcpServer)),
                 IsAzureIoTOperationsConnector = GetBoolOrNull(
                     nameof(PublisherOptions.IsAzureIoTOperationsConnector)),
                 AioDiscoveredDeviceEndpointType = GetStringOrDefault(

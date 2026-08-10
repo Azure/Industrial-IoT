@@ -119,6 +119,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"doa|disableopenapi:|{PublisherConfig.DisableOpenApiEndpointKey}:",
                     "Disable the OPC Publisher Open API endpoint exposed by the built-in HTTP server.\nDefault: `false` (enabled).\n",
                     (bool? b) => this[PublisherConfig.DisableOpenApiEndpointKey] = b?.ToString() ?? "True" },
+                { $"mcp:|{PublisherConfig.EnableMcpServerKey}:",
+                    "Expose the OPC UA Model Context Protocol (MCP) tool server at the `/mcp` path of the built-in HTTP server so an agent can be pointed at it.\nThe endpoint uses the same port and the same api key authentication as the REST api; no separate port is opened. If no http port is configured one is enabled on the default port.\nThe tools can browse, read, write and call into connected servers, and capture, decode and replay OPC UA traffic. Only enable this on a trusted network.\nDefault: `false` (disabled).\n",
+                    (bool? b) => this[PublisherConfig.EnableMcpServerKey] = b?.ToString() ?? "True" },
 
                 "",
                 "Messaging configuration",

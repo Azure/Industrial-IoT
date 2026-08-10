@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
+    using Opc.Ua.Mcp;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
@@ -51,6 +52,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
             }
         }
+
+        /// <summary>
+        /// Whether the OPC UA MCP tool server is enabled.
+        /// </summary>
+        private bool McpServerEnabled => Configuration
+            .GetValue<bool>(PublisherConfig.EnableMcpServerKey);
 
         /// <summary>
         /// Configure services
@@ -135,6 +142,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<IConfigurationRoot>(Configuration);
 
+            // The OPC UA MCP tool server rides the module's existing http
+            // listeners and authentication; see Configure below for the mapping.
+            if (McpServerEnabled)
+            {
+                services.AddOpcUaMcpCore();
+                services.AddOpcUaMcpDiagnostics(options =>
+                    options.EnableDiagnosticsTools = true);
+                services.AddMcpServer()
+                    .WithHttpTransport()
+                    .WithOpcUaMcpFilters()
+                    .WithOpcUaCoreTools(McpToolProfile.Full)
+                    .WithOpcUaDiagnosticsTools(McpToolProfile.Full,
+                        diagnosticsToolsEnabled: true);
+            }
+
             // Register publisher services and transports (previously registered
             // through Autofac's ConfigureContainer). This is a separate overridable
             // method so hosts (e.g. tests) can suppress the production transport
@@ -208,6 +230,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     endpoints.MapOpenApi();
                 }
                 endpoints.MapHealthChecks("/healthz");
+
+                // Mapped inside the same pipeline as the REST api, and after
+                // UseAuthentication/UseAuthorization above, so the MCP endpoint
+                // is reached over the already configured listeners and is
+                // subject to the same api key authentication. RequireAuthorization
+                // makes that explicit rather than inherited by accident.
+                var mcpEnabled = app.ApplicationServices
+                    .GetService<IOptions<PublisherOptions>>()?.Value
+                    .EnableMcpServer == true;
+                if (mcpEnabled)
+                {
+                    endpoints.MapMcp("/mcp").RequireAuthorization();
+                }
             });
         }
     }

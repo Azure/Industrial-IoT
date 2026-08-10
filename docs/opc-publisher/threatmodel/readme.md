@@ -48,6 +48,7 @@ description of the system, not a to-do list; the open items are called out in
 | T11 | (11) diagnostics / logs | **I** | Verbose logging (`--dln`, diagnostics dumps) can echo payloads, endpoint URLs and node ids into logs that leave the device. | Off by default; treat as sensitive when enabled. |
 | T12 | Heartbeat watchdog | **D**, **T** | A watchdog that re-sends the last known value can, if it races the value it waits for, emit stale data that a consumer records as real — corrupting a historian. | **Fixed.** The watchdog now requires `heartbeatInterval + min(publishingInterval, heartbeatInterval)` of silence, and the `Heartbeat` indicator lets a consumer filter re-sends. See [readme](../readme.md#watchdog-grace-period). |
 | T13 | (10) image pull | **T** | Compromised or substituted module image. | Registry auth; images are cosign-signed in CI. |
+| T20 | (3) operator → MCP tool server | **S**, **T**, **I**, **E** | `--mcp` publishes the OPC UA MCP tools at `/mcp` on the same listener as the REST API. Whoever holds the API key can then drive `Write` and `Call` into the plant (T4) through an agent, and — because the diagnostics tools follow `--mcp` — can capture OPC UA traffic, decode it (which **discloses symmetric channel keys**) and replay it. | Off by default. When on, it is gated by the same API key auth as T5 and mapped inside the authenticated pipeline with `RequireAuthorization`; there is still no per-tool authorisation. Note this deliberately deviates from upstream, which ships the key-disclosing diagnostics tools off behind `Pcap:EnableDiagnosticsTools`. See [MCP tool server](../mcp.md). |
 
 ### Test and CI infrastructure
 
@@ -68,7 +69,10 @@ Accepted, with the reasoning:
    configuration surface can make the publisher write to the plant. The
    mitigation is operational: restrict the IoT Hub service policy and the API
    key, and use OPC UA server-side permissions so the publisher's identity is
-   only authorised for the nodes it legitimately needs.
+   only authorised for the nodes it legitimately needs. **`--mcp` (T20) widens
+   what that single layer protects**: it adds an agent-drivable path to the same
+   write and call surface, plus traffic capture and key disclosure. It is off by
+   default and should stay off unless the network is trusted.
 2. **T7 — plaintext credentials in `published_nodes.json`.** Changed in 2.6 for
    usability. Host filesystem permissions are the control.
 3. **T1 — `--aa` disables server certificate validation.** Intentionally

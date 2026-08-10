@@ -320,6 +320,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public int? HttpServerPort { get; set; }
 
         /// <summary>
+        /// Expose the OPC UA Model Context Protocol tool server on the
+        /// module's existing http endpoint. Disabled unless set.
+        /// </summary>
+        public bool? EnableMcpServer { get; set; }
+
+        /// <summary>
         /// Publisher runs as Azure IoT Operations connector.
         /// If null, not running in Azure IoT Operations.
         /// </summary>
