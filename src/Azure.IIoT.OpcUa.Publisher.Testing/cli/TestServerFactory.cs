@@ -300,7 +300,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         MaxMessageQueueSize = 100,
                         MaxNotificationQueueSize = 100,
                         MaxNotificationsPerPublish = 1000,
-                        MinMetadataSamplingInterval = 1000,
                         MaxPublishRequestCount = 20,
                         MaxSubscriptionCount = 100,
                         MaxEventQueueSize = 10000,
@@ -440,23 +439,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <param name="lastContact"></param>
             private void LogSessionStatus(ISession session, string reason, bool lastContact = false)
             {
-                lock (session.DiagnosticsLock)
+                //
+                // #4188 removed ISession.DiagnosticsLock - the session owns its
+                // lock and no longer hands it out. ReadDiagnostics takes it on
+                // the caller's behalf and returns a consistent snapshot.
+                //
+                var diagnostics = session.ReadDiagnostics(
+                    d => (d.SessionName, d.ClientLastContactTime));
+                var item = $"{reason,9}:{diagnostics.SessionName,20}:";
+                if (lastContact)
                 {
-                    var item = $"{reason,9}:{session.SessionDiagnostics.SessionName,20}:";
-                    if (lastContact)
-                    {
-                        item += $"Last Event:{session.SessionDiagnostics.ClientLastContactTime.ToLocalTime():HH:mm:ss}";
-                    }
-                    else
-                    {
-                        if (session.Identity != null)
-                        {
-                            item += $":{session.Identity.DisplayName,20}";
-                        }
-                        item += $":{session.Id}";
-                    }
-                    _logger.ItemStatus(item);
+                    item += $"Last Event:{diagnostics.ClientLastContactTime.ToLocalTime():HH:mm:ss}";
                 }
+                else
+                {
+                    if (session.Identity != null)
+                    {
+                        item += $":{session.Identity.DisplayName,20}";
+                    }
+                    item += $":{session.Id}";
+                }
+                _logger.ItemStatus(item);
             }
 
             /// <summary>

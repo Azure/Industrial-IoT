@@ -109,25 +109,28 @@ namespace HistoricalAccess
         /// <param name="externalReferences"></param>
         public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
         {
-            lock (Server.DiagnosticsLock)
+            //
+            // No external lock here any more. #4188 removed IServerInternal
+            // .DiagnosticsLock: the server owns its lock and no longer hands it
+            // out, and NodeState now guards its own attributes, so these value
+            // writes are safe on their own.
+            //
+            var capabilities = Server.DiagnosticsNodeManager
+                .FindPredefinedNode<HistoryServerCapabilitiesState>(ObjectIds.HistoryServerCapabilities);
+
+            if (capabilities != null)
             {
-                var capabilities = Server.DiagnosticsNodeManager
-                    .FindPredefinedNode<HistoryServerCapabilitiesState>(ObjectIds.HistoryServerCapabilities);
-
-                if (capabilities != null)
-                {
-                    capabilities.AccessHistoryDataCapability.Value = true;
-                    capabilities.InsertDataCapability.Value = true;
-                    capabilities.ReplaceDataCapability.Value = true;
-                    capabilities.UpdateDataCapability.Value = true;
-                    capabilities.DeleteRawCapability.Value = true;
-                    capabilities.DeleteAtTimeCapability.Value = true;
-                    capabilities.InsertAnnotationCapability.Value = true;
-                }
-
-                // TODO(Stage final): wire this through the new async diagnostics capability factory
-                // if the node is absent.
+                capabilities.AccessHistoryDataCapability.Value = true;
+                capabilities.InsertDataCapability.Value = true;
+                capabilities.ReplaceDataCapability.Value = true;
+                capabilities.UpdateDataCapability.Value = true;
+                capabilities.DeleteRawCapability.Value = true;
+                capabilities.DeleteAtTimeCapability.Value = true;
+                capabilities.InsertAnnotationCapability.Value = true;
             }
+
+            // TODO(Stage final): wire this through the new async diagnostics capability factory
+            // if the node is absent.
 
             lock (Lock)
             {

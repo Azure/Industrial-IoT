@@ -314,7 +314,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         MaxMessageQueueSize = 100,
                         MaxNotificationQueueSize = 100,
                         MaxNotificationsPerPublish = 1000,
-                        MinMetadataSamplingInterval = 1000,
                         MaxPublishRequestCount = 8,
                         MaxSubscriptionCount = 30,
                         MaxEventQueueSize = 10000,
@@ -518,18 +517,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="lastContact"></param>
             private void LogSessionStatus(ISession session, string reason, DateTime? lastContact = null)
             {
-                lock (session.DiagnosticsLock)
+                if (lastContact.HasValue)
                 {
-                    if (lastContact.HasValue)
-                    {
-                        _logger.SessionLastContact(reason, session.SessionDiagnostics.SessionName, lastContact.Value);
-                    }
-                    else
-                    {
-                        _logger.SessionStatus(reason, session.SessionDiagnostics.SessionName,
-                            session.Identity.DisplayName ?? "session",
-                            session.Id);
-                    }
+                    _logger.SessionLastContact(reason,
+                        session.ReadDiagnostics(d => d.SessionName), lastContact.Value);
+                }
+                else
+                {
+                    _logger.SessionStatus(reason,
+                        session.ReadDiagnostics(d => d.SessionName),
+                        session.Identity.DisplayName ?? "session",
+                        session.Id);
                 }
             }
             /// <summary>
