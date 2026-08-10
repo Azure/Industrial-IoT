@@ -15,7 +15,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
+#if IIOT_MCP
     using Opc.Ua.Mcp;
+#endif
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
@@ -146,6 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             // listeners and authentication; see Configure below for the mapping.
             if (McpServerEnabled)
             {
+#if IIOT_MCP
                 services.AddOpcUaMcpCore();
                 services.AddOpcUaMcpDiagnostics(options =>
                     options.EnableDiagnosticsTools = true);
@@ -155,6 +158,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .WithOpcUaCoreTools(McpToolProfile.Full)
                     .WithOpcUaDiagnosticsTools(McpToolProfile.Full,
                         diagnosticsToolsEnabled: true);
+#else
+                // Compiled out of the ahead-of-time published module, where the
+                // MCP SDK's reflective schema generation cannot work. Fail loudly
+                // rather than starting without the endpoint that was asked for.
+                throw new NotSupportedException(
+                    "The MCP tool server is not available in an ahead-of-time " +
+                    "published OPC Publisher. Remove --mcp, or use a module that " +
+                    "was not published with IIoTPublishAot.");
+#endif
             }
 
             // Register publisher services and transports (previously registered
@@ -241,7 +253,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .EnableMcpServer == true;
                 if (mcpEnabled)
                 {
+#if IIOT_MCP
                     endpoints.MapMcp("/mcp").RequireAuthorization();
+#endif
                 }
             });
         }
