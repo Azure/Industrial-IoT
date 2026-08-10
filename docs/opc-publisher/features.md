@@ -4,7 +4,7 @@
 
 The following table shows the supported features of OPC Publisher and planned feature additions. Preview features are supported through GitHub issues only, experimental features will become preview or fully supported features if you request so through GitHub issues or by contacting us. If you would like to see additional features added, please open a feature request.
 
-Rows marked `Removed in 3.0` describe features that earlier versions supported and 3.0 no longer does. Where an option controlled such a feature it is accepted and ignored rather than rejected, so an existing command line or published nodes file still starts - the exception is the `Samples` and `FullSamples` messaging modes, which fail with an error naming their replacement because they changed the message format on the wire. [The migration notes](../../MIGRATION-2.0-WIP.md) explain each removal and what to use instead.
+Rows marked `Removed in 3.0` describe features that earlier versions supported and 3.0 no longer does. Where an option controlled such a feature it is accepted and ignored rather than rejected, so an existing command line or published nodes file still starts - the exception is the `Samples` and `FullSamples` messaging modes, which fail with an error naming their replacement because they changed the message format on the wire. [The migration guide](./migration-2.9-to-3.0.md) explains each removal and what to use instead.
 
 | Feature | Sub Feature | 2.8 | 2.9 | 3.0 | Feature state |
 | ------- | ----------- |---- | --- | --- | ------------- |

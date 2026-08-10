@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // TODO: Allow overriding schema
 
                 { $"me|messageencoding=|{PublisherConfig.MessageEncodingKey}=",
-                    $"The message encoding for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessageEncoding>())}`\nDefault: `{nameof(MessageEncoding.Json)}`.\n",
+                    $"The message encoding for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessageEncoding>())}`\nThe `Avro` and `AvroGzip` values were removed in 3.0 and are rejected at startup - the standards compliant PubSub runtime has no Avro encoder. Use `Uadp` for a compact binary encoding, or `Json` with `--ps` for a published schema.\nDefault: `{nameof(MessageEncoding.Json)}`.\n",
                     (MessageEncoding m) => this[PublisherConfig.MessageEncodingKey] = m.ToString() },
                     { $"fm|fullfeaturedmessage=|{PublisherConfig.FullFeaturedMessageKey}=",
                         "The full featured mode for messages (all fields filled in) for backwards compatibilty. \nDefault: `false` for legacy compatibility.\n",

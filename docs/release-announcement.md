@@ -2,6 +2,9 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 3.0](#azure-industrial-iot-opc-publisher-30)
+  - [Breaking changes in 3.0](#breaking-changes-in-30)
+  - [Changes in 3.0](#changes-in-30)
 - [Azure Industrial IoT OPC Publisher 2.9.15](#azure-industrial-iot-opc-publisher-2915)
   - [Breaking changes](#breaking-changes)
   - [Changes in 2.9.15](#changes-in-2915)
@@ -64,6 +67,35 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 3.0
+
+We are pleased to announce the release of version 3.0 of OPC Publisher. This is a major release that replaces the custom telemetry encoder with the native OPC UA PubSub runtime from the UA-.NETStandard 2.0 stack, shipped as a git submodule. The publisher now produces standards-compliant OPC UA Part 14 messages over all supported transports. The module image is published with Native AOT support and targets .NET 10.
+
+### Breaking changes in 3.0
+
+> IMPORTANT. Please read before upgrading.
+
+- The `Samples` and `FullSamples` messaging modes are **removed**. They emitted a proprietary `MonitoredItemMessage` format that predates OPC UA PubSub and has no representation in Part 14. A deployment configured for either mode will refuse to start with an error naming the replacement (`PubSub` for `Samples`, `FullNetworkMessages` for `FullSamples`). See the [migration guide](./opc-publisher/migration-2.9-to-3.0.md) for step-by-step instructions.
+- All other removed features — Avro encoding, automatic topic routing via browse paths (`--uns`), `--bs` batch size, `--wgp` writer group partitions — are accepted and ignored so existing command lines and `published_nodes.json` files still start without modification.
+- The `Heartbeat: true` member that 2.x could write into data set messages is no longer emitted. It was not a Part 14 field. Consumers that relied on it to detect heartbeats should compare `SourceTimestamp` values across consecutive messages for the same field instead (see the [migration guide](./opc-publisher/migration-2.9-to-3.0.md#heartbeat-indicator-removed-from-data-set-messages)).
+
+### Changes in 3.0
+
+- Telemetry is published through the native OPC UA PubSub runtime. The custom encoder has been removed.
+- Migrated to the UA-.NETStandard 2.0 stack, consumed as a git submodule at `external/UA-.NETStandard`.
+- Native AOT container image for linux-amd64 and linux-arm64.
+- Updated to .NET 10.
+- Avro and Avro+Gzip encoding with schema publishing removed. The Avro encoder was deleted as part of the 2.0 stack migration; Avro support is expected to return via the upstream 2.0 stack in a later release.
+- Automatic topic routing using OPC UA browse paths (`--uns` / `DataSetRouting`) removed. Use topic templates (`--ttt`) to build structured topic hierarchies.
+- `--bs` (BatchSize) and `--wgp` (writer group partitions) are now inert; `--bi` controls sampling cadence and `--om` bounds the send queue.
+- Fixed watchdog heartbeat timer racing the value it waits for.
+- Fixed heartbeat notifications not being serialized consistently with value change dispatch.
+- Fixed an inverted endpoint comparison and an empty-sequence crash on reconnect.
+- Configuring `NamespaceFormat` via `published_nodes.json` and the configuration API is now supported.
+- Keep alive messages and trigger-based publishing now work correctly on the native path.
+
+For a full list of behaviour changes and instructions for adapting downstream consumers, see the [2.9 to 3.0 migration guide](./opc-publisher/migration-2.9-to-3.0.md).
 
 ## Azure Industrial IoT OPC Publisher 2.9.15
 

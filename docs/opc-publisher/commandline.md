@@ -161,6 +161,11 @@ Messaging configuration
                                    `JsonGzip`
                                    `AvroGzip`
                                    `JsonReversibleGzip`
+                               The `Avro` and `AvroGzip` values were removed in
+                                 3.0 and are rejected at startup - the standards
+                                 compliant PubSub runtime has no Avro encoder.
+                                 Use `Uadp` for a compact binary encoding, or
+                                 `Json` with `--ps` for a published schema.
                                Default: `Json`.
       --bi, --batchtriggerinterval, --BatchTriggerInterval=VALUE
                              The network message publishing interval in
