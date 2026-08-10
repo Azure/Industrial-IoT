@@ -19,6 +19,7 @@
   - [Automatic topic routing using OPC UA browse paths](#automatic-topic-routing-using-opc-ua-browse-paths)
   - [Batch size and writer group partitions](#batch-size-and-writer-group-partitions)
 - [What to check after upgrading](#what-to-check-after-upgrading)
+- [Rolling back to 2.9](#rolling-back-to-29)
 
 ## Overview
 
@@ -150,3 +151,63 @@ The native PubSub runtime publishes a writer group through a single transport co
 5. **Review retained MQTT metadata.** If the messaging mode changed (e.g. from `Samples` to `PubSub`) writer group and writer identities change too. Retained metadata messages under the old identities will remain on the broker until they are overwritten or cleared.
 
 6. **Nothing else to do for most deployments.** `published_nodes.json` files that do not name a removed messaging mode, and command lines that do not use the options listed above, start unchanged.
+
+## Rolling back to 2.9
+
+Rolling back is redeploying the previous module image. The configuration you
+changed to satisfy 3.0 does not have to be changed back, but two things do not
+return to their pre-upgrade behaviour on their own.
+
+**1. Options that 3.0 ignored become active again.**
+
+This is the one that surprises people, and it is the direct inverse of the rule
+that made the upgrade easy. Everything in [What was removed and
+why](#what-was-removed-and-why) except the messaging modes is *accepted and
+ignored* by 3.0 — the settings are still sitting in your command line and
+`published_nodes.json`, doing nothing. 2.9 honours them again the moment it
+starts.
+
+| Setting still in your config | Inert under 3.0 | Active again under 2.9 |
+| --- | --- | --- |
+| `--bs` / `BatchSize` | one message per sample | batches of that many samples per message |
+| `--uns` / `DataSetRouting` | topic as configured | browse path appended to the topic |
+| writer group partitions | ignored | writer group split across partitions |
+
+So a consumer that was fine with 3.0's output can start receiving batched
+messages, or messages on browse-path-suffixed topics, purely because of a
+rollback. If you tuned any of these for 2.x and no longer want them, remove
+them from the configuration rather than relying on 3.0 having ignored them.
+
+**2. The wire format reverts.**
+
+Everything in [What changed on the wire](#what-changed-on-the-wire) applies in
+reverse. If you updated a downstream consumer to read OPC UA PubSub data set
+messages, it has to keep handling the 2.9 format too, or be rolled back in step
+with the publisher. Plan for a consumer that tolerates both across the window in
+which either version might be running.
+
+Also reverting: the `Heartbeat` indicator reappears on data set messages, and
+retained MQTT metadata is republished under whatever writer group and writer
+identities 2.9 computes. Retained messages written by 3.0 under different
+identities stay on the broker until they are overwritten or cleared — the same
+caution as item 5 above, in the other direction.
+
+**What does not need reverting**
+
+The values you had to change to start 3.0 are all valid in 2.9:
+
+- `--mm=PubSub` and `--mm=FullNetworkMessages` are both accepted by 2.9, and
+  `PubSub` was already the 2.9 default.
+- `--me=Json` and `--me=Uadp` are both accepted by 2.9.
+
+So a configuration that starts 3.0 also starts 2.9, and there is no need to put
+`Samples` or `Avro` back to roll back.
+
+**Before you upgrade**
+
+Keep a copy of the `published_nodes.json` and the deployment manifest as they
+were before the upgrade. 3.0 rewrites the published nodes file when the
+configuration is changed through the API or direct methods, and restoring a
+known-good file is faster and less error-prone than reconstructing one. This
+guide does not claim a file written by 3.0 loads unchanged into 2.9 — that has
+not been verified here, and a kept copy makes the question moot.

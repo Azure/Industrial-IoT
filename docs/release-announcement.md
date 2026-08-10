@@ -5,6 +5,7 @@
 - [Azure Industrial IoT OPC Publisher 3.0](#azure-industrial-iot-opc-publisher-30)
   - [Breaking changes in 3.0](#breaking-changes-in-30)
   - [Changes in 3.0](#changes-in-30)
+  - [Verification status of this release candidate](#verification-status-of-this-release-candidate)
 - [Azure Industrial IoT OPC Publisher 2.9.15](#azure-industrial-iot-opc-publisher-2915)
   - [Breaking changes](#breaking-changes)
   - [Changes in 2.9.15](#changes-in-2915)
@@ -94,6 +95,14 @@ We are pleased to announce the release of version 3.0 of OPC Publisher. This is 
 - Fixed an inverted endpoint comparison and an empty-sequence crash on reconnect.
 - Configuring `NamespaceFormat` via `published_nodes.json` and the configuration API is now supported.
 - Keep alive messages and trigger-based publishing now work correctly on the native path.
+- New `--mcp` option exposes the OPC UA MCP tool server over HTTP so an agent can browse, read and write through the publisher. It is served on the already configured HTTP listener behind the same authentication as the rest of the API, and enables the HTTPS listener on its default port if none is configured. It is **not** available in the Native AOT image — the MCP libraries are excluded from that configuration, and `--mcp` reports that rather than starting without the tools. See [MCP tool server](./opc-publisher/mcp.md), and read the security section there before enabling it: the tools can write to and call into the plant.
+
+### Verification status of this release candidate
+
+This is a release candidate (`3.0.0-rc`). What has and has not been established:
+
+- All seven test suites pass, and every shipping assembly meets the 85% line and 70% branch coverage floors.
+- **The multi-hour leak soak has not been run.** A shorter soak — 20 fresh-process runs, each publishing two rounds over MQTT v5 on the native PubSub path — found no leak: about 637 kB of growth per round against an ~87 MB baseline, no compounding, and first-round heap drifting down rather than up across runs. That structure can rule out gross retention but cannot detect slow accumulation over hours, which is the failure mode a soak exists to find. The honest statement is therefore **no leak detectable at that timescale**, not *no leak*. Treat sustained multi-hour operation as unverified until that run is done.
 
 For a full list of behaviour changes and instructions for adapting downstream consumers, see the [2.9 to 3.0 migration guide](./opc-publisher/migration-2.9-to-3.0.md).
 
