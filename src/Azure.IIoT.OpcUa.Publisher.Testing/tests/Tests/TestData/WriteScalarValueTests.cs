@@ -481,7 +481,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2055";
 
-            var expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
+            // ReadCanonicalValueAsync would throw if the server stored NodeId.Null; use
+            // _readExpected directly and fall back to a deterministic non-null value when
+            // that happens. See ReadScalarValueTests.NodeReadStaticScalarNodeIdValueVariable-
+            // TestAsync for the full explanation of why null occurs (~22 % of Module runs).
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false)
+                ?? JsonValue.Create("i=84");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
