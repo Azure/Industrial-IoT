@@ -742,10 +742,20 @@ namespace HistoricalEvents
                     }
                 }
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException ex)
             {
-                // Stop simulation because the subscription is closed. This should be fixed in the server library.
-                _simulationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                // A tick can race the server tearing its address space down,
+                // which surfaces as a null dereference deep inside ReportEvent.
+                // That is transient, so abandon this tick but keep the
+                // simulation running: this node manager is shared by every test
+                // in a class, and latching the timer off here silently starves
+                // every later test of events for the rest of the server's life.
+                // Touching _simulationTimer here is also unsafe - Dispose nulls
+                // it, so a racing callback would throw from inside this handler,
+                // unhandled, on a timer thread. Only Dispose stops the
+                // simulation.
+                Utils.Trace(ex,
+                    "Event simulation tick raced server shutdown; continuing.");
             }
             catch (Exception e)
             {
