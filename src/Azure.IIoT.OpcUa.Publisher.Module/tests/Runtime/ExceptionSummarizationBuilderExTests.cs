@@ -19,6 +19,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     public sealed class ExceptionSummarizationBuilderExTests
     {
         [Fact]
+        public void CoexistsWithTheResilienceHandlersOwnSummaryProvider()
+        {
+            //
+            // Regression: ExceptionSummarizer indexes every provider's
+            // SupportedExceptionTypes into one dictionary and throws on the
+            // first duplicate. Microsoft.Extensions.Http.Resilience registers a
+            // provider claiming the cancellation types, and the OPC UA client's
+            // fluent builder calls AddStandardResilienceHandler as soon as
+            // --mcp registers the MCP tool server. Claiming those types here as
+            // well aborted module startup, and since the api key is established
+            // during that startup, every authenticated endpoint answered 401 -
+            // so enabling --mcp took down the whole API rather than only itself.
+            //
+            var services = new ServiceCollection();
+            services.AddHttpClient("probe").AddStandardResilienceHandler();
+            services.AddExceptionSummarizer(builder => builder.AddDefaultProviders());
+
+            using var provider = services.BuildServiceProvider();
+
+            var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
+            Assert.NotNull(summarizer);
+
+            // The providers still describe what they own.
+            var summary = summarizer.Summarize(
+                new ResourceNotFoundException("publisher entry was not found"));
+            Assert.Equal("The requested resource could not be found.",
+                summary.Description);
+        }
+
+        [Fact]
         public void AddDefaultProvidersRegistersExceptionSummarizer()
         {
             var services = new ServiceCollection();

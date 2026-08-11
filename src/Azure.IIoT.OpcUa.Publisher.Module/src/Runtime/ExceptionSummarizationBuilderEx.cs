@@ -22,6 +22,38 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class ExceptionSummarizationBuilderEx
     {
         /// <summary>
+        /// Exception types owned by
+        /// <c>Microsoft.Extensions.Diagnostics.ExceptionSummarization.HttpExceptionSummaryProvider</c>,
+        /// which <c>AddStandardResilienceHandler</c> registers.
+        /// </summary>
+        /// <remarks>
+        /// ExceptionSummarizer indexes every registered provider's
+        /// SupportedExceptionTypes into a single dictionary and throws
+        /// ArgumentException on the first duplicate, so two providers may never
+        /// claim the same type. The OPC UA client's fluent builder calls
+        /// AddStandardResilienceHandler, which happens as soon as <c>--mcp</c>
+        /// registers the MCP tool server, and the providers below used to claim
+        /// exactly these four types. That aborted module startup with "An item
+        /// with the same key has already been added"; because the api key is
+        /// established during that startup, every authenticated endpoint then
+        /// answered 401, so turning on <c>--mcp</c> took down the whole API
+        /// rather than only itself.
+        ///
+        /// The types are excluded from what the providers claim rather than
+        /// removed from their description tables, so <c>Describe</c> still
+        /// renders them if it is reached through a base type. When the HTTP
+        /// provider is not registered nothing describes them and they fall back
+        /// to the default summary, which is the price of never colliding.
+        /// </remarks>
+        private static readonly ImmutableHashSet<Type> kClaimedByHttpProvider =
+        [
+            typeof(WebException),
+            typeof(SocketException),
+            typeof(OperationCanceledException),
+            typeof(TaskCanceledException)
+        ];
+
+        /// <summary>
         /// Add default exception summary providers.
         /// </summary>
         /// <param name="builder"></param>
@@ -37,6 +69,11 @@ namespace Microsoft.Extensions.DependencyInjection
         private sealed class HttpExceptionProvider : IExceptionSummaryProvider
         {
             public IEnumerable<Type> SupportedExceptionTypes { get; } =
+                kSupportedHttpTypes
+                    .Where(type => !kClaimedByHttpProvider.Contains(type))
+                    .ToImmutableArray();
+
+            private static readonly ImmutableArray<Type> kSupportedHttpTypes =
             [
                 typeof(WebException),
                 typeof(SocketException),
@@ -90,7 +127,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private sealed class BuiltInExceptionProvider : IExceptionSummaryProvider
         {
-            public IEnumerable<Type> SupportedExceptionTypes => kSupported.Keys;
+            //
+            // Narrower than kSupported: see the remark on kClaimedByHttpProvider.
+            //
+            public IEnumerable<Type> SupportedExceptionTypes
+                => kSupported.Keys.Where(type => !kClaimedByHttpProvider.Contains(type));
 
             public IReadOnlyList<string> Descriptions => kDescriptions;
 
