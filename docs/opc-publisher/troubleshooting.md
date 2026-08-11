@@ -19,6 +19,7 @@ In this document you find information about
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
   - [Duplicated, stale or unevenly spaced values](#duplicated-stale-or-unevenly-spaced-values)
     - [Jittered timestamps without duplicates](#jittered-timestamps-without-duplicates)
+    - [Quantized timestamp displacement with no heartbeats](#quantized-timestamp-displacement-with-no-heartbeats)
 - [Restart the module](#restart-the-module)
 - [Analyzing network capture files](#analyzing-network-capture-files)
   - [Netcap](#netcap)
@@ -202,6 +203,32 @@ Remedies, in order of preference:
 2. Set the heartbeat interval well above the sampling interval, so it only fires when data genuinely stops rather than when a single value is late.
 3. Use `--mm=FullSamples` / `--fm=True` and filter on the `Heartbeat` indicator.
 4. Analyze the message `Timestamp` instead of `SourceTimestamp`, which OPC Publisher never synthesizes from a server timestamp. Note that this requires option 3 as well: the message `Timestamp` is not emitted by the plain `Samples` profile. Note also that with `--mts=PublishTime` heartbeats carry no message timestamp at all, because they are generated locally rather than as the result of a publish response.
+
+#### Quantized timestamp displacement with no heartbeats
+
+If the symptoms above are present but heartbeats are *not* involved - the counter increment between consecutive samples is always exactly right, so no message is a resent value - then OPC Publisher is not the origin. Look for this signature:
+
+- the value increment between consecutive samples is always the expected one, so nothing was lost, duplicated or reordered,
+- the displacement is *quantized*: it clusters tightly around one value rather than spreading smoothly,
+- displacements come in self-correcting pairs, one distance too long immediately followed by one too short, summing back to exactly two sampling intervals,
+- the undisplaced timestamps hold their sub-second phase to about a millisecond over many minutes.
+
+The last two points are the discriminating ones. A pipeline that damaged timestamps would not restore the original phase afterwards, and no jitter introduced anywhere downstream of the server - network, thread scheduling, batching, transport - is stable to a millisecond over minutes or quantized to a single step size. A discrete step on an otherwise very stable grid is a *scheduler* in the data source slipping a slot.
+
+A useful confirmation is that the value sequence and the timestamp disagree. When the source counter advances at a known rate the value tells you how much time really elapsed. If the value says two seconds and the timestamp says 2.33 seconds, the timestamp is wrong and the value is right. Plotting the residual
+
+```text
+SourceTimestamp - (t0 + (value - v0) * counterPeriod)
+```
+
+turns this into a step function whose tread height is the displacement.
+
+Two further checks localize it:
+
+- Compare `SourceTimestamp`, `ServerTimestamp` and, in a full featured profile, the message `Timestamp` for the same samples. If source and server timestamps step together the server assigned both, and OPC Publisher only relayed them.
+- Check whether every node steps at the same instant. Simultaneous steps across all nodes point at one scheduler event in the server; independent steps point at per-node scan slot assignment. Either way the origin is upstream.
+
+OPC Publisher does not modify `SourceTimestamp` on the data change path. The only code that writes one is the legacy heartbeat described above, and that path is excluded as soon as the value increment is correct on every message. This is covered by an automated test, `SourceTimestampFidelityTests`, which drives the simulated server with exactly this defect and asserts that the timestamps delivered are identical to the ones the server recorded as having stamped.
 
 ## Restart the module
 
