@@ -221,6 +221,17 @@ You can also troubleshoot the OPC Publisher module remotely through the Azure Po
 
 ## Analyzing network capture files
 
+> [!TIP]
+> OPC Publisher can capture and decode its own OPC UA traffic without any of the
+> setup below. Start it with [`--mcp`](./mcp.md) and an agent (or any MCP client)
+> can take a capture *with the key material already in it* and read it back as a
+> decoded service-call timeline. That works in the default, non-root container
+> and needs neither Wireshark nor a key-set log. See
+> [Troubleshooting interop problems](./mcp.md#troubleshooting-interop-problems).
+>
+> The manual route below is still the answer when you need traffic OPC Publisher
+> is not itself a party to.
+
 The issue might be between the OPC Publisher OPC UA client and the OPC UA server you are using. A network capture provides the definitive answer as to where the issue lies. To capture network traffic you can use [Wireshark](https://www.wireshark.org/) or [tshark](https://tshark.dev/setup/install/) (aka. command line wireshark) and capture a .pcap file for analysis.  An example of how to capture network traces in a docker environment can be found [here](../../deploy/docker/with-pcap-capture.yaml). To analyze OPC UA traffic, you must load the .pcap or .pcapng file you captured in Wireshark.
 
 Follow [these instructions](https://opcconnect.opcfoundation.org/2017/02/analyzing-opc-ua-communications-with-wireshark/#:~:text=Wireshark%20has%20a%20built-in%20filter%20for%20OPC%20UA%2C,fairly%20easy%20to%20capture%20and%20analyze%20the%20conversation.) to visualize the OPC UA traffic between OPC Publisher and your OPC UA server.
