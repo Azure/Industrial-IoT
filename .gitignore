@@ -29,6 +29,13 @@
 /_tmpout/**
 /TestResults/**
 /**/TestResults/**
+# The documented local coverage flow (and ci.yml) writes lowercase
+# ./testresults and ReportGenerator writes ./coverage, and Windows is
+# case insensitive while git is not - so the entries above do not cover
+# them and following our own instructions left untracked output behind.
+/testresults/**
+/**/testresults/**
+/coverage/**
 /**/packages/**
 /**/appsettings.*.json
 .env
