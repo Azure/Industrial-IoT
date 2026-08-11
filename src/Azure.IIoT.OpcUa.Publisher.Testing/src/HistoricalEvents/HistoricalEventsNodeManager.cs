@@ -621,14 +621,26 @@ namespace HistoricalEvents
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private sealed class HistoryReadRequest
+        private sealed class HistoryReadRequest : IHistoryContinuationPoint
         {
+            public Guid Id { get; set; }
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<BaseEventState> Events { get; set; }
             public bool TimeFlowsBackward { get; set; }
             public uint NumValuesPerNode { get; set; }
             public EventFilter Filter { get; set; }
             public FilterContext FilterContext { get; set; }
+
+            /// <summary>
+            /// The session disposes every continuation point it drops. Nothing
+            /// here is unmanaged, so this only releases the buffered events so
+            /// an abandoned point does not pin them until the session is
+            /// cleared.
+            /// </summary>
+            public void Dispose()
+            {
+                Events?.Clear();
+            }
         }
 
         /// <summary>
@@ -681,7 +693,7 @@ namespace HistoricalEvents
                 return null;
             }
 
-            if (session.RestoreHistoryContinuationPoint(continuationPoint)
+            if (session.ContinuationPoints.RestoreHistory(continuationPoint)
                 is not HistoryReadRequest request)
             {
                 return null;
@@ -707,7 +719,8 @@ namespace HistoricalEvents
             }
 
             var id = Guid.NewGuid();
-            session.SaveHistoryContinuationPoint(id, request);
+            request.Id = id;
+            session.ContinuationPoints.SaveHistory(request);
             request.ContinuationPoint = id.ToByteArray();
             return request.ContinuationPoint;
         }

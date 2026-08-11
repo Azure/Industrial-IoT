@@ -61,7 +61,7 @@
     <!-- Must track the version the UA-.NETStandard submodule resolves for the
          Opc.Ua.Mcp.* projects, otherwise the MCP server and tool assemblies
          disagree at runtime. -->
-    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>
 

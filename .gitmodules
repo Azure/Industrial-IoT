@@ -1,4 +1,24 @@
+# TEMPORARY: the stack is pinned at a fork, not at OPCFoundation.
+#
+# The pinned commit carries two fixes we depend on that are not yet on
+# upstream master, because they live in open pull request #4195:
+#
+#   * DataGenerator.GetRandomNodeId returning NodeId.Null when boundary
+#     values were not requested (issue #4226)
+#   * Opc.Ua.Mcp.Core made trim and Native AOT clean (was PR #4228)
+#
+# Those commits exist only in the fork, and CI checks out submodules with
+# actions/checkout plus submodules: recursive, which fetches from the url
+# below. Leaving it pointed at OPCFoundation would fail the checkout,
+# because refs/pull/4195/head is not fetched by that action.
+#
+# REVERT THIS the moment #4195 merges: put the url back to
+# https://github.com/OPCFoundation/UA-.NETStandard.git, set branch to
+# master, and repin to upstream master.
+#
+#   https://github.com/OPCFoundation/UA-.NETStandard/pull/4195
+#
 [submodule "external/UA-.NETStandard"]
 	path = external/UA-.NETStandard
-	url = https://github.com/OPCFoundation/UA-.NETStandard.git
-	branch = master
+	url = https://github.com/marcschier/UA-.NETStandard.git
+	branch = marcschier/robot-intent-followups

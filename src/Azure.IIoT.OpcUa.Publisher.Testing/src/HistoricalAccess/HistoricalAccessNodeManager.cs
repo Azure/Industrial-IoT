@@ -1703,13 +1703,25 @@ namespace HistoricalAccess
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private sealed class HistoryReadRequest
+        private sealed class HistoryReadRequest : IHistoryContinuationPoint
         {
+            public Guid Id { get; set; }
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<DataValue> Values { get; set; }
             public LinkedList<ModificationInfo> ModificationInfos { get; set; }
             public uint NumValuesPerNode { get; set; }
             public AggregateFilter Filter { get; set; }
+
+            /// <summary>
+            /// The session disposes every continuation point it drops. Nothing
+            /// here is unmanaged, so this only releases the buffered history so
+            /// an abandoned point does not pin it until the session is cleared.
+            /// </summary>
+            public void Dispose()
+            {
+                Values?.Clear();
+                ModificationInfos?.Clear();
+            }
         }
 
         /// <summary>
@@ -1762,7 +1774,7 @@ namespace HistoricalAccess
                 return null;
             }
 
-            if (session.RestoreHistoryContinuationPoint(continuationPoint)
+            if (session.ContinuationPoints.RestoreHistory(continuationPoint)
                 is not HistoryReadRequest request)
             {
                 return null;
@@ -1788,7 +1800,8 @@ namespace HistoricalAccess
             }
 
             var id = Guid.NewGuid();
-            session.SaveHistoryContinuationPoint(id, request);
+            request.Id = id;
+            session.ContinuationPoints.SaveHistory(request);
             request.ContinuationPoint = id.ToByteArray();
             return request.ContinuationPoint;
         }

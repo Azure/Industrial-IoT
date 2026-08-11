@@ -343,7 +343,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 foreach (var session in Sessions)
                 {
-                    CurrentInstance.CloseSession(null, session, deleteSubscriptions);
+                    // #4197 moved CloseSession onto IServerContext and left only
+                    // the async form. This is a synchronous interface method, so
+                    // it blocks the same way the neighbouring CloseSubscription
+                    // already does for DeleteSubscriptionAsync.
+                    CurrentInstance.CloseSessionAsync(null, session, deleteSubscriptions)
+                        .AsTask().GetAwaiter().GetResult();
                 }
             }
 
@@ -773,7 +778,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                                 var session = sessions[Random.Shared.Next(0, sessions.Length)];
                                 var delete = Random.Shared.Next() % 2 == 0;
                                 Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
-                                CurrentInstance.CloseSession(null, session, delete);
+                                await CurrentInstance.CloseSessionAsync(null, session, delete, ct)
+                                    .ConfigureAwait(false);
                                 break;
                             case > 10 and < 13:
                                 if (InjectErrorResponseRate != 0)
