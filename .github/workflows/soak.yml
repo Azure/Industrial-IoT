@@ -74,6 +74,8 @@ jobs:
             test: SlowSourceHeartbeatsKeepTimestampsOrderedAsync
           - name: SlowSourceUpdatedTimestampHeartbeat
             test: SlowSourceUpdatedTimestampHeartbeatsShiftTimestampsAsync
+          - name: SourceTimestampFidelity
+            test: SourceTimestampFidelityTests
     steps:
       - uses: actions/checkout@v4
         with:

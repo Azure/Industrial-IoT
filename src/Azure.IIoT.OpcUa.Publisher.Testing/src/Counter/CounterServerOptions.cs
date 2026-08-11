@@ -39,5 +39,48 @@ namespace Counter
         /// </para>
         /// </summary>
         public bool UseScheduledTimestamps { get; init; } = true;
+
+        /// <summary>
+        /// <para>
+        /// When set to a non zero interval the server occasionally stamps a
+        /// value one <em>slot</em> later than the schedule says, and then
+        /// returns to the schedule.
+        /// </para>
+        /// <para>
+        /// This reproduces the signature of a data source whose scan
+        /// scheduler slips: the value sequence stays complete and correctly
+        /// spaced, but individual source timestamps are displaced by a
+        /// quantized amount. A consumer measuring the distance between
+        /// consecutive source timestamps sees one distance that is too long
+        /// followed by one that is too short, and the two sum to exactly two
+        /// update intervals.
+        /// </para>
+        /// </summary>
+        public TimeSpan SlotSlip { get; init; }
+
+        /// <summary>
+        /// How often a slipped run begins, counted in increments. Together
+        /// with <see cref="SlotSlipDwell"/> this makes the schedule fully
+        /// deterministic, so a test can predict exactly which values carry a
+        /// displaced timestamp.
+        /// </summary>
+        public int SlotSlipPeriod { get; init; } = 17;
+
+        /// <summary>
+        /// How many consecutive increments stay displaced once a slipped run
+        /// begins. One produces the isolated single sample excursion that
+        /// dominates the reported field data.
+        /// </summary>
+        public int SlotSlipDwell { get; init; } = 1;
+
+        /// <summary>
+        /// Whether the given counter value is stamped one slot late.
+        /// </summary>
+        /// <param name="value"></param>
+        public bool IsSlipped(long value)
+        {
+            return SlotSlip != TimeSpan.Zero && SlotSlipPeriod > 0 &&
+                value % SlotSlipPeriod < SlotSlipDwell;
+        }
     }
 }

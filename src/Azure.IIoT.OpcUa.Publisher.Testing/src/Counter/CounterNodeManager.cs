@@ -51,6 +51,21 @@ namespace Counter
         public CounterServerOptions Options { get; }
 
         /// <summary>
+        /// The source timestamp the server actually stamped on the given
+        /// counter value, which is the ground truth a consumer's telemetry
+        /// must reproduce exactly.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="timestamp"></param>
+        public bool TryGetEmitted(long value, out DateTime timestamp)
+        {
+            lock (Lock)
+            {
+                return _emitted.TryGetValue(value, out timestamp);
+            }
+        }
+
+        /// <summary>
         /// Create node manager
         /// </summary>
         /// <param name="server"></param>
@@ -208,6 +223,10 @@ namespace Counter
                     var timestamp = Options.UseScheduledTimestamps
                         ? Epoch.AddTicks(value * Options.UpdateInterval.Ticks)
                         : DateTime.UtcNow;
+                    if (Options.IsSlipped(value))
+                    {
+                        timestamp = timestamp.Add(Options.SlotSlip);
+                    }
                     lock (Lock)
                     {
                         var variables = _variables;
@@ -215,6 +234,13 @@ namespace Counter
                         {
                             continue;
                         }
+                        //
+                        // Record what was actually stamped so a test can
+                        // compare the telemetry it receives against the
+                        // ground truth rather than against a recomputation
+                        // of the same rule.
+                        //
+                        _emitted[value] = timestamp;
                         foreach (var variable in variables)
                         {
                             variable.Value = (ulong)value;
@@ -229,6 +255,7 @@ namespace Counter
 
         private const string kRootName = "Counters";
         private readonly CancellationTokenSource _cts = new();
+        private readonly Dictionary<long, DateTime> _emitted = [];
         private BaseDataVariableState[] _variables;
         private Task _updates;
         private long _counter;
