@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> This documentation applies to version 2.9
+> This documentation applies to version 3.0
 
 ## Table Of Contents <!-- omit in toc -->
 

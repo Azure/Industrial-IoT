@@ -4,7 +4,10 @@
 
 OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It connects to OPC UA server systems and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in versions < 2.7.x*).
 
-> This documentation applies to version 2.9 or higher.
+> This documentation applies to version 3.0 or higher. Some sections describe
+> behaviour of earlier versions where it differs; those are marked. If you are
+> upgrading from 2.9, start with the
+> [2.9 to 3.0 migration guide](./migration-2.9-to-3.0.md).
 
 Here you find information about
 
@@ -764,7 +767,17 @@ Because values can only be delivered on publish boundaries, the absence of data 
 
 ##### Heartbeat indicator
 
-> This feature is in preview
+> [!IMPORTANT]
+> **Removed in 3.0.** The `Heartbeat` member is no longer written into data set
+> messages — it is not an OPC UA Part 14 field, and the native PubSub runtime
+> does not emit it. The rest of this section describes 2.x behaviour and is kept
+> for readers still on that version.
+>
+> To detect a heartbeat in 3.0, compare the `SourceTimestamp` of consecutive
+> messages for the same field: a heartbeat repeats the previous value together
+> with its original timestamps, so an unchanged `SourceTimestamp` identifies
+> one. See the
+> [migration guide](./migration-2.9-to-3.0.md#heartbeat-indicator-removed-from-data-set-messages).
 
 A heartbeat re-sends the last known (good) value, including the original `SourceTimestamp` and `ServerTimestamp` of that value. A consumer therefore cannot distinguish a heartbeat from a real value change of the node, which can lead to wrong values being recorded in a historian (see issue [#2441](https://github.com/Azure/Industrial-IoT/issues/2441)).
 
@@ -776,7 +789,7 @@ The indicator is controlled by the `Heartbeat` flag (`0x400000`) of the `DataSet
   "MessagingMode": "FullNetworkMessages",
 ```
 
-The indicator is supported in `Json` encoding, both in [PubSub](./messageformats.md#heartbeat-messages) and in legacy [Samples](./messageformats.md#heartbeat-messages-in-samples-mode) mode. It is not available with `Uadp` or `Avro` encoding.
+In 2.x the indicator was supported in `Json` encoding, both in [PubSub](./messageformats.md#heartbeat-messages) and in legacy [Samples](./messageformats.md#heartbeat-messages-in-samples-mode) mode. It was not available with `Uadp` or `Avro` encoding.
 
 > Alternatively you can use the `PeriodicLKVDropValue` or `PeriodicLKGDropValue` heartbeat behavior described above to only ever emit periodic values and drop the actual value changes, or configure the node twice, once with and once without heartbeat.
 
@@ -1088,7 +1101,7 @@ OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of t
 
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
-All versions of OPC Publisher also support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
+Versions before 3.0 also supported a non-standard, simple JSON telemetry format (typically referred to as "Samples" format, and the default setting in 2.x). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
 
 ``` json
 [
@@ -1436,9 +1449,10 @@ The `om` parameter controls the upper limit of the capacity of the internal mess
     - Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](./messageformats.md).
     - If you are able to decompress messages back to json at the receiver side, use `--me=JsonGzip` or `--me=JsonReversibleGzip` encoding.
     - If you are able to decode binary network messages at the receiver side, choose `--me=Uadp` instead of `--me=Json`, `--me=JsonReversible` or a compressed form of Json
-  - When Samples format (`--mm=Samples`) is required
+  - In versions before 3.0, when Samples format (`--mm=Samples`) was required
     - Don't use FullFeaturedMessage (`--mm=FullSamples` or `--mm=Samples` with `--fm=false`). You can find a sample of full featured telemetry message [here](messageformats.md).
-  - Use batching (`--bs=600`) in combination with batch publishing interval (`--si=20`).
+    - `Samples` and `FullSamples` were **removed in 3.0** and now prevent startup. See the [migration guide](./migration-2.9-to-3.0.md).
+  - Use the batch publishing interval (`--bi`) to control how often the runtime samples. In versions before 3.0 this was combined with a batch size (`--bs=600`); 3.0 emits one message per sample, so `--bs` is accepted and ignored.
   - Increase Monitored Items Queue capacity (e.g., `--mq=10`)
   - Don't use "fetch display name" (`--fd=false`)
 - General recommendations

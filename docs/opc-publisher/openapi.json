@@ -18,6 +18,197 @@
     "http"
   ],
   "paths": {
+    "/v2/diagnostics/writergroups": {
+      "get": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "GetWriterGroupDiagnostics",
+        "description": "Get the state of all writer groups currently configured in the publisher, including the state of each of their dataset writers.",
+        "operationId": "GetWriterGroupDiagnostics",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WriterGroupStateDiagnosticModel"
+              }
+            }
+          },
+          "405": {
+            "description": "Call not supported or functionality disabled.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "408": {
+            "description": "The operation timed out.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v2/diagnostics/writergroups/{dataSetWriterGroup}": {
+      "get": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "GetWriterGroupDiagnostic",
+        "description": "Get the state of a single writer group and the state of each of its dataset writers.",
+        "operationId": "GetWriterGroupDiagnostic",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "name": "dataSetWriterGroup",
+            "in": "path",
+            "description": "The writer group identifier.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful.",
+            "schema": {
+              "$ref": "#/definitions/WriterGroupStateDiagnosticModel"
+            }
+          },
+          "405": {
+            "description": "Call not supported or functionality disabled.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "408": {
+            "description": "The operation timed out.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v2/diagnostics/writergroups/{dataSetWriterGroup}/keyframe": {
+      "post": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "RequestWriterGroupKeyFrame",
+        "description": "Request that every dataset writer in the writer group emits a key frame message on its next publish.",
+        "operationId": "RequestWriterGroupKeyFrame",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "name": "dataSetWriterGroup",
+            "in": "path",
+            "description": "The writer group identifier.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful."
+          },
+          "405": {
+            "description": "Call not supported or functionality disabled.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "408": {
+            "description": "The operation timed out.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v2/diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe": {
+      "post": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "RequestWriterKeyFrame",
+        "description": "Request that a single dataset writer emits a key frame message on its next publish.",
+        "operationId": "RequestWriterKeyFrame",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "name": "dataSetWriterGroup",
+            "in": "path",
+            "description": "The writer group identifier.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "dataSetWriterId",
+            "in": "path",
+            "description": "The dataset writer identifier.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful."
+          },
+          "405": {
+            "description": "Call not supported or functionality disabled.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "408": {
+            "description": "The operation timed out.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
     "/v2/pki/{store}/certs": {
       "get": {
         "tags": [
@@ -5384,6 +5575,90 @@
     }
   },
   "definitions": {
+    "DataSetWriterStateDiagnosticModel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Dataset writer identifier."
+        },
+        "dataSetWriterName": {
+          "type": "string",
+          "description": "Dataset writer name."
+        },
+        "endpointUrl": {
+          "type": "string",
+          "description": "The endpoint url of the server the writer is\r\nconnecting to."
+        },
+        "useSecurity": {
+          "type": "boolean",
+          "description": "Whether the connection to the endpoint uses\r\na secure channel."
+        },
+        "opcAuthenticationMode": {
+          "$ref": "#/definitions/OpcAuthenticationMode"
+        },
+        "opcAuthenticationUsername": {
+          "type": "string",
+          "description": "The user name used to connect to the endpoint in\r\ncase of user name and password authentication."
+        },
+        "source": {
+          "$ref": "#/definitions/PublishedDataSetSourceDiagnosticModel"
+        }
+      },
+      "description": "Model for writer diagnostic info."
+    },
+    "MonitoredItemNodeErrorModel": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "Node id of the variable"
+        },
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultModel"
+        }
+      },
+      "description": "Model for monitored item node errors"
+    },
+    "PublishedDataSetSourceDiagnosticModel": {
+      "type": "object",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MonitoredItemNodeErrorModel"
+          },
+          "description": "Error information for nodes inside the writer source"
+        }
+      },
+      "description": "Model for monitored item node errors"
+    },
+    "WriterGroupStateDiagnosticModel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Writer group identifier."
+        },
+        "writerGroupName": {
+          "type": "string",
+          "description": "Writer group name."
+        },
+        "version": {
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "description": "Writer group version",
+          "format": "uint32"
+        },
+        "dataSetWriters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataSetWriterStateDiagnosticModel"
+          },
+          "description": "Diagnostics for the dataset writers"
+        }
+      },
+      "description": "Model for writer group status diagnostics."
+    },
     "AdditionalData": {
       "description": "Flags that are set by the historian when\r\nreturning archived values.",
       "enum": [

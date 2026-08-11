@@ -450,6 +450,22 @@ Indicate the data location
 *Type* : enum (Raw, Calculated, Interpolated)
 
 
+<a name="datasetwriterstatediagnosticmodel"></a>
+### DataSetWriterStateDiagnosticModel
+Model for writer diagnostic info.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataSetWriterName**  <br>*optional*|Dataset writer name.|string|
+|**endpointUrl**  <br>*optional*|The endpoint url of the server the writer is connecting to.|string|
+|**id**  <br>*optional*|Dataset writer identifier.|string|
+|**opcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
+|**opcAuthenticationUsername**  <br>*optional*|The user name used to connect to the endpoint in case of user name and password authentication.|string|
+|**source**  <br>*optional*||[PublishedDataSetSourceDiagnosticModel](definitions.md#publisheddatasetsourcediagnosticmodel)|
+|**useSecurity**  <br>*optional*|Whether the connection to the endpoint uses a secure channel.|boolean|
+
+
 <a name="datasetroutingmode"></a>
 ### DataSetRoutingMode
 Removed in 3.0 - accepted and ignored.
@@ -1232,6 +1248,17 @@ Modification information
 |**userName**  <br>*optional*|User who made the change|string|
 
 
+<a name="monitoreditemnodeerrormodel"></a>
+### MonitoredItemNodeErrorModel
+Model for monitored item node errors
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**nodeId**  <br>*optional*|Node id of the variable|string|
+
+
 <a name="monitoreditemwatchdogcondition"></a>
 ### MonitoredItemWatchdogCondition
 Defines the conditions that trigger the subscription watchdog behavior.
@@ -1675,6 +1702,16 @@ Result of publish stop request
 |Name|Schema|
 |---|---|
 |**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="publisheddatasetsourcediagnosticmodel"></a>
+### PublishedDataSetSourceDiagnosticModel
+Model for monitored item node errors
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errors**  <br>*optional*|Error information for nodes inside the writer source|< [MonitoredItemNodeErrorModel](definitions.md#monitoreditemnodeerrormodel) > array|
 
 
 <a name="publisheditemlistrequestmodel"></a>
@@ -2725,6 +2762,19 @@ Result of attribute write
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
 |**results**  <br>*required*|All results of attribute writes|< [AttributeWriteResponseModel](definitions.md#attributewriteresponsemodel) > array|
+
+
+<a name="writergroupstatediagnosticmodel"></a>
+### WriterGroupStateDiagnosticModel
+Model for writer group status diagnostics.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataSetWriters**  <br>*optional*|Diagnostics for the dataset writers|< [DataSetWriterStateDiagnosticModel](definitions.md#datasetwriterstatediagnosticmodel) > array|
+|**id**  <br>*optional*|Writer group identifier.|string|
+|**version**  <br>*optional*|Writer group version|integer (uint32)|
+|**writerGroupName**  <br>*optional*|Writer group name.|string|
 
 
 <a name="writergrouptransport"></a>

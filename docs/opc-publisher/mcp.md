@@ -97,10 +97,37 @@ The capture tools have two modes and they behave differently in the shipped
 container image:
 
 - `source='inproc-client'` captures OPC Publisher's own OPC UA traffic and needs
-  no extra dependency. This is the mode that works out of the box.
+  neither libpcap nor extra privileges. This is the mode that works out of the
+  box.
 - `source='nic'` and `list_interfaces` capture from a network interface through
-  libpcap (Linux/macOS) or Npcap (Windows), which is **not present in the
-  container image**. They fail unless you install it yourself.
+  libpcap (Linux/macOS) or Npcap (Windows).
+
+**libpcap ships in the container image.** It is staged in from an Azure Linux
+builder during the image build, so `libpcap.so` → `libpcap.so.1` is present
+under `/usr/lib` on both `linux/amd64` and `linux/arm64`. The image itself stays
+distroless: no package manager and no shell come with it.
+
+**The library is necessary but not sufficient.** Capturing from a network
+interface also needs the `CAP_NET_RAW` capability, and the image **runs as a
+non-root user** (`UID 1654`, inherited from the distroless base). Docker grants
+`NET_RAW` to the container by default, but a non-root process does not hold it
+without ambient or file capabilities, so `source='nic'` will fail with a
+permission error under a default `docker run`.
+
+To use NIC capture you have to give the container the privilege explicitly, for
+example:
+
+```bash
+docker run --user 0 --cap-add NET_RAW ... ghcr.io/azure/iotedge/opc-publisher --mcp
+```
+
+Weigh that against what it costs: running as root undoes the non-root hardening
+of the image for every other part of the process. `source='inproc-client'` is
+the better answer whenever the traffic you want is OPC Publisher's own, which is
+the common case.
+
+On Windows and for local (non-container) runs, install
+[Npcap](https://npcap.com/) or libpcap yourself as before.
 
 ## Native AOT is not supported with `--mcp`
 

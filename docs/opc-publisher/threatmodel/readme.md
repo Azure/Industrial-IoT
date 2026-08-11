@@ -73,6 +73,13 @@ Accepted, with the reasoning:
    what that single layer protects**: it adds an agent-drivable path to the same
    write and call surface, plus traffic capture and key disclosure. It is off by
    default and should stay off unless the network is trusted.
+
+   The container image now carries libpcap so the capture tools can work, but
+   it runs as a **non-root user** and capture additionally needs `CAP_NET_RAW`.
+   So NIC capture is not reachable under a default `docker run` — an operator
+   has to grant the privilege deliberately, which is the intended friction.
+   The in-process capture mode needs neither, so `--mcp` alone still exposes
+   OPC Publisher's own traffic, including the key disclosure noted in T20.
 2. **T7 — plaintext credentials in `published_nodes.json`.** Changed in 2.6 for
    usability. Host filesystem permissions are the control.
 3. **T1 — `--aa` disables server certificate validation.** Intentionally

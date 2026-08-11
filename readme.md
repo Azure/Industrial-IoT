@@ -8,6 +8,10 @@ Microsoft [OPC Publisher](docs/opc-publisher/readme.md) allows you to discover a
 
 With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (supporting JSON, JSON+Gzip, and UADP binary encoding) and provides a large subset of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.
 
+Version 3.0 publishes telemetry through the native OPC UA PubSub runtime of the [UA-.NETStandard](https://github.com/OPCFoundation/UA-.NETStandard) 2.0 stack rather than a custom encoder. If you are upgrading, read the [2.9 to 3.0 migration guide](docs/opc-publisher/migration-2.9-to-3.0.md) first: the `Samples` and `FullSamples` messaging modes and Avro encoding are gone, and a deployment configured for either will not start.
+
+OPC Publisher can also expose an [MCP tool server](docs/opc-publisher/mcp.md) with `--mcp`, so an AI agent can browse, read and write through the same authenticated endpoint as the rest of the API. Read the security section of that document before enabling it.
+
 Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for OPC Publisher and the other tools included in this repository.
 
 ## Get started
@@ -33,7 +37,7 @@ Our releases are tagged following semantic versioning (“semver”) conventions
 |--------------------|--------------------|----------------|-----------------------|---------------------|
 | Industrial IoT 2.8 | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6) | 7/15/2023  | OPC Publisher 2.9 | [Migration Path](docs/opc-publisher/migrationpath.md) |
 | OPC Publisher 2.8  | [2.8.7](https://github.com/Azure/Industrial-IoT/tree/release/2.8.7) | 12/15/2023 | OPC Publisher 2.9 | N/A |
-| OPC Publisher 2.9  | [2.9.17](https://github.com/Azure/Industrial-IoT/tree/release/2.9.17) | 11/10/2026 | TBA               | [Migration Path](docs/opc-publisher/migrationpath.md) |
+| OPC Publisher 2.9  | [2.9.17](https://github.com/Azure/Industrial-IoT/tree/release/2.9.17) | 11/10/2026 | OPC Publisher 3.0 | [Migration Path](docs/opc-publisher/migrationpath.md), [2.9 to 3.0](docs/opc-publisher/migration-2.9-to-3.0.md) |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases, preview and experimental features are only supported through GitHub issues.
 
