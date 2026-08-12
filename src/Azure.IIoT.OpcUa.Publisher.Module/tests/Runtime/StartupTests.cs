@@ -165,6 +165,104 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             }
         }
 
+        /// <summary>
+        /// The MCP tools can extract secure channel keys and read capture
+        /// artifacts, and the unsecure listener carries the api key in
+        /// cleartext. Reaching /mcp over that listener would hand both to
+        /// anyone on the network path, so it must not be served there even
+        /// though the plaintext port is enabled by default.
+        /// </summary>
+        [Fact]
+        public async Task McpEndpointIsNotServedOnTheUnsecureListenerAsync()
+        {
+            var (app, _) = BuildApplication(mcpEnabled: true);
+            await using (app)
+            {
+                await app.StartAsync();
+
+                var unsecurePort = Module.Runtime.Configuration.Kestrel.GetListenPorts(
+                    app.Services.GetRequiredService<
+                        IOptions<PublisherOptions>>().Value).UnsecurePort;
+                Assert.NotNull(unsecurePort);
+
+                var apiKey = app.Services.GetRequiredService<IApiKeyProvider>().ApiKey;
+                Assert.False(string.IsNullOrEmpty(apiKey));
+
+                var server = app.GetTestServer();
+
+                var blocked = await server.SendAsync(context =>
+                {
+                    context.Request.Scheme = "https";
+
+                    context.Request.Host = new HostString("localhost");
+
+                    context.Request.Method = HttpMethods.Post;
+                    context.Request.Path = "/mcp";
+
+                    context.Request.Headers.Authorization = "ApiKey " + apiKey;
+                    context.Connection.LocalPort = unsecurePort.Value;
+                });
+                Assert.Equal(403, blocked.Response.StatusCode);
+
+                // A different local port must still reach the endpoint, where
+                // authentication -- not the guard -- is what rejects it.
+                var reachable = await server.SendAsync(context =>
+                {
+                    context.Request.Scheme = "https";
+
+                    context.Request.Host = new HostString("localhost");
+
+                    context.Request.Method = HttpMethods.Post;
+                    context.Request.Path = "/mcp";
+
+                    context.Request.Headers.Authorization = "ApiKey " + apiKey;
+                    context.Connection.LocalPort = unsecurePort.Value + 1;
+                });
+                Assert.NotEqual(403, reachable.Response.StatusCode);
+
+                await app.StopAsync();
+            }
+        }
+
+        /// <summary>
+        /// The guard must not affect the REST api, whose exposure on the
+        /// unsecure listener is a separate, pre-existing decision.
+        /// </summary>
+        [Fact]
+        public async Task RestApiIsStillServedOnTheUnsecureListenerAsync()
+        {
+            var (app, _) = BuildApplication(mcpEnabled: true);
+            await using (app)
+            {
+                await app.StartAsync();
+
+                var unsecurePort = Module.Runtime.Configuration.Kestrel.GetListenPorts(
+                    app.Services.GetRequiredService<
+                        IOptions<PublisherOptions>>().Value).UnsecurePort;
+                Assert.NotNull(unsecurePort);
+
+                var apiKey = app.Services.GetRequiredService<IApiKeyProvider>().ApiKey;
+                Assert.False(string.IsNullOrEmpty(apiKey));
+
+                var response = await app.GetTestServer().SendAsync(context =>
+                {
+                    context.Request.Scheme = "https";
+
+                    context.Request.Host = new HostString("localhost");
+
+                    context.Request.Method = HttpMethods.Get;
+                    context.Request.Path = "/v2/configuration";
+
+                    context.Request.Headers.Authorization = "ApiKey " + apiKey;
+                    context.Connection.LocalPort = unsecurePort.Value;
+                });
+
+                Assert.NotEqual(403, response.Response.StatusCode);
+
+                await app.StopAsync();
+            }
+        }
+
         private static (WebApplication App, Startup Startup) BuildApplication(bool mcpEnabled)
         {
             var builder = WebApplication.CreateBuilder();
@@ -184,10 +282,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             return mcpEnabled
                 ? new Dictionary<string, string?>
                 {
-                    [PublisherConfig.EnableMcpServerKey] = "true"
+                    [PublisherConfig.EnableMcpServerKey] = "true",
+                    [PublisherConfig.ApiKeyOverrideKey] = kTestApiKey
                 }
                 : [];
         }
+
+        private const string kTestApiKey = "test-api-key-for-startup-tests";
 
         private static ServiceProvider BuildServiceProvider(bool mcpEnabled = false)
         {

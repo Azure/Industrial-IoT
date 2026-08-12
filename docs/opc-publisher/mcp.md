@@ -63,7 +63,7 @@ interface works in it.
 
 ```bash
 docker run -d --name opc-publisher \
-  -p 9071:9071 -p 9072:9072 \
+  -p 9072:9072 \
   -v /srv/publisher:/mount \
   ghcr.io/azure/iotedge/opc-publisher \
     --pf=/mount/published_nodes.json \
@@ -76,6 +76,13 @@ privileged ports when it runs as root in a container, the non-root image listens
 on **9071/9072**, not 80/443. And `--mcp` needs an HTTP listener: if none is
 configured it enables one on the default HTTPS port rather than starting an
 endpoint nothing can reach.
+
+Note that only the TLS port is published above. OPC Publisher also listens on a
+plaintext port (9071, or 80 as root), and the api key travels on it in the
+clear. The MCP tools can extract secure channel keys and read capture
+artifacts, so **`/mcp` is refused on the plaintext listener** and answers `403`
+there; use the TLS port. Do not publish 9071 unless you have a specific reason
+and a trusted network path.
 
 ### Where captures are written
 
@@ -98,7 +105,6 @@ The same settings expressed as `createOptions`:
   "HostConfig": {
     "Binds": [ "/srv/publisher:/mount" ],
     "PortBindings": {
-      "9071/tcp": [ { "HostPort": "9071" } ],
       "9072/tcp": [ { "HostPort": "9072" } ]
     }
   }
@@ -117,13 +123,15 @@ it, so the container has to run as root as well:
 ```bash
 docker run -d --name opc-publisher \
   --user 0 --cap-add NET_RAW \
-  -p 80:80 -p 443:443 \
+  -p 443:443 \
   -v /srv/publisher:/mount \
   ghcr.io/azure/iotedge/opc-publisher \
     --pf=/mount/published_nodes.json --api-key=<api key> --mcp
 ```
 
-Note the ports change to **80/443** in this mode, for the reason given above.
+Note the ports change to **80/443** in this mode, for the reason given above,
+so the TLS port to publish is 443 and the plaintext one to leave unpublished
+is 80.
 
 On IoT Edge the equivalent is `"CapAdd": [ "NET_RAW" ]` and `"User": "0"` in
 `HostConfig`; on Kubernetes it is a `securityContext` with `runAsUser: 0` and
@@ -255,6 +263,21 @@ Two consequences are worth stating plainly:
 
 Only enable `--mcp` on a trusted network, and treat the api key as equivalent to
 write access to every server the publisher is connected to.
+
+### The plaintext listener
+
+OPC Publisher listens on a plaintext HTTP port as well as the TLS one — 9071
+non-root, 80 as root. Despite the `--unsecurehttp` help text saying
+`Default: disabled`, that listener is **on by default** and bound to all
+interfaces; the option only changes which port it uses. The api key is sent on
+it in the clear, which is why the help text also warns against using it in
+production.
+
+Because the MCP tools can extract secure channel keys and read capture
+artifacts, `/mcp` is **refused on that listener** and answers `403`. The REST
+api is not affected — its exposure there predates this and is unchanged. Publish
+only the TLS port, and put the plaintext one behind a firewall or leave it
+unmapped.
 
 ### libpcap in the container image
 

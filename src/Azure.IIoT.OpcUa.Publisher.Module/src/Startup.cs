@@ -259,7 +259,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 if (mcpEnabled)
                 {
 #if IIOT_MCP
-                    endpoints.MapMcp("/mcp").RequireAuthorization();
+                    // The tools can extract secure channel keys, capture traffic
+                    // and read capture artifacts. The unsecure listener carries
+                    // the api key in cleartext, so serving /mcp there would put
+                    // all of that one packet sniff away. Refuse on that port
+                    // whether it was enabled deliberately or left on by default.
+                    // Applied as an endpoint convention rather than pipeline
+                    // middleware so it cannot be reordered around: it wraps the
+                    // request delegate of every route MapMcp creates and runs
+                    // whenever that endpoint is selected. The REST api's own
+                    // exposure on the unsecure port is a separate, pre-existing
+                    // decision and is deliberately left alone.
+                    var unsecurePort = Runtime.Configuration.Kestrel.GetListenPorts(
+                        app.ApplicationServices.GetRequiredService<
+                            IOptions<PublisherOptions>>().Value).UnsecurePort;
+
+                    var mcp = endpoints.MapMcp("/mcp").RequireAuthorization();
+                    if (unsecurePort != null)
+                    {
+                        var blockedPort = unsecurePort.Value;
+                        mcp.Add(builder =>
+                        {
+                            var inner = builder.RequestDelegate;
+                            if (inner == null)
+                            {
+                                return;
+                            }
+                            builder.RequestDelegate = async context =>
+                            {
+                                if (context.Connection.LocalPort == blockedPort)
+                                {
+                                    context.Response.StatusCode = 403;
+                                    return;
+                                }
+                                await inner(context).ConfigureAwait(false);
+                            };
+                        });
+                    }
 #endif
                 }
             });
