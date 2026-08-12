@@ -92,7 +92,33 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
+      # ----------------------------------------------------------------------
+      # azure/login intermittently fails its Azure PowerShell leg with "the
+      # provided account does not have access to subscription <id>" even
+      # though the Azure CLI leg succeeded seconds earlier using the very same
+      # federated token and the very same subscription. Observed in run
+      # 31586188505, where the CLI logged "Azure CLI login succeeds by using
+      # OIDC" and the PowerShell login then failed against the subscription it
+      # had just selected.
+      #
+      # The test job that follows runs for tens of minutes and up to four
+      # hours, and it has already paid for a full infrastructure deployment
+      # that is torn down with the run, so a transient login must not be
+      # allowed to discard it. Attempt the login twice before giving up. The
+      # second attempt is not tolerant, so a genuine credential or permission
+      # problem still fails the job.
+      # ----------------------------------------------------------------------
       - uses: azure/login@v2
+        id: azure_login
+        continue-on-error: true
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Azure login (retry after transient failure)
+        if: steps.azure_login.outcome == 'failure'
+        uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
