@@ -946,30 +946,56 @@ namespace OpcPublisherAEE2ETests
                     json = partitionEvent.DeserializeJson<JToken>();
                 }
 
-                if (context?.OutputHelper != null)
+                List<JToken> batchedMessages;
+                if (json is JArray array)
+                {
+                    batchedMessages = array.Cast<JToken>().ToList();
+                }
+                else
+                {
+                    batchedMessages = new List<JToken> { json };
+                }
+
+                //
+                // Only trace what this reader is actually looking at. The
+                // shared hub carries a high volume of foreign telemetry and
+                // dumping all of it would bury the messages under test.
+                //
+                if (context?.OutputHelper != null && batchedMessages
+                    .Any(t => t is JObject o && (string)o["MessageType"] == "ua-data"))
                 {
                     context.OutputHelper.WriteLine(json.ToString(Formatting.Indented));
                 }
 
-                List<dynamic> batchedMessages;
-                if (json is JArray array)
-                {
-                    batchedMessages = array.Cast<dynamic>().ToList();
-                }
-                else
-                {
-                    batchedMessages = new List<dynamic> { json };
-                }
-
                 // Expect all messages to be the same
                 var messageIds = new HashSet<string>();
-                foreach (var message in batchedMessages)
+                var networkMessages = 0;
+                foreach (var token in batchedMessages)
                 {
+                    //
+                    // The IoT Hub is shared. Other publisher modules deployed
+                    // by tests running in parallel, and any leaf traffic
+                    // picked up by the leafToUpstream route, land in the same
+                    // partitions, and every consumer group sees all of it
+                    // regardless of which group it reads from. Only network
+                    // messages can be addressed to the writer under test, so
+                    // anything else is skipped rather than asserted on - a
+                    // samples mode message carries no MessageId at all and
+                    // would otherwise fail the run with a binder exception on
+                    // the dynamic member access below.
+                    //
+                    if (token is not JObject obj ||
+                        (string)obj["MessageType"] != "ua-data")
+                    {
+                        continue;
+                    }
+                    networkMessages++;
+                    dynamic message = obj;
+
                     Assert.NotNull(message.MessageId.Value);
                     Assert.True(messageIds.Add(message.MessageId.Value));
                     var writerGroupId = (string)message.DataSetWriterGroup.Value;
                     Assert.NotNull(writerGroupId);
-                    Assert.Equal("ua-data", message.MessageType.Value);
                     var innerMessages = (JArray)message.Messages;
                     Assert.True(innerMessages.Any(), "Json doesn't contain any messages");
 
@@ -988,7 +1014,13 @@ namespace OpcPublisherAEE2ETests
                     }
                 }
 
-                if (batchedMessages.Count > 0 && --numberOfBatchesToRead == 0)
+                //
+                // Only a batch that actually carried network messages counts
+                // against the budget. Otherwise a burst of foreign traffic
+                // would exhaust it and the caller would be handed far fewer
+                // messages than it asked for.
+                //
+                if (networkMessages > 0 && --numberOfBatchesToRead == 0)
                 {
                     break;
                 }
