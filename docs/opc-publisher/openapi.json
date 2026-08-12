@@ -23,9 +23,9 @@
         "tags": [
           "Diagnostics"
         ],
-        "summary": "GetWriterGroupDiagnostics",
+        "summary": "GetAllWriterGroupStates",
         "description": "Get the state of all writer groups currently configured in the publisher, including the state of each of their dataset writers.",
-        "operationId": "GetWriterGroupDiagnostics",
+        "operationId": "GetAllWriterGroupStates",
         "produces": [
           "application/json",
           "application/x-msgpack"
@@ -38,18 +38,6 @@
               "items": {
                 "$ref": "#/definitions/WriterGroupStateDiagnosticModel"
               }
-            }
-          },
-          "405": {
-            "description": "Call not supported or functionality disabled.",
-            "schema": {
-              "$ref": "#/definitions/ProblemDetails"
-            }
-          },
-          "408": {
-            "description": "The operation timed out.",
-            "schema": {
-              "$ref": "#/definitions/ProblemDetails"
             }
           },
           "500": {
@@ -66,9 +54,9 @@
         "tags": [
           "Diagnostics"
         ],
-        "summary": "GetWriterGroupDiagnostic",
+        "summary": "GetWriterGroupState",
         "description": "Get the state of a single writer group and the state of each of its dataset writers.",
-        "operationId": "GetWriterGroupDiagnostic",
+        "operationId": "GetWriterGroupState",
         "produces": [
           "application/json",
           "application/x-msgpack"
@@ -89,20 +77,14 @@
               "$ref": "#/definitions/WriterGroupStateDiagnosticModel"
             }
           },
-          "405": {
-            "description": "Call not supported or functionality disabled.",
+          "400": {
+            "description": "The passed in information is invalid.",
             "schema": {
               "$ref": "#/definitions/ProblemDetails"
             }
           },
-          "408": {
-            "description": "The operation timed out.",
-            "schema": {
-              "$ref": "#/definitions/ProblemDetails"
-            }
-          },
-          "500": {
-            "description": "An unexpected error occurred",
+          "404": {
+            "description": "The item was not found.",
             "schema": {
               "$ref": "#/definitions/ProblemDetails"
             }
@@ -115,9 +97,9 @@
         "tags": [
           "Diagnostics"
         ],
-        "summary": "RequestWriterGroupKeyFrame",
+        "summary": "SendWriterGroupKeyFrame",
         "description": "Request that every dataset writer in the writer group emits a key frame message on its next publish.",
-        "operationId": "RequestWriterGroupKeyFrame",
+        "operationId": "SendWriterGroupKeyFrame",
         "produces": [
           "application/json",
           "application/x-msgpack"
@@ -135,14 +117,8 @@
           "200": {
             "description": "The operation was successful."
           },
-          "405": {
-            "description": "Call not supported or functionality disabled.",
-            "schema": {
-              "$ref": "#/definitions/ProblemDetails"
-            }
-          },
-          "408": {
-            "description": "The operation timed out.",
+          "404": {
+            "description": "The item was not found.",
             "schema": {
               "$ref": "#/definitions/ProblemDetails"
             }
@@ -161,9 +137,9 @@
         "tags": [
           "Diagnostics"
         ],
-        "summary": "RequestWriterKeyFrame",
+        "summary": "SendDataSetWriterKeyFrame",
         "description": "Request that a single dataset writer emits a key frame message on its next publish.",
-        "operationId": "RequestWriterKeyFrame",
+        "operationId": "SendDataSetWriterKeyFrame",
         "produces": [
           "application/json",
           "application/x-msgpack"
@@ -188,14 +164,8 @@
           "200": {
             "description": "The operation was successful."
           },
-          "405": {
-            "description": "Call not supported or functionality disabled.",
-            "schema": {
-              "$ref": "#/definitions/ProblemDetails"
-            }
-          },
-          "408": {
-            "description": "The operation timed out.",
+          "404": {
+            "description": "The item was not found.",
             "schema": {
               "$ref": "#/definitions/ProblemDetails"
             }
@@ -5577,6 +5547,9 @@
   "definitions": {
     "DataSetWriterStateDiagnosticModel": {
       "type": "object",
+      "required": [
+        "id"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -5609,6 +5582,10 @@
     },
     "MonitoredItemNodeErrorModel": {
       "type": "object",
+      "required": [
+        "errorInfo",
+        "nodeId"
+      ],
       "properties": {
         "nodeId": {
           "type": "string",
@@ -5635,6 +5612,10 @@
     },
     "WriterGroupStateDiagnosticModel": {
       "type": "object",
+      "required": [
+        "dataSetWriters",
+        "id"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -5645,7 +5626,7 @@
           "description": "Writer group name."
         },
         "version": {
-          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": "integer",
           "description": "Writer group version",
           "format": "uint32"
         },

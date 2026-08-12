@@ -459,7 +459,7 @@ Model for writer diagnostic info.
 |---|---|---|
 |**dataSetWriterName**  <br>*optional*|Dataset writer name.|string|
 |**endpointUrl**  <br>*optional*|The endpoint url of the server the writer is connecting to.|string|
-|**id**  <br>*optional*|Dataset writer identifier.|string|
+|**id**  <br>*required*|Dataset writer identifier.|string|
 |**opcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
 |**opcAuthenticationUsername**  <br>*optional*|The user name used to connect to the endpoint in case of user name and password authentication.|string|
 |**source**  <br>*optional*||[PublishedDataSetSourceDiagnosticModel](definitions.md#publisheddatasetsourcediagnosticmodel)|
@@ -1255,8 +1255,8 @@ Model for monitored item node errors
 
 |Name|Description|Schema|
 |---|---|---|
-|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**nodeId**  <br>*optional*|Node id of the variable|string|
+|**errorInfo**  <br>*required*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**nodeId**  <br>*required*|Node id of the variable|string|
 
 
 <a name="monitoreditemwatchdogcondition"></a>
@@ -2771,8 +2771,8 @@ Model for writer group status diagnostics.
 
 |Name|Description|Schema|
 |---|---|---|
-|**dataSetWriters**  <br>*optional*|Diagnostics for the dataset writers|< [DataSetWriterStateDiagnosticModel](definitions.md#datasetwriterstatediagnosticmodel) > array|
-|**id**  <br>*optional*|Writer group identifier.|string|
+|**dataSetWriters**  <br>*required*|Diagnostics for the dataset writers|< [DataSetWriterStateDiagnosticModel](definitions.md#datasetwriterstatediagnosticmodel) > array|
+|**id**  <br>*required*|Writer group identifier.|string|
 |**version**  <br>*optional*|Writer group version|integer (uint32)|
 |**writerGroupName**  <br>*optional*|Writer group name.|string|
 

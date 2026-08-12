@@ -96,7 +96,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddResourceMonitoring(Configuration);
             services.AddExceptionSummarizer(builder =>
             {
-                builder.AddDefaultProviders();
+                // --mcp brings in AddStandardResilienceHandler, which registers
+                // Microsoft's HttpExceptionSummaryProvider. Two providers may
+                // not claim the same exception type, so the overlapping types
+                // are ceded to it - but only then, because on the default path
+                // nothing else would describe them.
+                builder.AddDefaultProviders(httpProviderRegistered: McpServerEnabled);
                 // TODO: Add opc ua exceptions
             });
 

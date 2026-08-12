@@ -957,8 +957,8 @@ Get diagnostics for all active clients including server and client session diagn
 * `application/x-msgpack`
 
 
-<a name="getwritergroupdiagnostics"></a>
-#### GetWriterGroupDiagnostics
+<a name="getallwritergroupstates"></a>
+#### GetAllWriterGroupStates
 ```
 GET /v2/diagnostics/writergroups
 ```
@@ -973,8 +973,6 @@ Get the state of all writer groups currently configured in the publisher, includ
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|< [WriterGroupStateDiagnosticModel](definitions.md#writergroupstatediagnosticmodel) > array|
-|**405**|Call not supported or functionality disabled.|[ProblemDetails](definitions.md#problemdetails)|
-|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -984,8 +982,8 @@ Get the state of all writer groups currently configured in the publisher, includ
 * `application/x-msgpack`
 
 
-<a name="getwritergroupdiagnostic"></a>
-#### GetWriterGroupDiagnostic
+<a name="getwritergroupstate"></a>
+#### GetWriterGroupState
 ```
 GET /v2/diagnostics/writergroups/{dataSetWriterGroup}
 ```
@@ -1007,9 +1005,8 @@ Get the state of a single writer group and the state of each of its dataset writ
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[WriterGroupStateDiagnosticModel](definitions.md#writergroupstatediagnosticmodel)|
-|**405**|Call not supported or functionality disabled.|[ProblemDetails](definitions.md#problemdetails)|
-|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
-|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+|**400**|The passed in information is invalid.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The item was not found.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -1018,8 +1015,8 @@ Get the state of a single writer group and the state of each of its dataset writ
 * `application/x-msgpack`
 
 
-<a name="requestwritergroupkeyframe"></a>
-#### RequestWriterGroupKeyFrame
+<a name="sendwritergroupkeyframe"></a>
+#### SendWriterGroupKeyFrame
 ```
 POST /v2/diagnostics/writergroups/{dataSetWriterGroup}/keyframe
 ```
@@ -1041,8 +1038,7 @@ Request that every dataset writer in the writer group emits a key frame message 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
-|**405**|Call not supported or functionality disabled.|[ProblemDetails](definitions.md#problemdetails)|
-|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The item was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -1052,8 +1048,8 @@ Request that every dataset writer in the writer group emits a key frame message 
 * `application/x-msgpack`
 
 
-<a name="requestwriterkeyframe"></a>
-#### RequestWriterKeyFrame
+<a name="senddatasetwriterkeyframe"></a>
+#### SendDataSetWriterKeyFrame
 ```
 POST /v2/diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe
 ```
@@ -1076,8 +1072,7 @@ Request that a single dataset writer emits a key frame message on its next publi
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
-|**405**|Call not supported or functionality disabled.|[ProblemDetails](definitions.md#problemdetails)|
-|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The item was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 

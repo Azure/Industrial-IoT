@@ -57,23 +57,54 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Add default exception summary providers.
         /// </summary>
         /// <param name="builder"></param>
+        /// <param name="httpProviderRegistered">
+        /// Whether something else in the container registers
+        /// <c>HttpExceptionSummaryProvider</c>, which
+        /// <c>AddStandardResilienceHandler</c> does. When it is registered the
+        /// four types it claims are ceded to it, because two providers may not
+        /// claim the same type; when it is not, they are kept, because
+        /// otherwise nothing would describe them at all.
+        /// </param>
         /// <returns></returns>
         public static IExceptionSummarizationBuilder AddDefaultProviders(
-            this IExceptionSummarizationBuilder builder)
+            this IExceptionSummarizationBuilder builder,
+            bool httpProviderRegistered = false)
         {
-            builder.AddProvider<HttpExceptionProvider>();
-            builder.AddProvider<BuiltInExceptionProvider>();
+            if (!httpProviderRegistered)
+            {
+                builder.AddProvider<HttpExceptionProvider>();
+                builder.AddProvider<BuiltInExceptionProvider>();
+                return builder;
+            }
+            //
+            // HttpExceptionProvider is not registered at all here: both of the
+            // types it describes are ceded, so it would claim nothing and could
+            // never be selected.
+            //
+            builder.AddProvider<CededBuiltInExceptionProvider>();
             return builder;
+        }
+
+        /// <summary>
+        /// <see cref="BuiltInExceptionProvider"/> with the ceded types removed.
+        /// </summary>
+        private sealed class CededBuiltInExceptionProvider : IExceptionSummaryProvider
+        {
+            public IEnumerable<Type> SupportedExceptionTypes { get; } =
+                [.. BuiltInExceptionProvider.SupportedTypes
+                    .Where(type => !kClaimedByHttpProvider.Contains(type))];
+
+            public IReadOnlyList<string> Descriptions => _inner.Descriptions;
+
+            public int Describe(Exception exception, out string? additionalDetails)
+                => _inner.Describe(exception, out additionalDetails);
+
+            private readonly BuiltInExceptionProvider _inner = new();
         }
 
         private sealed class HttpExceptionProvider : IExceptionSummaryProvider
         {
             public IEnumerable<Type> SupportedExceptionTypes { get; } =
-                kSupportedHttpTypes
-                    .Where(type => !kClaimedByHttpProvider.Contains(type))
-                    .ToImmutableArray();
-
-            private static readonly ImmutableArray<Type> kSupportedHttpTypes =
             [
                 typeof(WebException),
                 typeof(SocketException),
@@ -127,11 +158,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private sealed class BuiltInExceptionProvider : IExceptionSummaryProvider
         {
-            //
-            // Narrower than kSupported: see the remark on kClaimedByHttpProvider.
-            //
-            public IEnumerable<Type> SupportedExceptionTypes
-                => kSupported.Keys.Where(type => !kClaimedByHttpProvider.Contains(type));
+            /// <summary>
+            /// The full set this provider can describe. The ceded variant
+            /// filters it; see <see cref="kClaimedByHttpProvider"/>.
+            /// </summary>
+            internal static IEnumerable<Type> SupportedTypes => kSupported.Keys;
+
+            public IEnumerable<Type> SupportedExceptionTypes => kSupported.Keys;
 
             public IReadOnlyList<string> Descriptions => kDescriptions;
 
