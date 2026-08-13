@@ -405,8 +405,17 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultNamespaceFormat = namespaceFormat;
             }
 
+            //
+            // No default: the plaintext listener is opt in. GetIntOrNull would
+            // return the default for an absent, empty or unparseable value,
+            // which left the port always on and made the "Default: disabled"
+            // the option documents unreachable by any configuration input. The
+            // api key is sent in clear text on this listener, so it stays off
+            // until asked for -- "--unsecurehttp" with no value supplies
+            // UnsecureHttpServerPortDefault.
+            //
             options.UnsecureHttpServerPort ??= GetIntOrNull(
-                    UnsecureHttpServerPortKey, UnsecureHttpServerPortDefault);
+                    UnsecureHttpServerPortKey);
             options.HttpServerPort ??= GetIntOrNull(
                     HttpServerPortKey, HttpServerPortDefault);
             options.EnableMcpServer ??= GetBoolOrNull(EnableMcpServerKey);

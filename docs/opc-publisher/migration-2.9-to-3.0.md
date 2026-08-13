@@ -7,6 +7,7 @@
 - [Overview](#overview)
 - [What breaks and what to do about it](#what-breaks-and-what-to-do-about-it)
   - [Samples and FullSamples messaging modes removed](#samples-and-fullsamples-messaging-modes-removed)
+  - [The plaintext HTTP listener is now genuinely off by default](#the-plaintext-http-listener-is-now-genuinely-off-by-default)
 - [What changed on the wire](#what-changed-on-the-wire)
   - [Default messaging mode](#default-messaging-mode)
   - [Message format in PubSub mode](#message-format-in-pubsub-mode)
@@ -52,6 +53,39 @@ If your deployment sets `--mm=Samples` or `--mm=FullSamples` on the command line
 3. Update any downstream consumer that parses the old `MonitoredItemMessage` wire format — see [What changed on the wire](#what-changed-on-the-wire) below.
 
 If no messaging mode was specified the deployment already uses the 2.9 default, which was `PubSub`. No change is needed for the mode itself, but verify the wire format section below.
+
+### The plaintext HTTP listener is now genuinely off by default
+
+This one does not stop startup — it stops **clients** that talked to OPC
+Publisher over plain HTTP.
+
+`--unsecurehttp` has always described itself as `Default: disabled`, and warned
+in the same sentence that the listener exposes the api key on the network. It
+was never actually off. `UnsecureHttpServerPort` resolved to its default port
+whenever the setting was absent, empty or unparseable — which is every
+deployment that did not set it — so the documented "disabled" state could not be
+reached by any configuration input, and OPC Publisher listened on **9071** (or
+**80** when running as root in a container) on all interfaces regardless.
+
+3.0 makes the behaviour match the documentation.
+
+**Action required** if anything talks to OPC Publisher over `http://`:
+
+1. Prefer moving the client to the TLS port (**9072**, or **443** as root in a
+   container). The api key is sent in clear text on the plaintext listener, so
+   this is the reason the option warned against it in the first place.
+2. If you cannot, pass `--unsecurehttp` to restore the previous behaviour on the
+   default port, or `--unsecurehttp=<port>` to pick one.
+3. Container deployments that published the plaintext port (for example
+   `-p 9071:80`, or a `PortBindings` entry in IoT Edge `createOptions`) need the
+   option added as well — publishing a port the process no longer listens on
+   silently yields connection refused.
+
+The symptom of missing this is a refused connection, not a silent fallback.
+
+The MCP tool endpoint (`--mcp`) is refused on the plaintext listener even when
+you enable it, because those tools can extract secure channel keys. See
+[MCP](./mcp.md#the-plaintext-listener).
 
 ## What changed on the wire
 
@@ -150,7 +184,9 @@ The native PubSub runtime publishes a writer group through a single transport co
 
 5. **Review retained MQTT metadata.** If the messaging mode changed (e.g. from `Samples` to `PubSub`) writer group and writer identities change too. Retained metadata messages under the old identities will remain on the broker until they are overwritten or cleared.
 
-6. **Nothing else to do for most deployments.** `published_nodes.json` files that do not name a removed messaging mode, and command lines that do not use the options listed above, start unchanged.
+6. **Check for clients using plain HTTP.** Anything calling the REST api over `http://` — a script, a dashboard, a health probe, or a container port mapping such as `-p 9071:80` — now gets connection refused unless `--unsecurehttp` is passed. Prefer moving those clients to the TLS port. See [The plaintext HTTP listener is now genuinely off by default](#the-plaintext-http-listener-is-now-genuinely-off-by-default).
+
+7. **Nothing else to do for most deployments.** `published_nodes.json` files that do not name a removed messaging mode, and command lines that do not use the options listed above, start unchanged.
 
 ## Rolling back to 2.9
 

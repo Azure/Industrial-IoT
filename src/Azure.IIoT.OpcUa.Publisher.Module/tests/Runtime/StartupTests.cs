@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     using ModelContextProtocol.Server;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Net.Http;
     using System.Text;
@@ -169,13 +170,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// The MCP tools can extract secure channel keys and read capture
         /// artifacts, and the unsecure listener carries the api key in
         /// cleartext. Reaching /mcp over that listener would hand both to
-        /// anyone on the network path, so it must not be served there even
-        /// though the plaintext port is enabled by default.
+        /// anyone on the network path, so it must not be served there even when
+        /// the operator has deliberately turned the plaintext port on.
         /// </summary>
         [Fact]
         public async Task McpEndpointIsNotServedOnTheUnsecureListenerAsync()
         {
-            var (app, _) = BuildApplication(mcpEnabled: true);
+            var (app, _) = BuildApplication(mcpEnabled: true, unsecureHttp: true);
             await using (app)
             {
                 await app.StartAsync();
@@ -231,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [Fact]
         public async Task RestApiIsStillServedOnTheUnsecureListenerAsync()
         {
-            var (app, _) = BuildApplication(mcpEnabled: true);
+            var (app, _) = BuildApplication(mcpEnabled: true, unsecureHttp: true);
             await using (app)
             {
                 await app.StartAsync();
@@ -263,11 +264,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             }
         }
 
-        private static (WebApplication App, Startup Startup) BuildApplication(bool mcpEnabled)
+        /// <summary>
+        /// The plaintext listener is opt in, so the default configuration must
+        /// not produce one at all. This is the Startup-level counterpart to the
+        /// binding test in PublisherConfigTests.
+        /// </summary>
+        [Fact]
+        public void UnsecureListenerIsAbsentUnlessAskedFor()
+        {
+            var (app, _) = BuildApplication(mcpEnabled: true);
+            using (app)
+            {
+                var ports = Module.Runtime.Configuration.Kestrel.GetListenPorts(
+                    app.Services.GetRequiredService<
+                        IOptions<PublisherOptions>>().Value);
+
+                Assert.Null(ports.UnsecurePort);
+                Assert.NotNull(ports.SecurePort);
+            }
+        }
+
+        private static (WebApplication App, Startup Startup) BuildApplication(
+            bool mcpEnabled, bool unsecureHttp = false)
         {
             var builder = WebApplication.CreateBuilder();
             builder.WebHost.UseTestServer();
-            builder.Configuration.AddInMemoryCollection(McpSettings(mcpEnabled));
+            builder.Configuration.AddInMemoryCollection(
+                McpSettings(mcpEnabled, unsecureHttp));
 
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
@@ -277,15 +300,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             return (app, startup);
         }
 
-        private static Dictionary<string, string?> McpSettings(bool mcpEnabled)
+        private static Dictionary<string, string?> McpSettings(
+            bool mcpEnabled, bool unsecureHttp = false)
         {
-            return mcpEnabled
-                ? new Dictionary<string, string?>
-                {
-                    [PublisherConfig.EnableMcpServerKey] = "true",
-                    [PublisherConfig.ApiKeyOverrideKey] = kTestApiKey
-                }
-                : [];
+            var settings = new Dictionary<string, string?>();
+            if (mcpEnabled)
+            {
+                settings[PublisherConfig.EnableMcpServerKey] = "true";
+                settings[PublisherConfig.ApiKeyOverrideKey] = kTestApiKey;
+            }
+            if (unsecureHttp)
+            {
+                // The plaintext listener is opt in, so a test that is about
+                // what happens on it has to ask for it explicitly.
+                settings[PublisherConfig.UnsecureHttpServerPortKey] =
+                    PublisherConfig.UnsecureHttpServerPortDefault
+                        .ToString(CultureInfo.InvariantCulture);
+            }
+            return settings;
         }
 
         private const string kTestApiKey = "test-api-key-for-startup-tests";

@@ -55,8 +55,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             Assert.NotEmpty(options.PublisherId);
         }
 
-        // ─── SiteId ───────────────────────────────────────────────────────────
+        // ─── Http listener ports ──────────────────────────────────────────────
 
+        /// <summary>
+        /// The plaintext listener carries the api key in clear text, and the
+        /// option documents itself as disabled by default. It was not: an
+        /// absent key still produced the default port, so the documented state
+        /// could not be reached by any configuration input.
+        /// </summary>
+        [Fact]
+        public void Config_UnsecureHttpServerPort_WhenAbsent_IsNull()
+        {
+            var options = new PublisherConfig(Configuration()).ToOptions().Value;
+
+            Assert.Null(options.UnsecureHttpServerPort);
+        }
+
+        /// <summary>
+        /// An empty or unparseable value must not silently turn the listener
+        /// on either, which is what supplying a default to GetIntOrNull did.
+        /// </summary>
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData("not-a-port")]
+        public void Config_UnsecureHttpServerPort_WhenBlankOrInvalid_IsNull(string value)
+        {
+            var options = new PublisherConfig(
+                Configuration(P(PublisherConfig.UnsecureHttpServerPortKey, value)))
+                .ToOptions().Value;
+
+            Assert.Null(options.UnsecureHttpServerPort);
+        }
+
+        [Fact]
+        public void Config_UnsecureHttpServerPort_WhenSet_PreservesValue()
+        {
+            var options = new PublisherConfig(
+                Configuration(P(PublisherConfig.UnsecureHttpServerPortKey, "9090")))
+                .ToOptions().Value;
+
+            Assert.Equal(9090, options.UnsecureHttpServerPort);
+        }
+
+        /// <summary>
+        /// The TLS listener keeps its default; only the plaintext one became
+        /// opt in.
+        /// </summary>
+        [Fact]
+        public void Config_HttpServerPort_WhenAbsent_UsesDefault()
+        {
+            var options = new PublisherConfig(Configuration()).ToOptions().Value;
+
+            Assert.Equal(PublisherConfig.HttpServerPortDefault, options.HttpServerPort);
+        }
+
+        // ─── SiteId ───────────────────────────────────────────────────────────
         [Fact]
         public void Config_SiteId_WhenSet_PreservesValue()
         {

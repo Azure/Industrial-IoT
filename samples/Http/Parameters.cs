@@ -35,8 +35,14 @@ internal sealed class Parameters : IDisposable
     const string HttpsEndpoint = "https://localhost:9072";
 
     /// <summary>
-    /// Publisher Endpoint
+    /// Publisher Endpoint.
     /// </summary>
+    /// <remarks>
+    /// The plaintext endpoint is only reachable when OPC Publisher was started
+    /// with --unsecurehttp; it is off by default because the api key travels on
+    /// it in the clear. This sample only falls back to it when it has no api
+    /// key to protect.
+    /// </remarks>
     public string OpcPublisher => ApiKey == null ? HttpEndpoint : HttpsEndpoint;
 
     /// <summary>

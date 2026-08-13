@@ -72,17 +72,15 @@ docker run -d --name opc-publisher \
 ```
 
 Two things about the ports. Because OPC Publisher only defaults to the
-privileged ports when it runs as root in a container, the non-root image listens
-on **9071/9072**, not 80/443. And `--mcp` needs an HTTP listener: if none is
-configured it enables one on the default HTTPS port rather than starting an
-endpoint nothing can reach.
+privileged port when it runs as root in a container, the non-root image listens
+on **9072**, not 443. And `--mcp` needs an HTTP listener: if none is configured
+it enables one on the default HTTPS port rather than starting an endpoint
+nothing can reach.
 
-Note that only the TLS port is published above. OPC Publisher also listens on a
-plaintext port (9071, or 80 as root), and the api key travels on it in the
-clear. The MCP tools can extract secure channel keys and read capture
-artifacts, so **`/mcp` is refused on the plaintext listener** and answers `403`
-there; use the TLS port. Do not publish 9071 unless you have a specific reason
-and a trusted network path.
+The plaintext listener is **off unless you ask for it** with `--unsecurehttp`.
+If you do turn it on, the api key travels on it in the clear, and because the
+MCP tools can extract secure channel keys and read capture artifacts, **`/mcp`
+is refused on that listener** and answers `403` there. Use the TLS port.
 
 ### Where captures are written
 
@@ -266,18 +264,19 @@ write access to every server the publisher is connected to.
 
 ### The plaintext listener
 
-OPC Publisher listens on a plaintext HTTP port as well as the TLS one — 9071
-non-root, 80 as root. Despite the `--unsecurehttp` help text saying
-`Default: disabled`, that listener is **on by default** and bound to all
-interfaces; the option only changes which port it uses. The api key is sent on
-it in the clear, which is why the help text also warns against using it in
-production.
+`--unsecurehttp` opens a plaintext HTTP listener on all interfaces (9071
+non-root, 80 as root). It is **off unless you ask for it**.
 
-Because the MCP tools can extract secure channel keys and read capture
-artifacts, `/mcp` is **refused on that listener** and answers `403`. The REST
-api is not affected — its exposure there predates this and is unchanged. Publish
-only the TLS port, and put the plaintext one behind a firewall or leave it
-unmapped.
+That was not always true. Through 2.9 and the 3.0 previews the listener was
+always on, even though the option documented itself as `Default: disabled` and
+warned in the same sentence that it exposes the api key on the network — an
+absent, empty or unparseable setting all resolved to the default port, so the
+documented state could not be reached by any configuration input. As of 3.0 the
+behaviour matches the documentation.
+
+If you do enable it, the api key is sent on it in the clear. Because the MCP
+tools can extract secure channel keys and read capture artifacts, `/mcp` is
+**refused on that listener** and answers `403` regardless.
 
 ### libpcap in the container image
 
