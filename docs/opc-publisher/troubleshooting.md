@@ -18,6 +18,7 @@ In this document you find information about
     - [IoT Hub Metrics](#iot-hub-metrics)
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
   - [Duplicated, stale or unevenly spaced values](#duplicated-stale-or-unevenly-spaced-values)
+    - [Sizing the heartbeat interval](#sizing-the-heartbeat-interval)
     - [Jittered timestamps without duplicates](#jittered-timestamps-without-duplicates)
     - [Quantized timestamp displacement with no heartbeats](#quantized-timestamp-displacement-with-no-heartbeats)
 - [Restart the module](#restart-the-module)
@@ -180,6 +181,26 @@ To rule out that values were actually dropped or that the server queue overflowe
 | `serverQueueOverflows` | The OPC UA server dropped queued values. Increase `QueueSize` or the publishing interval. |
 
 If all of these are zero, no value was lost inside OPC Publisher.
+
+#### Sizing the heartbeat interval
+
+A heartbeat exists to answer "has this node stopped reporting", so it must be configured well *above* the rate at which the node normally changes. Setting the heartbeat interval equal to the sampling interval - a common mistake, because both numbers describe the same node - makes the heartbeat race the data instead of watching it, and every value that is merely late then produces a duplicate.
+
+The watchdog reports once a node has been silent for
+
+```text
+HeartbeatInterval + min(PublishingInterval, HeartbeatInterval)
+```
+
+so the publishing interval sets how much lateness is tolerated. Note the direction: a *smaller* publishing interval gives a *smaller* grace period. With a two second heartbeat and a two second publishing interval a value may be up to two seconds late; halve the publishing interval to one second and one second of lateness is enough to emit a duplicate. Publishing faster than the source changes therefore costs tolerance without gaining anything.
+
+Rules of thumb:
+
+- Set `HeartbeatInterval` to several times the rate at which the value actually changes, not to the sampling interval. If the value must be reported at least once a minute, configure sixty seconds - not two.
+- Do not configure the publishing interval below the rate at which the server produces values. Extra publish cycles carry no data and shrink the grace period.
+- If duplicates appear only under load, the values are arriving late rather than not at all. Raising the heartbeat interval is the correct response; it is what distinguishes "late" from "stopped".
+
+Duplicates caused this way are recognisable: they are *exact* duplicates, repeating the value, the `SourceTimestamp` and the `ServerTimestamp` of the message before them, and they appear at the same instant across many nodes at once, because a late publish response delays every node in the subscription together. Random redelivery by the transport, by contrast, affects individual messages independently.
 
 #### Jittered timestamps without duplicates
 

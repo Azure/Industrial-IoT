@@ -76,6 +76,8 @@ jobs:
             test: SlowSourceUpdatedTimestampHeartbeatsShiftTimestampsAsync
           - name: SourceTimestampFidelity
             test: SourceTimestampFidelityTests
+          - name: PublishingFasterThanSource
+            test: PublishingFasterThanTheSourceDoesNotTriggerHeartbeatsAsync
     steps:
       - uses: actions/checkout@v4
         with:
