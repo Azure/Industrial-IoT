@@ -12,3 +12,12 @@ updates:
     open-pull-requests-limit: 25
     # Raise pull requests in worker branch nuget
     target-branch: "main"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    groups:
+      github-actions:
+        patterns: ["*"]
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
