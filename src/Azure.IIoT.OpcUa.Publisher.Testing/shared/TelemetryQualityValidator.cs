@@ -350,21 +350,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         }
 
         /// <summary>
+        /// <para>
         /// Whether the sample was already seen. Delivery is at least once, so
         /// a redelivered message must not be reported as a repeated value.
+        /// </para>
+        /// <para>
+        /// The key must include the node. A writer sequence number identifies
+        /// a notification within its writer, not within the whole stream, so
+        /// keying on the number alone makes the samples of different nodes
+        /// collide - with thousands of nodes that silently discards most of
+        /// the stream instead of just the redeliveries.
+        /// </para>
+        /// <para>
+        /// Heartbeats are never suppressed. A heartbeat resends the last
+        /// known value <em>including its sequence number</em>, so it collides
+        /// with the value it repeats by construction, and suppressing it
+        /// would hide the very thing these tests measure. The cost is that a
+        /// genuinely redelivered heartbeat is counted twice, which errs
+        /// towards over reporting rather than towards hiding a defect.
+        /// </para>
         /// </summary>
         /// <param name="sample"></param>
         private bool IsDuplicate(TelemetrySample sample)
         {
-            if (!_options.SuppressDuplicates || sample.SequenceNumber == null)
+            if (!_options.SuppressDuplicates || sample.SequenceNumber == null ||
+                sample.IsHeartbeat)
             {
                 return false;
             }
-            if (!_seenSequenceNumbers.Add(sample.SequenceNumber.Value))
+            var key = (sample.NodeId, sample.SequenceNumber.Value);
+            if (!_seenSequenceNumbers.Add(key))
             {
                 return true;
             }
-            _seenSequenceNumberOrder.Enqueue(sample.SequenceNumber.Value);
+            _seenSequenceNumberOrder.Enqueue(key);
             while (_seenSequenceNumberOrder.Count > _options.DuplicateWindow)
             {
                 _seenSequenceNumbers.Remove(_seenSequenceNumberOrder.Dequeue());
@@ -522,8 +541,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         private readonly TelemetryQualityOptions _options;
         private readonly Dictionary<string, NodeState> _nodes = [];
         private readonly List<string> _examples = [];
-        private readonly HashSet<uint> _seenSequenceNumbers = [];
-        private readonly Queue<uint> _seenSequenceNumberOrder = new();
+        private readonly HashSet<(string, uint)> _seenSequenceNumbers = [];
+        private readonly Queue<(string, uint)> _seenSequenceNumberOrder = new();
         private readonly TimeSpan _tolerance;
         private readonly TimeSpan _heartbeatTolerance;
         private readonly TimeSpan? _earliestHeartbeat;

@@ -118,6 +118,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         }
 
         /// <summary>
+        /// <para>
+        /// The field configuration behind the duplicate reports: a publishing
+        /// interval <em>below</em> the rate at which the source changes.
+        /// </para>
+        /// <para>
+        /// This matters because the watchdog grace period is
+        /// <c>min(publishingInterval, heartbeatInterval)</c>. Every other arm
+        /// in this suite publishes at the data rate, which yields a two
+        /// second grace on a two second heartbeat. Halving the publishing
+        /// interval halves the grace to one second, so a value only has to be
+        /// one second late for the watchdog to win - the tightest deadline
+        /// the product will produce for this heartbeat interval, and until
+        /// now untested.
+        /// </para>
+        /// <para>
+        /// A heartbeat here is not harmless: the default <c>WatchdogLKV</c>
+        /// behaviour resends the last value with its original timestamps, so
+        /// a consumer that cannot read the heartbeat indicator sees an exact
+        /// duplicate - same value, same source timestamp, same server
+        /// timestamp - and counts it as a data quality defect.
+        /// </para>
+        /// </summary>
+        [SkippableFact]
+        public async Task PublishingFasterThanTheSourceDoesNotTriggerHeartbeatsAsync()
+        {
+            SkipUnlessEnabled();
+            var report = await RunScenarioAsync(
+                nameof(PublishingFasterThanTheSourceDoesNotTriggerHeartbeatsAsync),
+                MessagingMode.FullSamples, NodeCount, kInterval,
+                publishingInterval: TimeSpan.FromMilliseconds(kInterval.TotalMilliseconds / 2),
+                samplingInterval: kInterval, queueSize: kQueueSize,
+                heartbeatSeconds: (int)kInterval.TotalSeconds,
+                duration: RunDuration).ConfigureAwait(false);
+
+            AssertClean(report);
+
+            // A duplicate is what the consumer actually complains about.
+            Assert.True(report.RepeatedValues == 0,
+                $"{report.RepeatedValues} value(s) were delivered twice although the " +
+                $"source produced a new value on every cycle.\n{report}");
+        }
+
+        /// <summary>
         /// The customer scenario at the reported scale of three thousand
         /// nodes. Opt in because it needs a machine that can host the server
         /// and the publisher side by side.
