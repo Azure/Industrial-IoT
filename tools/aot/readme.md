@@ -146,7 +146,14 @@ ELF Header:
 ```
 
 If `find` returns nothing — only a `.dll` of the same name — the publish
-degraded to managed. Recheck the SDK version rather than the project files.
+degraded to managed. The usual cause is stale incremental state, not the SDK
+version and not the project files: when `bin/Release` and `obj/Release` already
+hold the output of an earlier non-AOT publish, MSBuild considers the publish up
+to date and simply copies it. That path exits 0 and still emits the ILC
+trim/AOT roll-up warnings, so it looks green. A degraded publish directory has
+~220 files including `coreclr.dll` and no native executable; a real one has
+about a dozen and no managed assemblies. Delete `bin/Release` and `obj/Release`
+for the Module and publish again before looking anywhere else.
 
 ## Proving the image runs
 
