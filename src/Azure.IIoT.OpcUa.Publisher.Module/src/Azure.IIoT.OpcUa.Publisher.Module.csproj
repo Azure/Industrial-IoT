@@ -31,12 +31,11 @@
     <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
   </PropertyGroup>
   <!--
-    Phase 8 (AOT gate): opt into Native-AOT publish via `-p:IIoTPublishAot=true`
-    instead of `-p:PublishAot=true`. This keeps PublishAot a LOCAL property of the
-    Module so it is never a global property that flows into (and during restore
-    re-evaluates) the multi-TFM UA-.NETStandard submodule projects for net472 etc.,
-    which would fail with NETSDK1207. The submodule assemblies are still trim/AOT
-    analyzed at this root publish.
+    Opt into Native-AOT publish via `-p:IIoTPublishAot=true` rather than
+    `-p:PublishAot=true`. The switch is what selects the AOT *configuration*, not
+    merely the toolchain: it compiles the MCP tool server out of the image (see
+    the IIOT_MCP property below), so it must stay a distinct property even though
+    the stack is now consumed as packages rather than as multi-TFM projects.
       dotnet publish ...Module.csproj -c Release -r linux-x64 -p:IIoTPublishAot=true (self-contained)
 
     Native-AOT compiles to a real target binary, so it cannot cross an OS boundary:
@@ -109,17 +108,12 @@
   </ItemGroup>
   <ItemGroup Condition="'$(IIoTPublishAot)' != 'true'">
     <!--
-      The OPC UA MCP tool libraries. Pinned to net10.0 and shielded from PublishAot
-      for the same reason as the other submodule references above, and excluded
-      entirely from the AOT configuration (see the IIOT_MCP property above).
+      The OPC UA MCP tool libraries, excluded entirely from the AOT
+      configuration (see the IIOT_MCP property above).
     -->
     <PackageReference Include="ModelContextProtocol.AspNetCore" />
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\tools\Opc.Ua.Mcp.Core\Opc.Ua.Mcp.Core.csproj"
-                      SetTargetFramework="TargetFramework=net10.0"
-                      UndefineProperties="PublishAot" />
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\tools\Opc.Ua.Mcp.Diagnostics\Opc.Ua.Mcp.Diagnostics.csproj"
-                      SetTargetFramework="TargetFramework=net10.0"
-                      UndefineProperties="PublishAot" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Mcp.Core" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Mcp.Diagnostics" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />

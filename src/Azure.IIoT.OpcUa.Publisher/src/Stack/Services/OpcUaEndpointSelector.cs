@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var filtered = endpoints
                 .Where(ep =>
-                    SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
+                    SecurityPolicies.Default.GetDisplayName(ep.SecurityPolicyUri) != null &&
                     ep.SecurityMode.IsSame(securityMode) &&
                     (securityPolicy == null ||
                      string.Equals(ep.SecurityPolicyUri,

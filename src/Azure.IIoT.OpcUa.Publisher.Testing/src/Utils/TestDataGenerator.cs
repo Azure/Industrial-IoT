@@ -92,7 +92,7 @@ namespace Opc.Ua.Test
         /// Create generator
         /// </summary>
         /// <param name="random"></param>
-        public TestDataGenerator(IRandomSource random = null)
+        public TestDataGenerator(ISecureRandomSource random = null)
         {
             MinDateTimeValue = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             MaxDateTimeValue = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -990,9 +990,9 @@ namespace Opc.Ua.Test
         /// forever, hanging the test host. Serialize every access on a
         /// process-wide lock to keep the generator state consistent.
         /// </summary>
-        private sealed class ThreadSafeRandomSource : IRandomSource
+        private sealed class ThreadSafeRandomSource : ISecureRandomSource
         {
-            public ThreadSafeRandomSource(IRandomSource source)
+            public ThreadSafeRandomSource(ISecureRandomSource source)
             {
                 _source = source;
             }
@@ -1014,10 +1014,10 @@ namespace Opc.Ua.Test
             }
 
             private static readonly object kLock = new();
-            private readonly IRandomSource _source;
+            private readonly ISecureRandomSource _source;
         }
 
-        private readonly IRandomSource _random;
+        private readonly ISecureRandomSource _random;
         private readonly SortedDictionary<string, object[]> _boundaryValues;
         private readonly bool _useBoundaryValues = true;
         private readonly string[] _availableLocales;

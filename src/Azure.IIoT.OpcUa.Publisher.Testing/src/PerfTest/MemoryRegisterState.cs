@@ -165,43 +165,40 @@ namespace PerfTest
         {
             _ = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            lock (DataLock)
+            // enumerate pre-defined references.
+            // always call first to ensure any pushed-back references are returned first.
+            var reference = base.Next();
+
+            if (reference != null)
             {
-                // enumerate pre-defined references.
-                // always call first to ensure any pushed-back references are returned first.
-                var reference = base.Next();
+                return reference;
+            }
+
+            if (_stage == Stage.Begin)
+            {
+                _stage = Stage.Tags;
+                _position = 0;
+            }
+
+            // don't start browsing huge number of references when only internal references are requested.
+            if (InternalOnly)
+            {
+                return null;
+            }
+
+            // enumerate tags.
+            if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
+            {
+                reference = NextChild();
 
                 if (reference != null)
                 {
                     return reference;
                 }
-
-                if (_stage == Stage.Begin)
-                {
-                    _stage = Stage.Tags;
-                    _position = 0;
-                }
-
-                // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly)
-                {
-                    return null;
-                }
-
-                // enumerate tags.
-                if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
-                {
-                    reference = NextChild();
-
-                    if (reference != null)
-                    {
-                        return reference;
-                    }
-                }
-
-                // all done.
-                return null;
             }
+
+            // all done.
+            return null;
         }
 
         /// <summary>

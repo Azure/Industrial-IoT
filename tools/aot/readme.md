@@ -55,8 +55,10 @@ dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src \
   -c Release -r linux-x64 --self-contained --no-restore -p:IIoTPublishAot=true
 ```
 
-`-p:IIoTPublishAot=true` sets `PublishAot` as a Module-local property so it does
-not flow into the multi-TFM UA-.NETStandard submodule projects.
+`-p:IIoTPublishAot=true` rather than `-p:PublishAot=true` because the switch
+selects the AOT *configuration*, not just the toolchain: it also compiles the MCP
+tool server out of the image, whose schema generation is reflective and cannot
+work under AOT.
 
 ## Building locally on a non-Linux host
 

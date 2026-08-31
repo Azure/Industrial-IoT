@@ -143,7 +143,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -203,10 +202,10 @@ jobs:
   # restore requires the public nuget.org feed and cannot run in the offline
   # local dev environment, so this is validated here in CI. Publishes the
   # module self-contained with the Native-AOT toolchain (-p:IIoTPublishAot=true
-  # sets PublishAot as a Module-local property so it does not flow into the
-  # multi-TFM UA-.NETStandard submodule projects). Runs as its own job in
-  # parallel with build_test so a trim/AOT regression is surfaced without
-  # blocking the normal build & test matrix.
+  # sets PublishAot as a Module-local property and compiles the MCP tool server
+  # out of the image, because its schema generation is reflective). Runs as its
+  # own job in parallel with build_test so a trim/AOT regression is surfaced
+  # without blocking the normal build & test matrix.
   # --------------------------------------------------------------------------
   aot_publish:
     name: AOT publish gate (Publisher.Module / linux-x64)
@@ -217,7 +216,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -341,7 +339,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -556,7 +553,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -612,8 +608,6 @@ jobs:
       images: ${{ steps.dockerize.outputs.images }}
     steps:
       - uses: actions/checkout@v4
-      - name: Verify stack origin
-        uses: ./.github/actions/verify-stack-origin
       - name: Download all image tarballs
         uses: actions/download-artifact@v4
         with:
@@ -735,9 +729,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
-      - name: Verify stack origin
-        uses: ./.github/actions/verify-stack-origin
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |

@@ -27,10 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\samples\Quickstarts.Servers\Quickstarts.Servers.csproj"
-                      SetTargetFramework="TargetFramework=net10.0"
-                      UndefineProperties="PublishAot">
-      <Aliases>Quickstarts</Aliases>
-    </ProjectReference>
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Quickstarts.Servers"
+                      Aliases="Quickstarts" />
   </ItemGroup>
 </Project>

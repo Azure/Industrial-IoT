@@ -71,7 +71,7 @@
 
 ## Azure Industrial IoT OPC Publisher 3.0
 
-We are pleased to announce the release of version 3.0 of OPC Publisher. This is a major release that replaces the custom telemetry encoder with the native OPC UA PubSub runtime from the UA-.NETStandard 2.0 stack, shipped as a git submodule. The publisher now produces standards-compliant OPC UA Part 14 messages over all supported transports. The module targets .NET 10 and its container image is distroless.
+We are pleased to announce the release of version 3.0 of OPC Publisher. This is a major release that replaces the custom telemetry encoder with the native OPC UA PubSub runtime from the UA-.NETStandard 2.0 stack. The publisher now produces standards-compliant OPC UA Part 14 messages over all supported transports. The module targets .NET 10 and its container image is distroless.
 
 ### Breaking changes in 3.0
 
@@ -86,7 +86,7 @@ We are pleased to announce the release of version 3.0 of OPC Publisher. This is 
 ### Changes in 3.0
 
 - Telemetry is published through the native OPC UA PubSub runtime. The custom encoder has been removed.
-- Migrated to the UA-.NETStandard 2.0 stack, consumed as a git submodule at `external/UA-.NETStandard`.
+- Migrated to the UA-.NETStandard 2.0 stack, consumed as the published `OPCFoundation.NetStandard.Opc.Ua.*` NuGet packages.
 - Native AOT publishing is supported for the module (`-p:IIoTPublishAot=true`) and is gated in CI for linux-amd64 and linux-arm64. **The published container image is not itself Native AOT** — it is a framework-dependent build on the .NET 10 base image, which is what allows the MCP tool server to ship in it.
 - The container image is distroless (`aspnet:10.0-azurelinux3.0-distroless`) and runs as a non-root user. libpcap is staged into it so the MCP protocol diagnostics can capture from a network interface when the container is given the necessary privilege.
 - Updated to .NET 10.

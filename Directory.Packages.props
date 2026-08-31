@@ -52,15 +52,24 @@
   </ItemGroup>
 
   <ItemGroup Label="OPC Foundation">
-    <!-- Phase 4a: OPC UA stack consumed via submodule ProjectReferences
-         (external/UA-.NETStandard) instead of published NuGet packages. -->
+    <!-- The OPC UA stack is consumed as published, signed packages from
+         nuget.org. All nine were previously submodule ProjectReferences; the
+         version here is the single place the stack is pinned. -->
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Mcp.Core" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Mcp.Diagnostics" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.PubSub" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Quickstarts.Servers" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="2.0.0-preview.3" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.SourceGeneration" Version="2.0.0-preview.3" />
   </ItemGroup>
 
   <ItemGroup Label="OpenApi">
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
-    <!-- Must track the version the UA-.NETStandard submodule resolves for the
-         Opc.Ua.Mcp.* projects, otherwise the MCP server and tool assemblies
-         disagree at runtime. -->
+    <!-- Must match what OPCFoundation.NetStandard.Opc.Ua.Mcp.Core depends on,
+         otherwise the MCP server and tool assemblies disagree at runtime. -->
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>

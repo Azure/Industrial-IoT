@@ -62,30 +62,19 @@
     <PackageReference Include="System.Linq.Async" />
     <!-- Legacy Asset simulations intentionally use Newtonsoft.Json and are test-only. -->
     <PackageReference Include="Newtonsoft.Json" />
-    <!--
-      Phase 8 (AOT gate): pin the multi-TFM UA-.NETStandard submodule reference to
-      net10.0 and stop PublishAot from propagating so a `-p:PublishAot=true` publish
-      of a consumer does not build it for net472 etc. (NETSDK1207). Do NOT modify the
-      submodule csprojs.
-    -->
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\src\Opc.Ua.Server\Opc.Ua.Server.csproj"
-                      SetTargetFramework="TargetFramework=net10.0"
-                      UndefineProperties="PublishAot" />
-    <!-- Consume the authoritative generic server cohorts without allowing its
-         multi-targeted build or AOT properties to leak into Publisher builds. -->
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\samples\Quickstarts.Servers\Quickstarts.Servers.csproj"
-                      SetTargetFramework="TargetFramework=net10.0"
-                      UndefineProperties="PublishAot">
-      <Aliases>Quickstarts</Aliases>
-    </ProjectReference>
+    <!-- Consume the authoritative generic server cohorts under an alias so the
+         Quickstarts types do not collide with the local simulation types. -->
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Quickstarts.Servers"
+                      Aliases="Quickstarts" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\tools\Opc.Ua.SourceGeneration\Opc.Ua.SourceGeneration.csproj">
-      <OutputItemType>Analyzer</OutputItemType>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
+    <!-- The model source generator. The package auto-imports its own build props,
+         which declare the ModelSourceGenerator* properties and AdditionalFiles
+         metadata the generator reads below. -->
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.SourceGeneration"
+                      PrivateAssets="all" />
   </ItemGroup>
-  <Import Project="..\..\..\external\UA-.NETStandard\tools\Opc.Ua.SourceGeneration\OPCFoundation.Opc.Ua.SourceGeneration.props" />
   <ItemGroup>
     <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.csv" />
     <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.xml" />

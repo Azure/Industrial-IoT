@@ -80,79 +80,76 @@ namespace HistoricalAccess
         /// <returns>The next reference that meets the browse criteria.</returns>
         public override IReference Next()
         {
-            lock (DataLock)
+            // enumerate pre-defined references.
+            // always call first to ensure any pushed-back references are returned first.
+            var reference = base.Next();
+
+            if (reference != null)
             {
-                // enumerate pre-defined references.
-                // always call first to ensure any pushed-back references are returned first.
-                var reference = base.Next();
+                return reference;
+            }
+
+            if (_stage == Stage.Begin)
+            {
+                _folders = _source.ArchiveFolder.GetChildFolders();
+                _stage = Stage.Folders;
+                _position = 0;
+            }
+
+            // don't start browsing huge number of references when only internal references are requested.
+            if (InternalOnly)
+            {
+                return null;
+            }
+
+            // enumerate folders.
+            if (_stage == Stage.Folders)
+            {
+                if (IsRequired(ReferenceTypeIds.Organizes, false))
+                {
+                    reference = NextChild();
+
+                    if (reference != null)
+                    {
+                        return reference;
+                    }
+                }
+
+                _items = _source.ArchiveFolder.GetItems();
+                _stage = Stage.Items;
+                _position = 0;
+            }
+
+            // enumerate items.
+            if (_stage == Stage.Items && IsRequired(ReferenceTypeIds.Organizes, false))
+            {
+                reference = NextChild();
 
                 if (reference != null)
                 {
                     return reference;
                 }
 
-                if (_stage == Stage.Begin)
-                {
-                    _folders = _source.ArchiveFolder.GetChildFolders();
-                    _stage = Stage.Folders;
-                    _position = 0;
-                }
-
-                // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly)
-                {
-                    return null;
-                }
-
-                // enumerate folders.
-                if (_stage == Stage.Folders)
-                {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false))
-                    {
-                        reference = NextChild();
-
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
-                    }
-
-                    _items = _source.ArchiveFolder.GetItems();
-                    _stage = Stage.Items;
-                    _position = 0;
-                }
-
-                // enumerate items.
-                if (_stage == Stage.Items && IsRequired(ReferenceTypeIds.Organizes, false))
-                {
-                    reference = NextChild();
-
-                    if (reference != null)
-                    {
-                        return reference;
-                    }
-
-                    _stage = Stage.Parents;
-                    _position = 0;
-                }
-
-                // enumerate parents.
-                if (_stage == Stage.Parents && IsRequired(ReferenceTypeIds.Organizes, true))
-                {
-                    reference = NextChild();
-
-                    if (reference != null)
-                    {
-                        return reference;
-                    }
-
-                    _stage = Stage.Done;
-                    _position = 0;
-                }
-
-                // all done.
-                return null;
+                _stage = Stage.Parents;
+                _position = 0;
             }
+
+            // enumerate parents.
+            if (_stage == Stage.Parents && IsRequired(ReferenceTypeIds.Organizes, true))
+            {
+                reference = NextChild();
+
+                if (reference != null)
+                {
+                    return reference;
+                }
+
+                _stage = Stage.Done;
+                _position = 0;
+            }
+
+            // all done.
+            return null;
         }
 
         /// <summary>
