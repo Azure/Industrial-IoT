@@ -1,0 +1,21 @@
+[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Boiler/;i=1257",
+                "OpcSamplingInterval": 200,
+                "OpcPublishingInterval": 200,
+                "DisplayName": "Output1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Boiler/;i=1257",
+                "OpcSamplingInterval": 200,
+                "OpcPublishingInterval": 200,
+                "DisplayName": "Output2"
+            }
+        ]
+    }
+]

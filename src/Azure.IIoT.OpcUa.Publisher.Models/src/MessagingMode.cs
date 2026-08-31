@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// bandwidth efficiency, and compatibility with different message consumers.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(MessagingModeJsonConverter))]
     public enum MessagingMode
     {
         /// <summary>
@@ -22,16 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Recommended for standards-compliant message processing.
         /// </summary>
         [EnumMember(Value = "PubSub")]
-        PubSub,
-
-        /// <summary>
-        /// Simple JSON telemetry format compatible with Azure Time Series Insights.
-        /// Each message contains basic node information and value changes.
-        /// More compact than PubSub mode but with limited metadata.
-        /// Suitable for simple monitoring scenarios.
-        /// </summary>
-        [EnumMember(Value = "Samples")]
-        Samples,
+        PubSub = 0,
 
         /// <summary>
         /// Complete OPC UA network message format including all headers and metadata.
@@ -40,16 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Use when complete message context is required.
         /// </summary>
         [EnumMember(Value = "FullNetworkMessages")]
-        FullNetworkMessages,
-
-        /// <summary>
-        /// Enhanced samples format with complete metadata and timestamps.
-        /// Similar to Samples mode but includes additional context information.
-        /// Provides good balance between completeness and message size.
-        /// Suitable for advanced monitoring with historical context.
-        /// </summary>
-        [EnumMember(Value = "FullSamples")]
-        FullSamples,
+        FullNetworkMessages = 2,
 
         /// <summary>
         /// Dataset messages without network message wrapper.
@@ -58,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Good choice when network-level information is not needed.
         /// </summary>
         [EnumMember(Value = "DataSetMessages")]
-        DataSetMessages,
+        DataSetMessages = 4,
 
         /// <summary>
         /// Individual dataset message without network message wrapper.
@@ -67,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Best for simple publisher configurations with one dataset.
         /// </summary>
         [EnumMember(Value = "SingleDataSetMessage")]
-        SingleDataSetMessage,
+        SingleDataSetMessage = 5,
 
         /// <summary>
         /// Pure key-value pairs representing datasets without any headers.
@@ -76,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Use when minimal message size is critical and context is known.
         /// </summary>
         [EnumMember(Value = "DataSets")]
-        DataSets,
+        DataSets = 6,
 
         /// <summary>
         /// Single dataset as key-value pairs without headers.
@@ -85,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Best for minimal overhead in simple configurations.
         /// </summary>
         [EnumMember(Value = "SingleDataSet")]
-        SingleDataSet,
+        SingleDataSet = 7,
 
         /// <summary>
         /// Datasets containing only raw values without type information.
@@ -94,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Use only when data types are known by consumers.
         /// </summary>
         [EnumMember(Value = "RawDataSets")]
-        RawDataSets,
+        RawDataSets = 8,
 
         /// <summary>
         /// Single dataset with raw values only.
@@ -103,6 +86,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Best choice when absolute minimum message size is required.
         /// </summary>
         [EnumMember(Value = "SingleRawDataSet")]
-        SingleRawDataSet
+        SingleRawDataSet = 9
     }
 }

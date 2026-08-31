@@ -125,7 +125,7 @@ namespace Vehicles.Types
         }
 
         /// <inheritdoc/>
-        public PropertyState<VehicleType[]> OwnedVehicles
+        public PropertyState<ArrayOf<VehicleType>> OwnedVehicles
         {
             get
             {
@@ -174,9 +174,10 @@ namespace Vehicles.Types
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }
@@ -193,7 +194,7 @@ namespace Vehicles.Types
                             {
                                 if (replacement == null)
                                 {
-                                    PrimaryVehicle = new PropertyState<VehicleType>(this);
+                                    PrimaryVehicle = new PropertyState<VehicleType>.Implementation<StructureBuilder<VehicleType>>(this);
                                 }
                                 else
                                 {
@@ -214,11 +215,11 @@ namespace Vehicles.Types
                             {
                                 if (replacement == null)
                                 {
-                                    OwnedVehicles = new PropertyState<VehicleType[]>(this);
+                                    OwnedVehicles = new PropertyState<ArrayOf<VehicleType>>.Implementation<StructureBuilder<VehicleType>>(this);
                                 }
                                 else
                                 {
-                                    OwnedVehicles = (PropertyState<VehicleType[]>)replacement;
+                                    OwnedVehicles = (PropertyState<ArrayOf<VehicleType>>)replacement;
                                 }
                             }
                         }
@@ -233,13 +234,13 @@ namespace Vehicles.Types
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
         #region Private Fields
         private PropertyState<VehicleType> m_primaryVehicle;
-        private PropertyState<VehicleType[]> m_ownedVehicles;
+        private PropertyState<ArrayOf<VehicleType>> m_ownedVehicles;
         #endregion
     }
 #endif

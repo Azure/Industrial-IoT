@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [Flags]
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<AdditionalData>))]
     public enum AdditionalData
     {
         /// <summary>

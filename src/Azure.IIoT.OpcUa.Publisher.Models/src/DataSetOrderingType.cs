@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Ordering model
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DataSetOrderingType>))]
     public enum DataSetOrderingType
     {
         /// <summary>

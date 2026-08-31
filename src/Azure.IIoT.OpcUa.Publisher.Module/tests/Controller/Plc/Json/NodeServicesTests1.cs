@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Plc.Json
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
-    using Autofac;
     using System;
     using System.Threading.Tasks;
     using Xunit;
@@ -36,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Plc.Json
         }
 
         private readonly PlcServer _server;
-        private readonly IContainer _client;
+        private readonly TestContainer _client;
 
         [Fact]
         public Task AlternatingBooleanTelemetryChangesWithPeriodAsync()

@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
@@ -31,10 +30,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="options"></param>
-        /// <param name="serializer"></param>
         public FileSystemServicesRestClient(IHttpClientFactory httpClient,
-            IOptions<SdkOptions> options, ISerializer serializer) :
-            this(httpClient, options?.Value.Target, serializer)
+            IOptions<SdkOptions> options) :
+            this(httpClient, options?.Value.Target)
         {
         }
 
@@ -43,9 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="serializer"></param>
-        public FileSystemServicesRestClient(IHttpClientFactory httpClient, string serviceUri,
-            ISerializer serializer = null)
+        public FileSystemServicesRestClient(IHttpClientFactory httpClient, string serviceUri)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -53,7 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                     "Please configure the Url of the endpoint micro service.");
             }
             _serviceUri = serviceUri.TrimEnd('/');
-            _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 
@@ -64,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(endpoint);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/list");
             return _httpClient.PostStreamAsync<ServiceResponse<FileSystemObjectModel>>(uri,
-                endpoint, _serializer, ct: ct);
+                endpoint, ct: ct);
         }
 
         /// <inheritdoc/>
@@ -75,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(fileSystemOrDirectory);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/list/directories");
             return await _httpClient.PostAsync<ServiceResponse<IEnumerable<FileSystemObjectModel>>>(uri,
-                RequestBody(endpoint, fileSystemOrDirectory), _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, fileSystemOrDirectory), ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -86,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(fileSystemOrDirectory);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/list/files");
             return await _httpClient.PostAsync<ServiceResponse<IEnumerable<FileSystemObjectModel>>>(uri,
-                RequestBody(endpoint, fileSystemOrDirectory), _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, fileSystemOrDirectory), ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -97,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(fileOrDirectoryObject);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/parent");
             return await _httpClient.PostAsync<ServiceResponse<FileSystemObjectModel>>(uri,
-                RequestBody(endpoint, fileOrDirectoryObject), _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, fileOrDirectoryObject), ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -108,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(file);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/info/file");
             return await _httpClient.PostAsync<ServiceResponse<FileInfoModel>>(uri,
-                RequestBody(endpoint, file), _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, file), ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -139,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNullOrWhiteSpace(name);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/create/directory/{name.UrlEncode()}");
             return await _httpClient.PostAsync<ServiceResponse<FileSystemObjectModel>>(uri,
-                RequestBody(endpoint, fileSystemOrDirectory), _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, fileSystemOrDirectory), ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -151,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNullOrWhiteSpace(name);
             var uri = new Uri($"{_serviceUri}/v2/filesystem/create/file/{name.UrlEncode()}");
             return await _httpClient.PostAsync<ServiceResponse<FileSystemObjectModel>>(uri,
-                RequestBody(endpoint, fileSystemOrDirectory), _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, fileSystemOrDirectory), ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -165,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             {
                 var uri = new Uri($"{_serviceUri}/v2/filesystem/delete");
                 return await _httpClient.PostAsync<ServiceResultModel>(uri,
-                    RequestBody(endpoint, fileOrDirectoryObject), _serializer, ct: ct).ConfigureAwait(false);
+                    RequestBody(endpoint, fileOrDirectoryObject), ct: ct).ConfigureAwait(false);
             }
             else
             {
@@ -175,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 }
                 var uri = new Uri($"{_serviceUri}/v2/filesystem/delete/{fileOrDirectoryObject.NodeId.UrlEncode()}");
                 return await _httpClient.PostAsync<ServiceResultModel>(uri,
-                    RequestBody(endpoint, parentFileSystemOrDirectory), _serializer, ct: ct).ConfigureAwait(false);
+                    RequestBody(endpoint, parentFileSystemOrDirectory), ct: ct).ConfigureAwait(false);
             }
         }
 
@@ -232,11 +227,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 var httpClient = outer._httpClient.CreateClient();
                 httpClient.Timeout = TimeSpan.FromMinutes(2);
 
-                var _serializer = new NewtonsoftJsonSerializer();
                 using var request = new HttpRequestMessage(HttpMethod.Get, uri);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
-                request.Headers.Add("x-ms-target", _serializer.SerializeObjectToString(file));
-                request.Headers.Add("x-ms-connection", _serializer.SerializeObjectToString(endpoint));
+                request.Headers.Add("x-ms-target", Json.SerializeObjectToString(file));
+                request.Headers.Add("x-ms-connection", Json.SerializeObjectToString(endpoint));
                 try
                 {
                     var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
@@ -255,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                             // Error response
                             return new ServiceResponse<Stream>
                             {
-                                ErrorInfo = _serializer.Deserialize<ServiceResultModel>(errorInfo)
+                                ErrorInfo = Json.Deserialize<ServiceResultModel>(errorInfo)
                             };
                         }
                         throw new HttpRequestException($"Failed to download file: {response.StatusCode}");
@@ -346,14 +340,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             /// </summary>
             /// <param name="httpClient"></param>
             /// <param name="request"></param>
-            /// <param name="serializer"></param>
-            /// <param name="ct"></param>
+                /// <param name="ct"></param>
             public UploadStream(HttpClient httpClient,
-                HttpRequestMessage request, IJsonSerializer serializer, CancellationToken ct)
+                HttpRequestMessage request, CancellationToken ct)
             {
                 _httpClient = httpClient;
                 _request = request;
-                _serializer = serializer;
                 _request.Content = new StreamContent(_pipe.Reader.AsStream(false));
                 _streaming = StartAsync(ct);
             }
@@ -368,12 +360,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 httpClient.Timeout = TimeSpan.FromMinutes(2);
                 var request = new HttpRequestMessage(HttpMethod.Post, uri);
 
-                var serializer = new NewtonsoftJsonSerializer();
-                request.Headers.Add("x-ms-target", serializer.SerializeObjectToString(file));
-                request.Headers.Add("x-ms-connection", serializer.SerializeObjectToString(endpoint));
-                request.Headers.Add("x-ms-options", serializer.SerializeObjectToString(options));
+                request.Headers.Add("x-ms-target", Json.SerializeObjectToString(file));
+                request.Headers.Add("x-ms-connection", Json.SerializeObjectToString(endpoint));
+                request.Headers.Add("x-ms-options", Json.SerializeObjectToString(options));
 
-                var stream = new UploadStream(httpClient, request, serializer, ct);
+                var stream = new UploadStream(httpClient, request, ct);
                 return new ServiceResponse<Stream>
                 {
                     Result = stream
@@ -468,7 +459,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                         // Error response
                         Result = new ServiceResponse<Stream>
                         {
-                            ErrorInfo = _serializer.Deserialize<ServiceResultModel>(errorInfo)
+                            ErrorInfo = Json.Deserialize<ServiceResultModel>(errorInfo)
                         };
                     }
                     throw new HttpRequestException($"Failed to upload file: {response.StatusCode}");
@@ -478,13 +469,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             private readonly HttpClient _httpClient;
             private readonly HttpRequestMessage _request;
             private readonly Pipe _pipe = new();
-            private readonly IJsonSerializer _serializer;
             private int _length;
             private Task _streaming;
         }
 
         private readonly IHttpClientFactory _httpClient;
-        private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }
 }

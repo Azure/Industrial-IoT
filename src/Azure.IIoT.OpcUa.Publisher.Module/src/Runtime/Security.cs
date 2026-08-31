@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System;
     using System.Net.Http.Headers;
     using System.Security.Claims;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
 
@@ -85,7 +87,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         return Task.FromResult(AuthenticateResult.NoResult());
                     }
 
-                    if (_apiKeyProvider.ApiKey != header.Parameter?.Trim())
+                    var configured = _apiKeyProvider.ApiKey;
+                    if (string.IsNullOrEmpty(configured))
+                    {
+                        //
+                        // No key configured means nothing can present a valid
+                        // one. Comparing against null instead let a request
+                        // carrying a bare "ApiKey" header with no parameter
+                        // match - null equals null - and authenticate.
+                        //
+                        throw new UnauthorizedAccessException();
+                    }
+                    var presented = header.Parameter?.Trim();
+                    if (string.IsNullOrEmpty(presented) ||
+                        !IsSameKey(configured, presented))
                     {
                         throw new UnauthorizedAccessException();
                     }
@@ -108,6 +123,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
             private readonly IHttpContextAccessor _context;
             private readonly IApiKeyProvider _apiKeyProvider;
+
+            /// <summary>
+            /// Compare the configured key with the presented one in time that
+            /// does not depend on where they first differ.
+            /// </summary>
+            /// <remarks>
+            /// An ordinary string comparison returns as soon as it finds a
+            /// mismatching character, so the time it takes leaks how much of a
+            /// guess was correct and lets a caller extend a guess one character
+            /// at a time. The length still leaks, which is inherent, but the
+            /// contents no longer do.
+            /// </remarks>
+            /// <param name="configured"></param>
+            /// <param name="presented"></param>
+            private static bool IsSameKey(string configured, string presented)
+            {
+                return CryptographicOperations.FixedTimeEquals(
+                    Encoding.UTF8.GetBytes(configured),
+                    Encoding.UTF8.GetBytes(presented));
+            }
         }
     }
 }

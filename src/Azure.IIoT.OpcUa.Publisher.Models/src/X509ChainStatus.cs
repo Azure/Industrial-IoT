@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [Flags]
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<X509ChainStatus>))]
     public enum X509ChainStatus
     {
         /// <summary>

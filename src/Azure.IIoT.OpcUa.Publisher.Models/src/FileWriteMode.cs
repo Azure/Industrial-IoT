@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// File write mode
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<FileWriteMode>))]
     public enum FileWriteMode
     {
         /// <summary>

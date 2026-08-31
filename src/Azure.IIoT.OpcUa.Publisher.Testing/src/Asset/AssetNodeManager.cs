@@ -42,6 +42,7 @@ namespace Asset
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Xml.Linq;
 
     public class AssetNodeManager : CustomNodeManager2
     {
@@ -57,9 +58,23 @@ namespace Asset
             SystemContext.NodeIdFactory = this;
             _logger = logger;
 
-            var extension = configuration.ParseExtension<FolderConfiguration>();
-            _folder = Path.Combine(extension?.CurrentDirectory
-                ?? Directory.GetCurrentDirectory(), "settings");
+            XElement? folder = null;
+            foreach (var extension in configuration.Extensions)
+            {
+                var element = extension.AsXElement();
+                if (element?.Name.LocalName == nameof(FolderConfiguration))
+                {
+                    folder = element;
+                    break;
+                }
+            }
+            var currentDirectory = folder?
+                .Elements()
+                .FirstOrDefault(element =>
+                    element.Name.LocalName == nameof(FolderConfiguration.CurrentDirectory))?
+                .Value;
+            _folder = Path.Combine(
+                currentDirectory ?? Directory.GetCurrentDirectory(), "settings");
             // create our settings folder, if required
             if (!Directory.Exists(_folder))
             {
@@ -117,7 +132,6 @@ namespace Asset
                     }
 
                     _fileManagers.Clear();
-                    _assetManagement.Dispose();
                 }
             }
             base.Dispose(disposing);
@@ -244,23 +258,32 @@ namespace Asset
         }
 
         internal ServiceResult OnSimpleReadValue(ISystemContext context, NodeState node,
-            ref object? value)
+            ref Variant value)
         {
             if (!TryGetBinding(node, out var assetInterface, out var assetTag))
             {
                 return ServiceResult.Create(StatusCodes.BadInvalidState, "Asset not found");
             }
-            return assetInterface.Read(assetTag, ref value);
+            object? assetValue = null;
+            var result = assetInterface.Read(assetTag, ref assetValue);
+            value = VariantHelper.CastFrom(assetValue);
+            return result;
         }
 
         internal ServiceResult OnSimpleWriteValue(ISystemContext context, NodeState node,
-            ref object value)
+            ref Variant value)
         {
             if (!TryGetBinding(node, out var assetInterface, out var assetTag))
             {
                 return ServiceResult.Create(StatusCodes.BadInvalidState, "Asset not found");
             }
-            return assetInterface.Write(assetTag, ref value);
+            if (value.Value is not object assetValue)
+            {
+                return StatusCodes.BadInvalidArgument;
+            }
+            var result = assetInterface.Write(assetTag, ref assetValue);
+            value = VariantHelper.CastFrom(assetValue);
+            return result;
         }
 
         internal void OnDataChange(BaseVariableState variable, AssetTag assetTag,
@@ -270,7 +293,7 @@ namespace Asset
             {
                 _logger.DataChange(assetTag);
 
-                variable.Value = value;
+                variable.Value = VariantHelper.CastFrom(value);
                 variable.StatusCode = statusCode;
                 variable.Timestamp = timestamp;
 
@@ -436,7 +459,7 @@ namespace Asset
         {
             // check if the asset node already exists
             var browser = _assetManagement.CreateBrowser(SystemContext, null,
-                null, false, BrowseDirection.Forward, null, null, true);
+                default, false, BrowseDirection.Forward, default, null, true);
             var reference = browser.Next();
             while ((reference != null) && (reference is NodeStateReference))
             {
@@ -450,7 +473,8 @@ namespace Asset
             }
 
             var asset = new IWoTAssetTypeState(_assetManagement);
-            asset.Create(SystemContext, NodeId.Null, new QualifiedName(assetName), null, true);
+            asset.Create(SystemContext, NodeId.Null, new QualifiedName(assetName), default, true);
+            asset.ReferenceTypeId = Opc.Ua.ReferenceTypeIds.Organizes;
 
             _assetManagement.AddChild(asset);
             _fileManagers.Add(asset.NodeId, new FileManager(this, asset.WoTFile, _folder, _logger));
@@ -472,39 +496,72 @@ namespace Asset
             var createAssetPassiveNode = (MethodState)FindPredefinedNode(
                 new NodeId(Methods.WoTAssetConnectionManagement_CreateAsset,
                 WoTConNamespaceIndex), typeof(MethodState));
-            _assetManagement.CreateAsset = new(null);
+            _assetManagement.CreateAsset = new(_assetManagement);
             _assetManagement.CreateAsset.Create(SystemContext, createAssetPassiveNode);
             _assetManagement.CreateAsset.OnCall =
                 new CreateAssetMethodStateMethodCallHandler(OnCreateAsset);
 
             var createAssetInputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(
-                new NodeId(Variables.WoTAssetConnectionManagementType_CreateAsset_InputArguments,
+                new NodeId(Variables.WoTAssetConnectionManagement_CreateAsset_InputArguments,
                 WoTConNamespaceIndex), typeof(BaseVariableState));
-            _assetManagement.CreateAsset.InputArguments = new(null);
+            _assetManagement.CreateAsset.InputArguments =
+                new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(
+                    _assetManagement.CreateAsset);
             _assetManagement.CreateAsset.InputArguments.Create(SystemContext,
                 createAssetInputArgumentsPassiveNode);
+            _assetManagement.CreateAsset.InputArguments.Value =
+            [
+                new Argument
+                {
+                    Name = "AssetName",
+                    DataType = DataTypeIds.String,
+                    ValueRank = ValueRanks.Scalar
+                }
+            ];
 
             var createAssetOutputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(
-                new NodeId(Variables.WoTAssetConnectionManagementType_CreateAsset_OutputArguments,
+                new NodeId(Variables.WoTAssetConnectionManagement_CreateAsset_OutputArguments,
                 WoTConNamespaceIndex), typeof(BaseVariableState));
-            _assetManagement.CreateAsset.OutputArguments = new(null);
+            _assetManagement.CreateAsset.OutputArguments =
+                new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(
+                    _assetManagement.CreateAsset);
             _assetManagement.CreateAsset.OutputArguments.Create(SystemContext,
                 createAssetOutputArgumentsPassiveNode);
+            _assetManagement.CreateAsset.OutputArguments.Value =
+            [
+                new Argument
+                {
+                    Name = "AssetId",
+                    DataType = DataTypeIds.NodeId,
+                    ValueRank = ValueRanks.Scalar
+                }
+            ];
 
             var deleteAssetPassiveNode = (MethodState)FindPredefinedNode(
                 new NodeId(Methods.WoTAssetConnectionManagement_DeleteAsset,
                 WoTConNamespaceIndex), typeof(MethodState));
-            _assetManagement.DeleteAsset = new(null);
+            _assetManagement.DeleteAsset = new(_assetManagement);
             _assetManagement.DeleteAsset.Create(SystemContext, deleteAssetPassiveNode);
             _assetManagement.DeleteAsset.OnCall =
                 new DeleteAssetMethodStateMethodCallHandler(OnDeleteAsset);
 
             var deleteAssetInputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(
-                new NodeId(Variables.WoTAssetConnectionManagementType_DeleteAsset_InputArguments,
+                new NodeId(Variables.WoTAssetConnectionManagement_DeleteAsset_InputArguments,
                 WoTConNamespaceIndex), typeof(BaseVariableState));
-            _assetManagement.DeleteAsset.InputArguments = new(null);
+            _assetManagement.DeleteAsset.InputArguments =
+                new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(
+                    _assetManagement.DeleteAsset);
             _assetManagement.DeleteAsset.InputArguments.Create(SystemContext,
                 deleteAssetInputArgumentsPassiveNode);
+            _assetManagement.DeleteAsset.InputArguments.Value =
+            [
+                new Argument
+                {
+                    Name = "AssetId",
+                    DataType = DataTypeIds.NodeId,
+                    ValueRank = ValueRanks.Scalar
+                }
+            ];
 
             // create a variable listing our supported WoT protocol bindings
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -517,7 +574,7 @@ namespace Asset
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
             // add everything to our server namespace
-            objectsFolderReferences.Add(new NodeStateReference(Opc.Ua.ReferenceTypes.Organizes,
+            objectsFolderReferences.Add(new NodeStateReference(Opc.Ua.ReferenceTypeIds.Organizes,
                 false, _assetManagement.NodeId));
             AddPredefinedNode(SystemContext, _assetManagement);
         }
@@ -832,7 +889,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                 UserWriteMask = AttributeWriteMask.None,
                 AccessLevel = AccessLevels.CurrentRead,
                 DataType = ExpandedNodeId.ToNodeId(type, Server.NamespaceUris),
-                Value = value
+                Value = VariantHelper.CastFrom(value)
             };
 
             parent.AddReference(referenceType, false, variable.NodeId);

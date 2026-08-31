@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Discovery mode to use
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DiscoveryMode>))]
     public enum DiscoveryMode
     {
         /// <summary>

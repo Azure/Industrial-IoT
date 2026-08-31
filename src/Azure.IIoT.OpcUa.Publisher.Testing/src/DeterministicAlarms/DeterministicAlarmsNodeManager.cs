@@ -1,4 +1,4 @@
-﻿/* ========================================================================
+/* ========================================================================
  * Copyright (c) 2005-2017 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
@@ -273,7 +273,7 @@ namespace DeterministicAlarms
             uint subscriptionId,
             double publishingInterval,
             TimestampsToReturn timestampsToReturn,
-            IList<MonitoredItemCreateRequest> itemsToCreate,
+            ArrayOf<MonitoredItemCreateRequest> itemsToCreate,
             IList<ServiceResult> errors,
             IList<MonitoringFilterResult> filterErrors,
             IList<IMonitoredItem> monitoredItems,
@@ -491,7 +491,7 @@ namespace DeterministicAlarms
             // check for existing monitored node.
             if (!MonitoredNodes.TryGetValue(source.NodeId, out var monitoredNode))
             {
-                MonitoredNodes[source.NodeId] = monitoredNode = new MonitoredNode2(this, source);
+                MonitoredNodes[source.NodeId] = monitoredNode = new MonitoredNode2(this.ToAsyncNodeManager(), Server, source);
             }
 
             // this links the node to specified monitored item and ensures all events

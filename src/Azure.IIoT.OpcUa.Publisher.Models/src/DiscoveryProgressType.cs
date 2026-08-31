@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Discovery progress event type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DiscoveryProgressType>))]
     public enum DiscoveryProgressType
     {
         /// <summary>

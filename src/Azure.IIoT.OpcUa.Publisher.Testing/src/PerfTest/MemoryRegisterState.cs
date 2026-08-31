@@ -58,12 +58,12 @@ namespace PerfTest
                 return null;
             }
 
-            var variable = new BaseDataVariableState<int>(null)
+            var variable = new BaseDataVariableState<int>.Implementation<VariantBuilder>(null)
             {
                 NodeId = GetRegisterVariableId(register, index, namespaceIndex),
                 BrowseName = new QualifiedName(Utils.Format("{0:000000}", index), namespaceIndex)
             };
-            variable.DisplayName = variable.BrowseName.Name;
+            variable.DisplayName = (LocalizedText)variable.BrowseName.Name;
             variable.Value = register.Read(index);
             variable.DataType = DataTypeIds.Int32;
             variable.ValueRank = ValueRanks.Scalar;
@@ -85,7 +85,7 @@ namespace PerfTest
 
             NodeId = new NodeId((uint)register.Id, namespaceIndex);
             BrowseName = new QualifiedName(register.Name, namespaceIndex);
-            DisplayName = BrowseName.Name;
+            DisplayName = (LocalizedText)BrowseName.Name;
 
             AddReference(ReferenceTypeIds.Organizes, true, ObjectIds.ObjectsFolder);
         }
@@ -165,43 +165,40 @@ namespace PerfTest
         {
             _ = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            lock (DataLock)
+            // enumerate pre-defined references.
+            // always call first to ensure any pushed-back references are returned first.
+            var reference = base.Next();
+
+            if (reference != null)
             {
-                // enumerate pre-defined references.
-                // always call first to ensure any pushed-back references are returned first.
-                var reference = base.Next();
+                return reference;
+            }
+
+            if (_stage == Stage.Begin)
+            {
+                _stage = Stage.Tags;
+                _position = 0;
+            }
+
+            // don't start browsing huge number of references when only internal references are requested.
+            if (InternalOnly)
+            {
+                return null;
+            }
+
+            // enumerate tags.
+            if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
+            {
+                reference = NextChild();
 
                 if (reference != null)
                 {
                     return reference;
                 }
-
-                if (_stage == Stage.Begin)
-                {
-                    _stage = Stage.Tags;
-                    _position = 0;
-                }
-
-                // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly)
-                {
-                    return null;
-                }
-
-                // enumerate tags.
-                if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
-                {
-                    reference = NextChild();
-
-                    if (reference != null)
-                    {
-                        return reference;
-                    }
-                }
-
-                // all done.
-                return null;
             }
+
+            // all done.
+            return null;
         }
 
         /// <summary>
@@ -214,7 +211,7 @@ namespace PerfTest
             NodeId targetId;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName))
+            if (!(BrowseName).IsNull)
             {
                 // browse name must be qualified by the correct namespace.
                 if (_parent.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)

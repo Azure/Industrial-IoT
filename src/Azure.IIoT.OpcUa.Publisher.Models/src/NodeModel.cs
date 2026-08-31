@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
+    using System;
 
     /// <summary>
     /// Node model
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "value", Order = 5,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public VariantValue? Value { get; set; }
+        public JsonNode? Value { get; set; }
 
         /// <summary>
         /// Pico seconds part of when value was read at source.
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "dataTypeDefinition", Order = 19,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public VariantValue? DataTypeDefinition { get; set; }
+        public JsonNode? DataTypeDefinition { get; set; }
 
         /// <summary>
         /// Default access level for value in variable

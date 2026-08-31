@@ -39,7 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=1", target.Target.NodeId);
+            InstanceNodeAssert.IsInstanceNodeOf(target.Target.NodeId,
+                Namespaces.DeterministicAlarmsInstance);
         }
 
 #if UNUSED
@@ -86,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.NotEqual(timeForFirstEvent, timeForNextEvent);
 
-            static bool Filter(Dictionary<string, VariantValue> evt)
+            static bool Filter(Dictionary<string, JsonNode?> evt)
             {
                 return ((string?)evt["/SourceNode"])?.StartsWith(
                     Namespaces.DeterministicAlarmsInstance, StringComparison.OrdinalIgnoreCase) == true;

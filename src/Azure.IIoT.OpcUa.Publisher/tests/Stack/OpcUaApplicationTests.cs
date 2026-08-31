@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,8 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Autofac;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -17,17 +21,85 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System.Threading.Tasks;
     using Xunit;
 
-    public class OpcUaApplicationTests
+    public sealed class OpcUaApplicationTests
     {
+        [Theory]
+        [InlineData("Application certificate missing")]
+        [InlineData("Trusted issuer certificates missing")]
+        [InlineData("Trusted peer certificates missing")]
+        [InlineData("Rejected certificate store missing")]
+        [InlineData("Trusted user certificates store missing")]
+        [InlineData("Https issuer certificate store missing")]
+        [InlineData("Trusted https certificates store missing")]
+        [InlineData("User issuer certificates store missing")]
+        public void ConstructorRejectsIncompleteSecurityOptions(string expectedMessage)
+        {
+            var options = CreateClientOptions();
+            switch (expectedMessage)
+            {
+                case "Application certificate missing":
+                    options.Security.ApplicationCertificates = null;
+                    break;
+                case "Trusted issuer certificates missing":
+                    options.Security.TrustedIssuerCertificates = null;
+                    break;
+                case "Trusted peer certificates missing":
+                    options.Security.TrustedPeerCertificates = null;
+                    break;
+                case "Rejected certificate store missing":
+                    options.Security.RejectedCertificateStore = null;
+                    break;
+                case "Trusted user certificates store missing":
+                    options.Security.TrustedUserCertificates = null;
+                    break;
+                case "Https issuer certificate store missing":
+                    options.Security.HttpsIssuerCertificates = null;
+                    break;
+                case "Trusted https certificates store missing":
+                    options.Security.TrustedHttpsCertificates = null;
+                    break;
+                default:
+                    options.Security.UserIssuerCertificates = null;
+                    break;
+            }
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                new OpcUaApplication(Options.Create(options),
+                    NullLogger<OpcUaApplication>.Instance));
+
+            Assert.Equal("options", exception.ParamName);
+            Assert.Equal(expectedMessage + " (Parameter 'options')",
+                exception.Message);
+        }
+
+        [Fact]
+        public void ConstructorRejectsApplicationCertificateWithoutSubject()
+        {
+            var options = CreateClientOptions();
+            options.Security.ApplicationCertificates = new CertificateInfo
+            {
+                StorePath = "pki\\own",
+                StoreType = "Directory"
+            };
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                new OpcUaApplication(Options.Create(options),
+                    NullLogger<OpcUaApplication>.Instance));
+
+            Assert.Equal("options", exception.ParamName);
+            Assert.StartsWith("Application certificate missing", exception.Message,
+                StringComparison.Ordinal);
+        }
+
         [Fact]
         public async Task GetApplicationCertificateTest1Async()
         {
             await using var bootstrap = Build();
-            var oldCerts = bootstrap.Resolve<IOpcUaCertificates>();
+            var oldCerts = bootstrap.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(oldCerts, CertificateStoreName.Application);
 
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
             Assert.Equal(3, certificates.Count);
             Assert.All(certificates, own => Assert.True(own.HasPrivateKey));
@@ -37,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetApplicationCertificateTest2Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Application);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application);
             Assert.Empty(certificates);
@@ -56,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetTrustedCertificatesTest1Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
             Assert.Empty(certificates);
@@ -79,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetTrustedCertificatesTest2Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
             Assert.Empty(certificates);
@@ -100,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetTrustedCertificatesTest3Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
             Assert.Empty(certificates);
@@ -127,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetTrustedCertificatesTest4Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             await CleanAsync(certs, CertificateStoreName.Issuer);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
@@ -154,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetTrustedHttpsCertificatesTestAsync()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Https);
             await CleanAsync(certs, CertificateStoreName.HttpsIssuer);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Https);
@@ -181,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task ApproveRejectedCertificateTestAsync()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             await CleanAsync(certs, CertificateStoreName.Rejected);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
@@ -211,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task ApproveRejectedCertificateNotFoundTestAsync()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             using var rejectedCert = CreateRSACertificate("test1");
             await Assert.ThrowsAsync<ResourceNotFoundException>(
                 async () => await certs.ApproveRejectedCertificateAsync(rejectedCert.Thumbprint));
@@ -221,7 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task RemoveCertificateNotFoundTestAsync()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             using var rejectedCert = CreateRSACertificate("test1");
             await Assert.ThrowsAsync<ResourceNotFoundException>(
                 async () => await certs.RemoveCertificateAsync(
@@ -232,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         public async Task GetUserCertificateTest1Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.User);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
             Assert.Empty(certificates);
@@ -254,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(3, certificates.Count);
             Assert.All(certificates, c => Assert.False(c.HasPrivateKey));
 
-            var config = container.Resolve<IOpcUaConfiguration>();
+            var config = container.GetRequiredService<IOpcUaConfiguration>();
 
             var credential = new CredentialModel
             {
@@ -268,17 +340,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
             Assert.Equal(UserTokenType.Certificate, identity.TokenType);
-            var x509Token = identity.GetIdentityToken() as X509IdentityToken;
+            // Phase 4b: the 2.0 provider-based X509 identity signs the activation
+            // challenge with the private key while eagerly loading the public-key
+            // wire payload (CertificateData). Verify the presented certificate.
+            var x509Token = identity.TokenHandler.Token as X509IdentityToken;
             Assert.NotNull(x509Token);
-            Assert.True(x509Token.Certificate.HasPrivateKey);
-            Assert.Equal(newCert2.Thumbprint, x509Token.Certificate.Thumbprint);
+            using var tokenCert2 = X509CertificateLoader.LoadCertificate(x509Token.CertificateData.ToArray());
+            Assert.Equal(newCert2.Thumbprint, tokenCert2.Thumbprint);
         }
 
         [Fact]
         public async Task GetUserCertificateTest2Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.User);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
             Assert.Empty(certificates);
@@ -300,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(3, certificates.Count);
             Assert.All(certificates, c => Assert.False(c.HasPrivateKey));
 
-            var config = container.Resolve<IOpcUaConfiguration>();
+            var config = container.GetRequiredService<IOpcUaConfiguration>();
             var credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
@@ -313,17 +388,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
             Assert.Equal(UserTokenType.Certificate, identity.TokenType);
-            var x509Token = identity.GetIdentityToken() as X509IdentityToken;
+            // Phase 4b: the 2.0 provider-based X509 identity signs the activation
+            // challenge with the private key while eagerly loading the public-key
+            // wire payload (CertificateData). Verify the presented certificate.
+            var x509Token = identity.TokenHandler.Token as X509IdentityToken;
             Assert.NotNull(x509Token);
-            Assert.True(x509Token.Certificate.HasPrivateKey);
-            Assert.Equal(newCert3.Thumbprint, x509Token.Certificate.Thumbprint);
+            using var tokenCert3 = X509CertificateLoader.LoadCertificate(x509Token.CertificateData.ToArray());
+            Assert.Equal(newCert3.Thumbprint, tokenCert3.Thumbprint);
         }
 
         [Fact]
         public async Task GetUserCertificateTest3Async()
         {
             await using var container = Build();
-            var certs = container.Resolve<IOpcUaCertificates>();
+            var certs = container.GetRequiredService<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.User);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
             Assert.Empty(certificates);
@@ -345,7 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(3, certificates.Count);
             Assert.All(certificates, c => Assert.False(c.HasPrivateKey));
 
-            var config = container.Resolve<IOpcUaConfiguration>();
+            var config = container.GetRequiredService<IOpcUaConfiguration>();
             var credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
@@ -359,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 async () => await credential.ToUserIdentityAsync(config.Value));
             Assert.Equal(StatusCodes.BadCertificateInvalid, ex.StatusCode);
 
-            config = container.Resolve<IOpcUaConfiguration>();
+            config = container.GetRequiredService<IOpcUaConfiguration>();
             credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
@@ -372,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 async () => await credential.ToUserIdentityAsync(config.Value));
             Assert.Equal(StatusCodes.BadNotSupported, ex.StatusCode);
 
-            config = container.Resolve<IOpcUaConfiguration>();
+            config = container.GetRequiredService<IOpcUaConfiguration>();
             credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
@@ -403,13 +481,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddHours(5));
         }
 
-        private static IContainer Build()
+        private static OpcUaClientOptions CreateClientOptions()
         {
-            var containerBuilder = new ContainerBuilder();
-            containerBuilder.AddLogging();
-            containerBuilder.AddOpcUaStack();
-            containerBuilder.AddNewtonsoftJsonSerializer();
-            return containerBuilder.Build();
+            static CertificateStore Store(string path)
+            {
+                return new CertificateStore
+                {
+                    StorePath = path,
+                    StoreType = "Directory"
+                };
+            }
+
+            return new OpcUaClientOptions
+            {
+                Security =
+                {
+                    ApplicationCertificates = new CertificateInfo
+                    {
+                        SubjectName = "CN=OpcUaApplicationTests",
+                        StorePath = "pki\\own",
+                        StoreType = "Directory"
+                    },
+                    TrustedIssuerCertificates = Store("pki\\issuer"),
+                    TrustedPeerCertificates = Store("pki\\trusted"),
+                    RejectedCertificateStore = Store("pki\\rejected"),
+                    TrustedUserCertificates = Store("pki\\user"),
+                    HttpsIssuerCertificates = Store("pki\\httpsissuer"),
+                    TrustedHttpsCertificates = Store("pki\\https"),
+                    UserIssuerCertificates = Store("pki\\userissuer")
+                }
+            };
+        }
+
+        private static ServiceProvider Build()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<IConfiguration>(
+                new ConfigurationBuilder().Build());
+            services.AddOpcUaStack();
+            return services.BuildServiceProvider();
         }
     }
 }

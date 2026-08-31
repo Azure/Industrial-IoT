@@ -8,8 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Options;
     using System;
     using System.Threading;
@@ -24,12 +23,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// Create services
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
-        public ServerDiscovery(IEndpointDiscovery client, IJsonSerializer serializer,
+        public ServerDiscovery(IEndpointDiscovery client,
             IOptions<PublisherOptions> options)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
@@ -65,18 +62,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     continue;
                 }
                 if (query.Certificate != null &&
-                    query.Certificate != ep.Description.ServerCertificate.ToThumbprint())
+                    query.Certificate != ep.Description.ServerCertificate.ToArray().ToThumbprint())
                 {
                     // no match
                     continue;
                 }
                 return ep.ToServiceModel(discoveryUrl.Host, _options.Value.SiteId,
-                    _options.Value.PublisherId ?? Constants.DefaultPublisherId, _serializer);
+                    _options.Value.PublisherId ?? Constants.DefaultPublisherId);
             }
             throw new ResourceNotFoundException("Endpoints could not be found.");
         }
 
-        private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly IEndpointDiscovery _client;
     }

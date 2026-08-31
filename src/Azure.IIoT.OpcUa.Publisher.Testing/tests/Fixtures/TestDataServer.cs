@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
     using Opc.Ua.Test;
@@ -23,9 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public static IEnumerable<INodeManagerFactory> TestData(
             ILoggerFactory? factory, TimeService timeservice)
         {
-            yield return new TestData.TestDataServer();
-            yield return new MemoryBuffer.MemoryBufferServer();
-            yield return new Boiler.BoilerServer();
+            _ = factory;
+            _ = timeservice;
+            yield return QuickstartsNodeManagerFactories.CreateTestData();
+            yield return QuickstartsNodeManagerFactories.CreateMemoryBuffer();
+            yield return QuickstartsNodeManagerFactories.CreateBoiler();
             yield return new DataAccess.DataAccessServer();
         }
 

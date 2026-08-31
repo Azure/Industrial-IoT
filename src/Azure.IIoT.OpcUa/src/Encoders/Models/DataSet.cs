@@ -1,11 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
@@ -71,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public DataSet(DataSetFieldContentFlags? fieldContentMask = null)
         {
             DataSetFieldContentMask = fieldContentMask ??
-                PubSubMessage.DefaultDataSetFieldContentFlags;
+                PubSubMessageDefaults.DefaultDataSetFieldContentFlags;
             DataSetFields = Array.Empty<(string, DataValue?)>();
         }
 
@@ -92,9 +91,31 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// The field names are folded in one at a time. Passing the
+        /// <c>Select</c> result to <see cref="HashCode.Combine{T1}(T1)"/>
+        /// hashed the iterator object rather than the names it yields, so the
+        /// same instance produced a different hash on every call and two equal
+        /// data sets never agreed - which silently breaks any use as a
+        /// dictionary key or set member.
+        /// <para>
+        /// Only the names participate, while <see cref="Equals(object?)"/> also
+        /// compares values. That is allowed and deliberate: equal data sets
+        /// have equal names and so hash alike, which is the contract; data sets
+        /// that differ only by value merely collide.
+        /// </para>
+        /// </remarks>
         public override int GetHashCode()
         {
-            return HashCode.Combine(DataSetFields.Select(s => s.Name));
+            var hash = new HashCode();
+            if (DataSetFields != null)
+            {
+                foreach (var field in DataSetFields)
+                {
+                    hash.Add(field.Name);
+                }
+            }
+            return hash.ToHashCode();
         }
 
         /// <summary>

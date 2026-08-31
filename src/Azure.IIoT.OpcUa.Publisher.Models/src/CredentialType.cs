@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Type of credentials to use for authentication
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<CredentialType>))]
     public enum CredentialType
     {
         /// <summary>

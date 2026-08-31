@@ -183,7 +183,7 @@ namespace Asset
 
         private ServiceResult OnRead(ISystemContext _context,
             MethodState _method, NodeId _objectId, uint fileHandle,
-            int length, ref byte[] data)
+            int length, ref ByteString data)
         {
             lock (_handles)
             {
@@ -194,15 +194,19 @@ namespace Asset
                     return StatusCodes.BadInvalidState;
                 }
 
-                if (data?.Length > 0)
+                if (length > 0)
                 {
-                    var buffer = new byte[data.Length];
-                    handle.Stream.ReadExactly(data);
-                    data = buffer;
+                    var buffer = new byte[length];
+                    var read = handle.Stream.Read(buffer, 0, buffer.Length);
+                    if (read != buffer.Length)
+                    {
+                        Array.Resize(ref buffer, read);
+                    }
+                    data = ByteString.From(buffer);
                 }
                 else
                 {
-                    data = [];
+                    data = ByteString.Empty;
                 }
             }
 
@@ -210,7 +214,7 @@ namespace Asset
         }
 
         private ServiceResult OnWrite(ISystemContext _context,
-            MethodState _method, NodeId _objectId, uint fileHandle, byte[] data)
+            MethodState _method, NodeId _objectId, uint fileHandle, ByteString data)
         {
             lock (_handles)
             {
@@ -221,9 +225,9 @@ namespace Asset
                     return ServiceResult.Create(StatusCodes.BadInvalidState, "Not writable");
                 }
 
-                if (data?.Length > 0)
+                if (!data.IsNull && data.Length > 0)
                 {
-                    handle.Stream.Write(data, 0, data.Length);
+                    handle.Stream.Write(data.Span);
                 }
             }
 

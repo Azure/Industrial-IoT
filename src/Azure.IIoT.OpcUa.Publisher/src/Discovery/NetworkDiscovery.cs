@@ -12,10 +12,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Exceptions;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Text.Json.Nodes;
     using System.Text;
     using System.Threading;
     using System.Threading.Channels;
@@ -48,19 +49,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// </summary>
         /// <param name="client"></param>
         /// <param name="events"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="progress"></param>
         /// <param name="metrics"></param>
         /// <param name="timeProvider"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
-            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            IOptions<PublisherOptions> options,
             ILoggerFactory loggerFactory, IDiscoveryProgress? progress = null,
             IMetricsContext? metrics = null, TimeProvider? timeProvider = null)
         {
             _loggerFactory = loggerFactory;
-            _serializer = serializer;
             _client = client;
             _events = events;
             _options = options;
@@ -313,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             _logger.ProcessingDiscoveryRequest();
             request.Progress.OnDiscoveryStarted(request.Request);
-            object? diagnostics = null;
+            JsonNode? diagnostics = null;
 
             //
             // Discover servers
@@ -323,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 var results = await DiscoverServersAsync(request).ConfigureAwait(false);
                 // Merge results
                 var registrations = results.ConvertAll(r => r.Discovered.ToServiceModel(
-                    r.Host, _options.Value.SiteId, _events.Identity, _serializer));
+                    r.Host, _options.Value.SiteId, _events.Identity));
                 var discovered = new List<ApplicationRegistrationModel> ();
                 foreach (var registration in registrations)
                 {
@@ -692,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTimeOffset timestamp,
-            object? diagnostics, CancellationToken ct)
+            JsonNode? diagnostics, CancellationToken ct)
         {
             _logger.UploadingResults(discovered.Count);
             var buffers = discovered
@@ -712,19 +711,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         Id = request.Request.Id,
                         Context = request.Request.Context,
                         RegisterOnly = request.Mode == DiscoveryMode.Off,
-                        Diagnostics = diagnostics == null ? null :
-                            _serializer.FromObject(diagnostics)
+                        Diagnostics = diagnostics?.DeepClone()
                     },
                     TimeStamp = timestamp
                 })
                 .Select((discovery, i) =>
                 {
                     discovery.Index = i;
-                    return _serializer.SerializeToMemory(discovery);
+                    return Json.SerializeToMemory(discovery,
+                        Json.GetTypeInfo<DiscoveryEventModel>());
                 })
                 .ToList();
 
-            await _events.SendEventAsync(_topic, buffers, _serializer.MimeType,
+            await _events.SendEventAsync(_topic, buffers, Json.MimeType,
                 Encoding.UTF8.WebName, e => e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                     MessageSchemaTypes.DiscoveryEvents), ct: ct).ConfigureAwait(false);
             _logger.ResultsUploaded(discovered.Count);
@@ -824,7 +823,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private const string kIoTEdgeGatewayHostNameEnvVar = "IOTEDGE_GATEWAYHOSTNAME";
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IJsonSerializer _serializer;
         private readonly IEventClient _events;
         private readonly IOptions<PublisherOptions> _options;
         private readonly Channel<DiscoveryRequest> _channel;

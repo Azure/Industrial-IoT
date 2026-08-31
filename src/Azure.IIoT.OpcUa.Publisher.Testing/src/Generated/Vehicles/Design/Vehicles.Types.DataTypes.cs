@@ -165,8 +165,8 @@ namespace Vehicles.Types
         {
             VehicleType clone = (VehicleType)base.MemberwiseClone();
 
-            clone.m_make = (string)Utils.Clone(this.m_make);
-            clone.m_model = (string)Utils.Clone(this.m_model);
+            clone.m_make = this.m_make;
+            clone.m_model = this.m_model;
 
             return clone;
         }
@@ -255,7 +255,7 @@ namespace Vehicles.Types
 
             for (int ii = 0; ii < this.Count; ii++)
             {
-                clone.Add((VehicleType)Utils.Clone(this[ii]));
+                clone.Add(this[ii]);
             }
 
             return clone;
@@ -389,7 +389,7 @@ namespace Vehicles.Types
         {
             CarType clone = (CarType)base.MemberwiseClone();
 
-            clone.m_noOfPassengers = (uint)Utils.Clone(this.m_noOfPassengers);
+            clone.m_noOfPassengers = this.m_noOfPassengers;
 
             return clone;
         }
@@ -477,7 +477,7 @@ namespace Vehicles.Types
 
             for (int ii = 0; ii < this.Count; ii++)
             {
-                clone.Add((CarType)Utils.Clone(this[ii]));
+                clone.Add(this[ii]);
             }
 
             return clone;
@@ -611,7 +611,7 @@ namespace Vehicles.Types
         {
             TruckType clone = (TruckType)base.MemberwiseClone();
 
-            clone.m_cargoCapacity = (uint)Utils.Clone(this.m_cargoCapacity);
+            clone.m_cargoCapacity = this.m_cargoCapacity;
 
             return clone;
         }
@@ -699,7 +699,7 @@ namespace Vehicles.Types
 
             for (int ii = 0; ii < this.Count; ii++)
             {
-                clone.Add((TruckType)Utils.Clone(this[ii]));
+                clone.Add(this[ii]);
             }
 
             return clone;

@@ -12,12 +12,173 @@
     },
     "version": "v2"
   },
-  "host": "localhost:9071",
+  "host": "localhost:9072",
   "schemes": [
     "https",
     "http"
   ],
   "paths": {
+    "/v2/diagnostics/writergroups": {
+      "get": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "GetAllWriterGroupStates",
+        "description": "Get the state of all writer groups currently configured in the publisher, including the state of each of their dataset writers.",
+        "operationId": "GetAllWriterGroupStates",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WriterGroupStateDiagnosticModel"
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v2/diagnostics/writergroups/{dataSetWriterGroup}": {
+      "get": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "GetWriterGroupState",
+        "description": "Get the state of a single writer group and the state of each of its dataset writers.",
+        "operationId": "GetWriterGroupState",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "name": "dataSetWriterGroup",
+            "in": "path",
+            "description": "The writer group identifier.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful.",
+            "schema": {
+              "$ref": "#/definitions/WriterGroupStateDiagnosticModel"
+            }
+          },
+          "400": {
+            "description": "The passed in information is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "404": {
+            "description": "The item was not found.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v2/diagnostics/writergroups/{dataSetWriterGroup}/keyframe": {
+      "post": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "SendWriterGroupKeyFrame",
+        "description": "Request that every dataset writer in the writer group emits a key frame message on its next publish.",
+        "operationId": "SendWriterGroupKeyFrame",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "name": "dataSetWriterGroup",
+            "in": "path",
+            "description": "The writer group identifier.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful."
+          },
+          "404": {
+            "description": "The item was not found.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/v2/diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe": {
+      "post": {
+        "tags": [
+          "Diagnostics"
+        ],
+        "summary": "SendDataSetWriterKeyFrame",
+        "description": "Request that a single dataset writer emits a key frame message on its next publish.",
+        "operationId": "SendDataSetWriterKeyFrame",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "name": "dataSetWriterGroup",
+            "in": "path",
+            "description": "The writer group identifier.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "dataSetWriterId",
+            "in": "path",
+            "description": "The dataset writer identifier.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation was successful."
+          },
+          "404": {
+            "description": "The item was not found.",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
     "/v2/pki/{store}/certs": {
       "get": {
         "tags": [
@@ -5384,6 +5545,101 @@
     }
   },
   "definitions": {
+    "DataSetWriterStateDiagnosticModel": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Dataset writer identifier."
+        },
+        "dataSetWriterName": {
+          "type": "string",
+          "description": "Dataset writer name."
+        },
+        "endpointUrl": {
+          "type": "string",
+          "description": "The endpoint url of the server the writer is\r\nconnecting to."
+        },
+        "useSecurity": {
+          "type": "boolean",
+          "description": "Whether the connection to the endpoint uses\r\na secure channel."
+        },
+        "opcAuthenticationMode": {
+          "$ref": "#/definitions/OpcAuthenticationMode"
+        },
+        "opcAuthenticationUsername": {
+          "type": "string",
+          "description": "The user name used to connect to the endpoint in\r\ncase of user name and password authentication."
+        },
+        "source": {
+          "$ref": "#/definitions/PublishedDataSetSourceDiagnosticModel"
+        }
+      },
+      "description": "Model for writer diagnostic info."
+    },
+    "MonitoredItemNodeErrorModel": {
+      "type": "object",
+      "required": [
+        "errorInfo",
+        "nodeId"
+      ],
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "Node id of the variable"
+        },
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultModel"
+        }
+      },
+      "description": "Model for monitored item node errors"
+    },
+    "PublishedDataSetSourceDiagnosticModel": {
+      "type": "object",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MonitoredItemNodeErrorModel"
+          },
+          "description": "Error information for nodes inside the writer source"
+        }
+      },
+      "description": "Model for monitored item node errors"
+    },
+    "WriterGroupStateDiagnosticModel": {
+      "type": "object",
+      "required": [
+        "dataSetWriters",
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Writer group identifier."
+        },
+        "writerGroupName": {
+          "type": "string",
+          "description": "Writer group name."
+        },
+        "version": {
+          "type": "integer",
+          "description": "Writer group version",
+          "format": "uint32"
+        },
+        "dataSetWriters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataSetWriterStateDiagnosticModel"
+          },
+          "description": "Diagnostics for the dataset writers"
+        }
+      },
+      "description": "Model for writer group status diagnostics."
+    },
     "AdditionalData": {
       "description": "Flags that are set by the historian when\r\nreturning archived values.",
       "enum": [

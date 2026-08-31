@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Indicate the data location
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DataLocation>))]
     public enum DataLocation
     {
         /// <summary>

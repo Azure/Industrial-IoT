@@ -450,12 +450,35 @@ Indicate the data location
 *Type* : enum (Raw, Calculated, Interpolated)
 
 
+<a name="datasetwriterstatediagnosticmodel"></a>
+### DataSetWriterStateDiagnosticModel
+Model for writer diagnostic info.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataSetWriterName**  <br>*optional*|Dataset writer name.|string|
+|**endpointUrl**  <br>*optional*|The endpoint url of the server the writer is connecting to.|string|
+|**id**  <br>*required*|Dataset writer identifier.|string|
+|**opcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
+|**opcAuthenticationUsername**  <br>*optional*|The user name used to connect to the endpoint in case of user name and password authentication.|string|
+|**source**  <br>*optional*||[PublishedDataSetSourceDiagnosticModel](definitions.md#publisheddatasetsourcediagnosticmodel)|
+|**useSecurity**  <br>*optional*|Whether the connection to the endpoint uses a secure channel.|boolean|
+
+
 <a name="datasetroutingmode"></a>
 ### DataSetRoutingMode
-Specifies how OPC UA node paths are mapped to message routing paths/topics.
-Controls automatic topic structure generation from OPC UA address space.
-Used to create a unified namespace when publishing to message brokers
-that support hierarchical routing like MQTT.
+Removed in 3.0 - accepted and ignored.
+
+Earlier versions used this to generate a topic structure automatically from
+the OPC UA address space, appending the browse path of the source node to the
+telemetry topic. The topic was built for each notification from a path
+discovered from the server at run time, and the OPC UA PubSub runtime that 3.0
+publishes through has no per-message topic - a writer group publishes to the
+topic it is configured with.
+
+A configuration that still sets this value loads and starts; the value has no
+effect. Use topic templates to build a topic hierarchy instead.
 
 *Type* : enum (None, UseBrowseNames, UseBrowseNamesWithNamespaceIndex)
 
@@ -1225,6 +1248,17 @@ Modification information
 |**userName**  <br>*optional*|User who made the change|string|
 
 
+<a name="monitoreditemnodeerrormodel"></a>
+### MonitoredItemNodeErrorModel
+Model for monitored item node errors
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*required*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**nodeId**  <br>*required*|Node id of the variable|string|
+
+
 <a name="monitoreditemwatchdogcondition"></a>
 ### MonitoredItemWatchdogCondition
 Defines the conditions that trigger the subscription watchdog behavior.
@@ -1668,6 +1702,16 @@ Result of publish stop request
 |Name|Schema|
 |---|---|
 |**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="publisheddatasetsourcediagnosticmodel"></a>
+### PublishedDataSetSourceDiagnosticModel
+Model for monitored item node errors
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errors**  <br>*optional*|Error information for nodes inside the writer source|< [MonitoredItemNodeErrorModel](definitions.md#monitoreditemnodeerrormodel) > array|
 
 
 <a name="publisheditemlistrequestmodel"></a>
@@ -2718,6 +2762,19 @@ Result of attribute write
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
 |**results**  <br>*required*|All results of attribute writes|< [AttributeWriteResponseModel](definitions.md#attributewriteresponsemodel) > array|
+
+
+<a name="writergroupstatediagnosticmodel"></a>
+### WriterGroupStateDiagnosticModel
+Model for writer group status diagnostics.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataSetWriters**  <br>*required*|Diagnostics for the dataset writers|< [DataSetWriterStateDiagnosticModel](definitions.md#datasetwriterstatediagnosticmodel) > array|
+|**id**  <br>*required*|Writer group identifier.|string|
+|**version**  <br>*optional*|Writer group version|integer (uint32)|
+|**writerGroupName**  <br>*optional*|Writer group name.|string|
 
 
 <a name="writergrouptransport"></a>

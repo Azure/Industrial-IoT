@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Authentication method model extensions
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return false;
             }
             if (model.Configuration != null && that.Configuration != null &&
-                !VariantValue.DeepEquals(model.Configuration, that.Configuration))
+                !JsonNode.DeepEquals(model.Configuration, that.Configuration))
             {
                 return false;
             }

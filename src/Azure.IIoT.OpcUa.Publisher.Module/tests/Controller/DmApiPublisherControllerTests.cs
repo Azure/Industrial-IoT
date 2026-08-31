@@ -11,10 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
-    using Autofac;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using FluentAssertions;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -41,7 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// <param name="output"></param>
         public DmApiPublisherControllerTests(ITestOutputHelper output)
         {
-            _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output, Logging.Config);
 
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
@@ -51,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer, _options);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _options);
 
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Resources/empty_pn.json", _tempFile);
@@ -94,7 +91,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 _publisher,
                 _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
                 _publishedNodesProvider,
-                _newtonSoftJsonSerializer,
                 _diagnostic.Object
             );
             configService.GetAwaiter().GetResult();
@@ -110,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader("Resources/DmApiPayloadCollection.json");
-            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
+            var publishNodesRequest = Json.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync());
 
             foreach (var request in publishNodesRequest)
@@ -168,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader("Resources/DmApiPayloadCollection.json");
-            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
+            var publishNodesRequest = Json.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync());
 
             foreach (var request in publishNodesRequest)
@@ -226,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader("Resources/DmApiPayloadCollection.json");
-            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
+            var publishNodesRequests = Json.Deserialize<List<PublishedNodesEntryModel>>
                 (await publishPayloads.ReadToEndAsync());
 
             foreach (var request in publishNodesRequests)
@@ -490,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
+            var publishNodesRequest = Json.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest.Where(predicate ?? (_ => true)))
@@ -513,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
+            var publishNodesRequests = Json.Deserialize<List<PublishedNodesEntryModel>>
                 (await publishPayloads.ReadToEndAsync());
 
             // Check that GetConfiguredEndpointsAsync returns empty list
@@ -593,7 +589,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             }
         }
 
-        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly ILoggerFactory _loggerFactory;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IOptions<PublisherOptions> _options;

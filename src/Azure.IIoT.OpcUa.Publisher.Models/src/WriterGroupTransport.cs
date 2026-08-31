@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// and what features are available.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<WriterGroupTransport>))]
     public enum WriterGroupTransport
     {
         /// <summary>

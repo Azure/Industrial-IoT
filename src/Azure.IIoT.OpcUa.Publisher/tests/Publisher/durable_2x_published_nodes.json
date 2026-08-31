@@ -1,0 +1,44 @@
+[
+  {
+    "DataSetWriterGroup": "legacy-group-a",
+    "DataSetWriterId": "legacy-writer-a",
+    "EndpointUrl": "opc.tcp://upgrade-a.example.invalid:4840",
+    "UseSecurity": false,
+    "OpcAuthenticationMode": "Anonymous",
+    "MessagingMode": "FullNetworkMessages",
+    "MessageEncoding": "Json",
+    "BatchSize": 4,
+    "BatchTriggerIntervalTimespan": "00:00:02",
+    "DataSetPublishingIntervalTimespan": "00:00:01",
+    "OpcNodes": [
+      {
+        "Id": "nsu=urn:example:durable-upgrade;s=Temperature",
+        "DisplayName": "temperature",
+        "OpcSamplingIntervalTimespan": "00:00:00.2500000",
+        "HeartbeatIntervalTimespan": "00:00:30"
+      }
+    ]
+  },
+  {
+    "DataSetWriterGroup": "legacy-group-b",
+    "DataSetWriterId": "legacy-writer-b",
+    "EndpointUrl": "opc.tcp://upgrade-b.example.invalid:4840",
+    "UseSecurity": true,
+    "OpcAuthenticationMode": "UsernamePassword",
+    "OpcAuthenticationUsername": "fixture-user",
+    "OpcAuthenticationPassword": "example-only",
+    "MessagingMode": "PubSub",
+    "MessageEncoding": "Uadp",
+    "BatchSize": 8,
+    "BatchTriggerIntervalTimespan": "00:00:05",
+    "DataSetPublishingIntervalTimespan": "00:00:02",
+    "OpcNodes": [
+      {
+        "Id": "nsu=urn:example:durable-upgrade;s=Pressure",
+        "DisplayName": "pressure",
+        "OpcSamplingIntervalTimespan": "00:00:00.5000000",
+        "HeartbeatIntervalTimespan": "00:01:00"
+      }
+    ]
+  }
+]

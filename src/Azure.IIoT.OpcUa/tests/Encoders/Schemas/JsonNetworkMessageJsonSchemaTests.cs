@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Json.Schema;
+    using System;
     using System.IO;
     using System.Linq;
     using System.Text.Json;
@@ -16,90 +17,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
     public class JsonNetworkMessageJsonSchemaTests
     {
-        [Theory]
-        [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateNetworkMessageJsonSchemasAsync(string messageMetaDataFile)
-        {
-            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            var schema = new JsonNetworkMessage(messageMetaData);
-
-            var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
-            await AssertAsync("NetworkMessageDefault", messageMetaDataFile, json);
-
-            var schema2 = SchemaReader.ReadSchema(json, ".");
-            Assert.NotNull(schema2);
-            // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
-            //Assert.Equal(schema.Schema, schema2);
-
-            // var instance = JsonNode.Parse("{\"foo\":\"a value\",\"bar\":42}");
-            // var results = schema2.Evaluate(instance);
-            // Assert.True(results.IsValid);
-            // Assert.False(results.HasErrors);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateJsonNetworkMessageWithNsAsync(string messageMetaDataFile)
-        {
-            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            var schema = new JsonNetworkMessage(messageMetaData, new SchemaOptions
-            {
-                Namespace = "http://www.microsoft.com"
-            });
-
-            var json = schema.ToString();
-            await AssertAsync("NetworkMessage", messageMetaDataFile, json);
-            var schema2 = SchemaReader.ReadSchema(json, ".");
-            Assert.NotNull(schema2);
-            // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
-            //Assert.Equal(schema.Schema, schema2);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateMessageSchemaWithoutNetworkHeaderAsync(string messageMetaDataFile)
-        {
-            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            messageMetaData = messageMetaData with
-            {
-                NetworkMessageContentFlags = NetworkMessageContentFlags.DataSetMessageHeader
-            };
-
-            var schema = new JsonNetworkMessage(messageMetaData);
-
-            var json = schema.ToString();
-            await AssertAsync("Multiple", messageMetaDataFile, json);
-
-            var schema2 = SchemaReader.ReadSchema(json, ".");
-            Assert.NotNull(schema2);
-            // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
-            //Assert.Equal(schema.Schema, schema2);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSingleMessageSchemaAsync(string messageMetaDataFile)
-        {
-            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            messageMetaData = messageMetaData with
-            {
-                NetworkMessageContentFlags = NetworkMessageContentFlags.DataSetMessageHeader
-                    | NetworkMessageContentFlags.SingleDataSetMessage
-            };
-
-            var schema = new JsonNetworkMessage(messageMetaData);
-
-            var json = schema.ToString();
-            await AssertAsync("Single", messageMetaDataFile, json);
-
-            var schema2 = SchemaReader.ReadSchema(json, ".");
-            Assert.NotNull(schema2);
-            // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
-            //Assert.Equal(schema.Schema, schema2);
-        }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
@@ -177,77 +94,51 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSamplesMessageSchemaAsync(string messageMetaDataFile)
+        public async Task NetworkMessageHeaderNamesTheWriterGroupTheWayItIsPublishedAsync(
+            string messageMetaDataFile)
         {
-            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            messageMetaData = messageMetaData with
+            //
+            // Every other case here sets SingleDataSetMessage, which returns
+            // the payload schema before a network message header is described
+            // at all, so none of them reaches the members below. That gap is
+            // why the schema went on naming this member DataSetWriterGroup -
+            // the name it took, with nameof, from the custom encoder's message
+            // class - long after 3.0 started publishing WriterGroupName, and
+            // why it went on requiring the member unconditionally when the
+            // runtime writes it only on request.
+            //
+            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(
+                messageMetaDataFile);
+            var header =
+                NetworkMessageContentFlags.NetworkMessageHeader |
+                NetworkMessageContentFlags.DataSetMessageHeader |
+                NetworkMessageContentFlags.PublisherId;
+
+            var withGroup = new JsonNetworkMessage(messageMetaData with
             {
-                NetworkMessageContentFlags =
-                    NetworkMessageContentFlags.MonitoredItemMessage |
-                    NetworkMessageContentFlags.DataSetMessageHeader,
-                DataSetMessages = messageMetaData.DataSetMessages.Select(d => d with
-                {
-                    DataSetMessageContentFlags =
-                        DataSetMessageContentFlags.Timestamp |
-                        DataSetMessageContentFlags.DataSetWriterId |
-                        DataSetMessageContentFlags.SequenceNumber,
-                    DataSetFieldContentFlags =
-                        DataSetFieldContentFlags.StatusCode |
-                        DataSetFieldContentFlags.SourceTimestamp |
-                        DataSetFieldContentFlags.ServerTimestamp |
-                        DataSetFieldContentFlags.ApplicationUri |
-                        DataSetFieldContentFlags.ExtensionFields |
-                        DataSetFieldContentFlags.NodeId |
-                        DataSetFieldContentFlags.DisplayName |
-                        DataSetFieldContentFlags.EndpointUrl
-                }).ToList()
-            };
+                NetworkMessageContentFlags = header | NetworkMessageContentFlags.WriterGroupId
+            }).ToString();
 
-            var schema = new JsonNetworkMessage(messageMetaData);
+            Assert.Contains("\"WriterGroupName\"", withGroup, StringComparison.Ordinal);
+            Assert.DoesNotContain("DataSetWriterGroup", withGroup, StringComparison.Ordinal);
+            Assert.Contains("\"PublisherId\"", withGroup, StringComparison.Ordinal);
+            Assert.Contains("\"MessageId\"", withGroup, StringComparison.Ordinal);
+            Assert.NotNull(SchemaReader.ReadSchema(withGroup, "."));
 
-            var json = schema.ToString();
-            await AssertAsync("Samples", messageMetaDataFile, json);
-
-            var schema2 = SchemaReader.ReadSchema(json, ".");
-            Assert.NotNull(schema2);
-            // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
-            //Assert.Equal(schema.Schema, schema2);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSamplesMessageSchemaRawAsync(string messageMetaDataFile)
-        {
-            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            messageMetaData = messageMetaData with
+            //
+            // Without the flag the runtime does not write the member, and the
+            // schema closes AdditionalProperties and requires everything it
+            // lists - so naming it here would make a strict consumer reject
+            // telemetry that is perfectly valid.
+            //
+            var withoutGroup = new JsonNetworkMessage(messageMetaData with
             {
-                NetworkMessageContentFlags =
-                    NetworkMessageContentFlags.MonitoredItemMessage |
-                    NetworkMessageContentFlags.DataSetMessageHeader,
-                DataSetMessages = messageMetaData.DataSetMessages.Select(d => d with
-                {
-                    DataSetMessageContentFlags =
-                        DataSetMessageContentFlags.Timestamp |
-                        DataSetMessageContentFlags.SequenceNumber,
-                    DataSetFieldContentFlags =
-                        DataSetFieldContentFlags.ApplicationUri |
-                        DataSetFieldContentFlags.ExtensionFields |
-                        DataSetFieldContentFlags.NodeId |
-                        DataSetFieldContentFlags.DisplayName |
-                        DataSetFieldContentFlags.EndpointUrl |
-                        DataSetFieldContentFlags.RawData
-                }).ToList()
-            };
+                NetworkMessageContentFlags = header
+            }).ToString();
 
-            var schema = new JsonNetworkMessage(messageMetaData);
-
-            var json = schema.ToString();
-            await AssertAsync("SamplesRaw", messageMetaDataFile, json);
-
-            var schema2 = SchemaReader.ReadSchema(json, ".");
-            Assert.NotNull(schema2);
-            // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
-            //Assert.Equal(schema.Schema, schema2);
+            Assert.DoesNotContain("WriterGroupName", withoutGroup, StringComparison.Ordinal);
+            Assert.Contains("\"PublisherId\"", withoutGroup, StringComparison.Ordinal);
+            Assert.NotNull(SchemaReader.ReadSchema(withoutGroup, "."));
         }
 
         private static async ValueTask<T> LoadAsync<T>(string file)

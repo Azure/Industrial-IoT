@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// History update type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<HistoryUpdateOperation>))]
     public enum HistoryUpdateOperation
     {
         /// <summary>

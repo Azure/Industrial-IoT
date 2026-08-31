@@ -11,9 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Autofac;
-    using Furly.Extensions.Logging;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Logging;
+    using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -65,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// Client
         /// </summary>
         public IOpcUaClientManager<ConnectionModel> Client
-            => _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
+            => _container.GetRequiredService<IOpcUaClientManager<ConnectionModel>>();
 
         /// <summary>
         /// Now
@@ -84,9 +83,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
         /// <summary>
+        /// Isolated server certificate store.
+        /// </summary>
+        public string ServerPkiRootPath => Path.Combine(TempPath, "server-pki");
+
+        /// <summary>
+        /// Isolated client certificate store.
+        /// </summary>
+        public string ClientPkiRootPath => Path.Combine(TempPath, "client-pki");
+
+        /// <summary>
         /// Filter parser
         /// </summary>
-        public IFilterParser Parser => _container.Resolve<IFilterParser>();
+        public IFilterParser Parser => _container.GetRequiredService<IFilterParser>();
 
         /// <summary>
         /// EndpointUrl
@@ -109,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// </para>
         /// </summary>
         private string HostName
-            => (UseReverseConnect ? Utils.GetHostName() : Host?.HostName) ?? "localhost";
+            => kLoopbackHost;
 
         /// <summary>
         /// Get server connection
@@ -122,9 +131,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 Endpoint = new EndpointModel
                 {
                     Url = EndpointUrl,
-                    AlternativeUrls = Host?.AddressList
-                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                        .Select(ip => $"opc.tcp://{ip}:{_port}/{kSampleServerPath}")
+                    AlternativeUrls = _alternativeHosts
+                        .Select(host => GetEndpointUrl(host, _port))
                         .ToHashSet(),
                     Certificate = Certificate?.RawData?.ToThumbprint()
                 },
@@ -139,25 +147,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <param name="nodesFactory"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="useReverseConnect"></param>
+        /// <param name="alternativeHosts"></param>
         protected BaseServerFixture(
             Func<ILoggerFactory?, TimeService, IEnumerable<INodeManagerFactory>> nodesFactory,
-            ILoggerFactory? loggerFactory = null, bool useReverseConnect = false)
+            ILoggerFactory? loggerFactory = null, bool useReverseConnect = false,
+            IEnumerable<string>? alternativeHosts = null)
         {
             var sw = Stopwatch.StartNew();
-            Host = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
-                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
-            _container = CreateContainer(loggerFactory ?? Log.ConsoleFactory(LogLevel.Debug));
+            Host = new IPHostEntry
+            {
+                HostName = kLoopbackHost,
+                AddressList = [IPAddress.Loopback]
+            };
+            _alternativeHosts = alternativeHosts?
+                .Where(host => !string.IsNullOrWhiteSpace(host))
+                .Select(host => host.Trim())
+                .Where(host => !StringComparer.OrdinalIgnoreCase.Equals(host, kLoopbackHost))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray() ?? [];
+            _container = CreateContainer(loggerFactory ?? Log.ConsoleFactory(LogLevel.Debug),
+                ClientPkiRootPath);
 
             Now = new DateTime(2023, 1, 1, 7, 15, 0, DateTimeKind.Utc);
             _timeService = CreateTimeServiceMock(Now);
 
-            _port = NextPort();
-            var logger = _container.Resolve<ILogger<BaseServerFixture>>();
-            var options = _container.Resolve<IOptions<OpcUaClientOptions>>();
-            var nodes = nodesFactory(_container.Resolve<ILoggerFactory>(), TimeService);
+            var logger = _container.GetRequiredService<ILogger<BaseServerFixture>>();
+            var nodes = nodesFactory(_container.GetRequiredService<ILoggerFactory>(), TimeService);
             ServerConsoleHost? serverHost = null;
-            while (true)
+            ServerConsoleHost? startedServerHost = null;
+            Exception? lastStartupFailure = null;
+            for (var attempt = 1; attempt <= kMaxStartupAttempts &&
+                sw.Elapsed < kStartupTimeout; attempt++)
             {
+                var readinessProbeInProgress = false;
                 try
                 {
                     // Serialize server construction/startup against other servers'
@@ -165,19 +187,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     // and registers types into process-global stack state that is
                     // not safe to mutate while another server concurrently reads or
                     // mutates it (e.g. ConditionRefresh). See ServerStateLock.
-                    lock (ServerStateLock.Sync)
+                    if (!Monitor.TryEnter(ServerStateLock.Sync, kServerStateLockTimeout))
                     {
+                        throw new TimeoutException(
+                            $"Timed out waiting for the OPC UA server state lock after {kServerStateLockTimeout}.");
+                    }
+                    try
+                    {
+                        _port = ReserveServerPort(logger);
                         serverHost = new ServerConsoleHost(new ServerFactory(
-                            _container.Resolve<ILogger<ServerFactory>>(), TempPath, nodes)
+                            _container.GetRequiredService<ILogger<ServerFactory>>(), TempPath, nodes)
                         {
                             LogStatus = false
-                        }, _container.Resolve<ILogger<ServerConsoleHost>>())
+                        }, _container.GetRequiredService<ILogger<ServerConsoleHost>>())
                         {
-                            PkiRootPath = options.Value.Security.PkiRootPath,
-                            AutoAccept = true
+                            PkiRootPath = ServerPkiRootPath,
+                            AutoAccept = true,
+                            HostName = HostName,
+                            AlternativeHosts = [.. _alternativeHosts]
                         };
                         logger.StartingServerHost(serverHost, _port);
-                        serverHost.StartAsync(new int[] { _port }).Wait();
+                        serverHost.StartAsync([_port]).WaitAsync(kServerStartupTimeout)
+                            .GetAwaiter().GetResult();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(ServerStateLock.Sync);
                     }
 
                     //
@@ -186,65 +221,69 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     // should ensure the server has started up correctly.
                     //
                     var endpoint =
-                        _container.Resolve<IConnectionServices<ConnectionModel>>();
+                        _container.GetRequiredService<IConnectionServices<ConnectionModel>>();
+                    readinessProbeInProgress = true;
                     var result = endpoint.TestConnectionAsync(new ConnectionModel
                     {
                         Endpoint = new EndpointModel
                         {
-                            Url = EndpointUrl
+                            Url = EndpointUrl,
+                            Certificate = serverHost.Certificate?.RawData?.ToThumbprint()
                         }
-                    }, new TestConnectionRequestModel()).WaitAsync(TimeSpan.FromSeconds(10))
+                    }, new TestConnectionRequestModel()).WaitAsync(kReadinessTimeout)
                         .GetAwaiter().GetResult();
                     if (result.ErrorInfo != null)
                     {
                         throw new IOException(
                             result.ErrorInfo.ErrorMessage ?? "Failed testing connection.");
                     }
+                    readinessProbeInProgress = false;
 
-                    logger.ServerHostListening(serverHost, EndpointUrl);
-                    _serverHost = serverHost;
                     if (!useReverseConnect)
                     {
+                        startedServerHost = serverHost;
                         break;
                     }
 
-                    int clientPort;
-                    // Find a port for the client
-                    while (true)
-                    {
-                        clientPort = NextPort();
-                        try
-                        {
-                            logger.TryAddingReverseConnect(clientPort);
-                            using var listener = TcpListener.Create(clientPort);
-                            listener.Start(); // Throws if used and cleans up.
-                            listener.Stop();  // Cleanup
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.PortNotAccessible(ex, clientPort);
-                            kPorts.AddOrUpdate(clientPort, false, (_, _) => false);
-                        }
-                    }
+                    var clientPort = ReserveReverseConnectPort(logger);
                     UseReverseConnect = true;
                     ReverseConnectPort = clientPort;
-                    var clientUrl = $"opc.tcp://{HostName}:{clientPort}";
-                    _serverHost.AddReverseConnectionAsync(new Uri(clientUrl), 4)
-                        .WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
-                    logger.StartReverseConnect(clientUrl);
+                    _reverseConnectUri = new Uri($"opc.tcp://{HostName}:{clientPort}");
+                    startedServerHost = serverHost;
                     break;
                 }
                 catch (Exception ex)
                 {
-                    kPorts.AddOrUpdate(_port, false, (_, _) => false);
-                    _port = NextPort();
-                    logger.FailedToStartHost(ex, serverHost, _port);
-                    serverHost?.Dispose();
+                    kPorts.TryRemove(_port, out _);
+                    if (serverHost != null)
+                    {
+                        Try.Op(serverHost.Dispose);
+                    }
                     serverHost = null;
+                    if ((readinessProbeInProgress || IsBindCollision(ex)) &&
+                        attempt < kMaxStartupAttempts &&
+                        sw.Elapsed < kStartupTimeout)
+                    {
+                        lastStartupFailure = ex;
+                        logger.FailedToStartHost(ex, null, _port);
+                        continue;
+                    }
+                    var failure = CreateStartupFailure(ex, attempt, sw.Elapsed);
+                    CleanupStartupFailure();
+                    throw failure;
                 }
             }
-            logger.ServerHostStarted(serverHost, sw.Elapsed);
+            if (startedServerHost == null)
+            {
+                var failure = CreateStartupFailure(lastStartupFailure ??
+                    new TimeoutException("OPC UA server startup elapsed its time budget."),
+                    kMaxStartupAttempts, sw.Elapsed);
+                CleanupStartupFailure();
+                throw failure;
+            }
+            _serverHost = startedServerHost;
+            logger.ServerHostListening(_serverHost, EndpointUrl);
+            logger.ServerHostStarted(_serverHost, sw.Elapsed);
         }
 
         /// <inheritdoc/>
@@ -265,6 +304,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         }
 
         /// <summary>
+        /// Starts the deferred reverse connection after its client listener is ready.
+        /// </summary>
+        /// <returns>
+        /// A task that completes when the reverse connection is configured.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when reverse connect is not enabled for this fixture.
+        /// </exception>
+        public async Task StartReverseConnectionAsync()
+        {
+            if (!UseReverseConnect || _reverseConnectUri == null)
+            {
+                throw new InvalidOperationException("Reverse connect is not enabled for this fixture.");
+            }
+
+            if (!_reverseConnectionStarted)
+            {
+                await _serverHost.AddReverseConnectionAsync(_reverseConnectUri, 4)
+                    .WaitAsync(kReverseConnectTimeout).ConfigureAwait(false);
+                _reverseConnectionStarted = true;
+                var logger = _container.GetRequiredService<ILogger<BaseServerFixture>>();
+                logger.StartReverseConnect(_reverseConnectUri.ToString());
+            }
+        }
+
+        /// <summary>
         /// Override to dispose
         /// </summary>
         /// <param name="disposing"></param>
@@ -275,15 +340,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 if (disposing)
                 {
                     var sw = Stopwatch.StartNew();
-                    var logger = _container.Resolve<ILogger<BaseServerFixture>>();
+                    var logger = _container.GetRequiredService<ILogger<BaseServerFixture>>();
                     logger.DisposingServerHost(_serverHost);
-
-                    string? pkiPath = null;
-                    if (_container.TryResolve<IOptions<OpcUaClientOptions>>(out var options) &&
-                        Directory.Exists(options.Value.Security.PkiRootPath))
-                    {
-                        pkiPath = options.Value.Security.PkiRootPath;
-                    }
 
                     // Serialize server teardown against other servers' startup
                     // and condition refresh. Disposing the host unregisters node
@@ -293,19 +351,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     // crashes the test host with a native access violation in
                     // Opc.Ua.ConditionState. See ServerStateLock. The GC drain
                     // below is deliberately left outside the lock.
-                    lock (ServerStateLock.Sync)
+                    if (!Monitor.TryEnter(ServerStateLock.Sync, kServerStateLockTimeout))
+                    {
+                        throw new TimeoutException(
+                            $"Timed out waiting for the OPC UA server state lock after {kServerStateLockTimeout}.");
+                    }
+                    try
                     {
                         _container.Dispose();
                         _serverHost.Dispose();
                     }
+                    finally
+                    {
+                        Monitor.Exit(ServerStateLock.Sync);
+                    }
                     kPorts.TryRemove(_port, out _);
 
-                    logger.ServerHostDisposed(_serverHost, pkiPath, sw.Elapsed);
+                    logger.ServerHostDisposed(_serverHost, ServerPkiRootPath, sw.Elapsed);
 
-                    // Clean up all created certificates
-                    if (!string.IsNullOrEmpty(pkiPath) && Directory.Exists(pkiPath))
+                    // Both certificate stores are fixture-owned and can only be
+                    // removed after their client and server have been disposed.
+                    foreach (var pkiPath in new[] { ClientPkiRootPath, ServerPkiRootPath })
                     {
-                        Try.Op(() => Directory.Delete(pkiPath, true));
+                        if (Directory.Exists(pkiPath))
+                        {
+                            Try.Op(() => Directory.Delete(pkiPath, true));
+                        }
                     }
                     logger.ServerDisposingElapsed(sw.Elapsed);
 
@@ -323,9 +394,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     // is enough to exhaust process-wide native handles on the
                     // Windows test-host and surface as the SEH crash family
                     // addressed in #2456, #2458 and #2464. Drain the finalizer
-                    // queue here so each fixture starts from a clean baseline.
+                    // queue here with a finite budget so teardown cannot hang.
                     GC.Collect();
-                    GC.WaitForPendingFinalizers();
+                    _ = Task.Run(GC.WaitForPendingFinalizers)
+                        .Wait(kFinalizerDrainTimeout);
                     GC.Collect();
                     Thread.Sleep(100);
                 }
@@ -333,22 +405,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             }
         }
 
-        private static IContainer CreateContainer(ILoggerFactory loggerFactory)
+        private static ServiceProvider CreateContainer(ILoggerFactory loggerFactory,
+            string clientPkiRootPath)
         {
-            var builder = new ContainerBuilder();
-            builder.ConfigureServices(services => services.AddLogging());
-            builder.RegisterInstance(new ConfigurationBuilder().Build())
-                .AsImplementedInterfaces();
-            builder.RegisterInstance(loggerFactory)
-                .AsImplementedInterfaces();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    [TestClientConfig.PkiRootPathKey] = clientPkiRootPath
+                })
+                .Build();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddSingleton<IConfigurationRoot>(configuration);
+            services.AddSingleton(loggerFactory);
 
-            builder.AddDefaultJsonSerializer();
-            // builder.AddNewtonsoftJsonSerializer();
-            builder.RegisterType<TestClientConfig>()
-                .AsImplementedInterfaces();
+            services.AddTransient<TestClientConfig>();
+            services.AddTransient<IConfigureOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
+            services.AddTransient<IConfigureNamedOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
 
-            builder.AddOpcUaStack();
-            return builder.Build();
+            services.AddOpcUaStack();
+            return services.BuildServiceProvider();
         }
 
         /// <summary>
@@ -399,13 +478,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 Math.Abs(a - b) <= Math.Abs(a * .00001);
         }
 
-        /// <summary>
-        /// Get another port
-        /// </summary>
-        /// <returns></returns>
         private static int NextPort()
         {
-            while (true)
+            for (var attempt = 0; attempt < kMaxPortReservationAttempts; attempt++)
             {
 #pragma warning disable CA5394 // Do not use insecure randomness
                 var port = Random.Shared.Next(53000, 58000);
@@ -415,6 +490,105 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     return port;
                 }
             }
+            throw new TimeoutException(
+                $"Could not reserve an OPC UA test port after {kMaxPortReservationAttempts} attempts.");
+        }
+
+        private static int ReserveReverseConnectPort(ILogger logger)
+        {
+            for (var attempt = 0; attempt < kMaxPortReservationAttempts; attempt++)
+            {
+                var port = NextPort();
+                try
+                {
+                    logger.TryAddingReverseConnect(port);
+                    using var listener = new TcpListener(IPAddress.Loopback, port);
+                    listener.Start();
+                    return port;
+                }
+                catch (SocketException ex) when (IsBindCollision(ex))
+                {
+                    logger.PortNotAccessible(ex, port);
+                    kPorts.TryRemove(port, out _);
+                }
+            }
+            throw new TimeoutException(
+                $"Could not reserve a reverse-connect port after {kMaxPortReservationAttempts} attempts.");
+        }
+
+        private static int ReserveServerPort(ILogger logger)
+        {
+            for (var attempt = 0; attempt < kMaxPortReservationAttempts; attempt++)
+            {
+                var port = NextPort();
+                try
+                {
+                    using var listener = new TcpListener(IPAddress.Loopback, port);
+                    listener.Start();
+                    return port;
+                }
+                catch (SocketException ex) when (IsBindCollision(ex))
+                {
+                    logger.PortNotAccessible(ex, port);
+                    kPorts.TryRemove(port, out _);
+                }
+            }
+            throw new TimeoutException(
+                $"Could not reserve an OPC UA server port after {kMaxPortReservationAttempts} attempts.");
+        }
+
+        private static bool IsBindCollision(Exception exception)
+        {
+            for (var current = exception; current != null; current = current.InnerException)
+            {
+                if (current is SocketException socketException &&
+                    socketException.SocketErrorCode is SocketError.AddressAlreadyInUse or
+                    SocketError.AccessDenied)
+                {
+                    return true;
+                }
+                if (current.HResult == 10048 || current.HResult == 10013 ||
+                    current.HResult == unchecked((int)0x80072740) ||
+                    current.HResult == unchecked((int)0x8007271D) ||
+                    current.Message.Contains("address already in use",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    current.Message.Contains("only one usage of each socket address",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    current.Message.Contains("failed to establish tcp listener sockets",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private InvalidOperationException CreateStartupFailure(Exception exception,
+            int attempts, TimeSpan elapsed)
+        {
+            var alternativeUrls = _alternativeHosts.Length == 0
+                ? "<none>"
+                : string.Join(", ", _alternativeHosts.Select(host => GetEndpointUrl(host, _port)));
+            return new InvalidOperationException(
+                $"OPC UA test server startup failed after {attempts} attempt(s) in {elapsed}. " +
+                $"Endpoint='{EndpointUrl}', alternative endpoints='{alternativeUrls}', " +
+                $"server PKI='{ServerPkiRootPath}', client PKI='{ClientPkiRootPath}'.",
+                exception);
+        }
+
+        private void CleanupStartupFailure()
+        {
+            kPorts.TryRemove(_port, out _);
+            _container.Dispose();
+            if (Directory.Exists(TempPath))
+            {
+                Try.Op(() => Directory.Delete(TempPath, true));
+            }
+        }
+
+        private static string GetEndpointUrl(string host, int port)
+        {
+            return $"opc.tcp://{host}:{port}/{kSampleServerPath}";
         }
 
         /// <summary>
@@ -472,12 +646,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private readonly ConcurrentBag<(ITimer timer,
             EventHandler<FastTimerElapsedEventArgs> handler)> _fastTimers = [];
         private static readonly ConcurrentDictionary<int, bool> kPorts = new();
+        private static readonly TimeSpan kStartupTimeout = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan kServerStartupTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kReadinessTimeout = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan kReverseConnectTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kServerStateLockTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kFinalizerDrainTimeout = TimeSpan.FromSeconds(30);
+        private const int kMaxStartupAttempts = 3;
+        private const int kMaxPortReservationAttempts = 32;
+        private const string kLoopbackHost = "127.0.0.1";
+        private const string kSampleServerPath = "UA/SampleServer";
         private bool _disposedValue;
-        private readonly int _port;
-        private readonly IContainer _container;
+        private int _port;
+        private readonly string[] _alternativeHosts;
+        private Uri? _reverseConnectUri;
+        private bool _reverseConnectionStarted;
+        private readonly ServiceProvider _container;
         private readonly ServerConsoleHost _serverHost;
         private readonly Mock<TimeService> _timeService;
-        private const string kSampleServerPath = "UA/SampleServer";
     }
 
     /// <summary>

@@ -5,7 +5,7 @@
         "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [
             {
-                "Id": "http://test.org/UA/Data/#i=11224",
+                "Id": "http://test.org/UA/Data/#i=3307",
                 "OpcSamplingInterval": 1000,
                 "OpcPublishingInterval": 1000,
                 "QueueSize": 10,
@@ -14,7 +14,7 @@
                 "DisplayName": "DoubleValues"
             },
             {
-                "Id": "http://test.org/UA/Data/#i=11206",
+                "Id": "http://test.org/UA/Data/#i=3289",
                 "OpcSamplingInterval": 1000,
                 "OpcPublishingInterval": 1000,
                 "QueueSize": 10,

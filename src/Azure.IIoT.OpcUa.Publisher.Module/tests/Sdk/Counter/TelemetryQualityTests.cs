@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Telemetry;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -56,32 +56,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         }
 
         /// <summary>
-        /// The customer scenario in samples encoding: publishing interval,
-        /// sampling interval and heartbeat interval all two seconds, queue
-        /// size larger than one, against a server whose variables count up
-        /// every two seconds.
+        /// The customer scenario in full network message encoding: publishing
+        /// interval, sampling interval and heartbeat interval all two seconds,
+        /// queue size larger than one, against a server whose variables count
+        /// up every two seconds.
         /// </summary>
+        /// <remarks>
+        /// This was the FullSamples scenario up to 2.9. That profile was
+        /// removed in 3.0, and FullNetworkMessages is its closest equivalent:
+        /// it carries the same per message header fields.
+        /// <para>
+        /// Upstream picks this profile because only the full featured profiles
+        /// carry the heartbeat indicator. That reason does not hold in 3.0 -
+        /// no profile writes it, because it is not a Part 14 member and the
+        /// standards compliant encoder has no notion of it. The scenario is
+        /// still worth running here for the value stream properties; telling a
+        /// heartbeat from a repeated value needs a different signal, which is
+        /// tracked separately.
+        /// </para>
+        /// </remarks>
         [SkippableFact]
-        public async Task SamplesModeStreamIsCompleteOrderedAndEvenlySpacedAsync()
+        public async Task FullNetworkMessagesStreamIsCompleteOrderedAndEvenlySpacedAsync()
         {
             SkipUnlessEnabled();
             var report = await RunScenarioAsync(
-                nameof(SamplesModeStreamIsCompleteOrderedAndEvenlySpacedAsync),
-                MessagingMode.FullSamples, NodeCount, kInterval, kInterval, kInterval,
+                nameof(FullNetworkMessagesStreamIsCompleteOrderedAndEvenlySpacedAsync),
+                MessagingMode.FullNetworkMessages, NodeCount, kInterval, kInterval, kInterval,
                 kQueueSize, (int)kInterval.TotalSeconds, RunDuration).ConfigureAwait(false);
 
             AssertClean(report);
         }
 
         /// <summary>
-        /// The same scenario in PubSub encoding, as a control that the
-        /// behaviour is not specific to the legacy samples encoder.
-        /// <see cref="MessagingMode.FullNetworkMessages"/> rather than
-        /// <see cref="MessagingMode.PubSub"/> because only the full featured
-        /// profiles carry the heartbeat indicator
-        /// (<c>MessagingProfile.BuildDataSetFieldContentMask</c>); without it
-        /// a heartbeat is indistinguishable from a repeated value and the
-        /// assertions below could not tell the two apart.
+        /// The same scenario in the plain PubSub profile, as a control that
+        /// the behaviour is not specific to the fuller header set.
+        /// <para>
+        /// Upstream runs this control on FullNetworkMessages instead, because
+        /// there only the full featured profiles carry the heartbeat indicator
+        /// and without it a heartbeat cannot be told from a repeated value. In
+        /// 3.0 neither profile carries it, so that distinction buys nothing and
+        /// the plain profile remains the more useful control.
+        /// </para>
         /// </summary>
         [SkippableFact]
         public async Task PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync()
@@ -109,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             var updateInterval = TimeSpan.FromMilliseconds(500);
             var report = await RunScenarioAsync(
                 nameof(QueuedValuesArriveCompleteAndInOrderAsync),
-                MessagingMode.FullSamples, NodeCount, updateInterval,
+                MessagingMode.FullNetworkMessages, NodeCount, updateInterval,
                 publishingInterval: kInterval, samplingInterval: updateInterval,
                 queueSize: kQueueSize, heartbeatSeconds: (int)kInterval.TotalSeconds,
                 duration: RunDuration).ConfigureAwait(false);
@@ -146,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             SkipUnlessEnabled();
             var report = await RunScenarioAsync(
                 nameof(PublishingFasterThanTheSourceDoesNotTriggerHeartbeatsAsync),
-                MessagingMode.FullSamples, NodeCount, kInterval,
+                MessagingMode.FullNetworkMessages, NodeCount, kInterval,
                 publishingInterval: TimeSpan.FromMilliseconds(kInterval.TotalMilliseconds / 2),
                 samplingInterval: kInterval, queueSize: kQueueSize,
                 heartbeatSeconds: (int)kInterval.TotalSeconds,
@@ -173,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
 
             var report = await RunScenarioAsync(
                 nameof(CustomerScenarioAtFullScaleAsync),
-                MessagingMode.FullSamples, kFullScaleNodeCount, kInterval, kInterval,
+                MessagingMode.FullNetworkMessages, kFullScaleNodeCount, kInterval, kInterval,
                 kInterval, kQueueSize, (int)kInterval.TotalSeconds,
                 RunDuration).ConfigureAwait(false);
 
@@ -223,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             SkipUnlessEnabled();
             var report = await RunScenarioAsync(
                 nameof(UpdatedTimestampHeartbeatDoesNotDisplaceTimestampsAsync),
-                MessagingMode.FullSamples, NodeCount, kInterval, kInterval, kInterval,
+                MessagingMode.FullNetworkMessages, NodeCount, kInterval, kInterval, kInterval,
                 kQueueSize, (int)kInterval.TotalSeconds, RunDuration,
                 HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps).ConfigureAwait(false);
 
@@ -340,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         private async Task<TelemetryQualityReport> RunSlowSourceScenarioAsync(string test,
             HeartbeatBehavior? heartbeatBehavior)
         {
-            var report = await RunScenarioAsync(test, MessagingMode.FullSamples,
+            var report = await RunScenarioAsync(test, MessagingMode.FullNetworkMessages,
                 NodeCount, TimeSpan.FromSeconds(kSlowUpdateSeconds),
                 publishingInterval: kInterval, samplingInterval: kInterval,
                 queueSize: kQueueSize, heartbeatSeconds: (int)kInterval.TotalSeconds,
@@ -416,9 +431,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     UpdateInterval = updateInterval,
                     ExpectedNodeCount = nodeCount,
                     HeartbeatInterval = TimeSpan.FromSeconds(heartbeatSeconds),
-                    PublishingInterval = publishingInterval
+                    PublishingInterval = publishingInterval,
+                    //
+                    // The counter server increments strictly by one on every tick and
+                    // never repeats a value for any reason other than a watchdog heartbeat.
+                    // A repeated value is therefore definitionally a heartbeat for this
+                    // source, whatever the SourceTimestamp does. This stronger inference
+                    // is unsound for general sources where a sensor can legitimately
+                    // re-report the same reading at a new wall-clock instant.
+                    //
+                    MonotonicSource = true
                 });
-                var samples = mode is MessagingMode.Samples or MessagingMode.FullSamples;
+                //
+                // 3.0 removed the Samples and FullSamples profiles, so every
+                // message the module can now emit is a PubSub message.
+                //
 
                 //
                 // Skip the warm up. Creating thousands of monitored items
@@ -433,14 +460,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     {
                         return;
                     }
-                    if (samples)
-                    {
-                        validator.AddSamplesMessage(message);
-                    }
-                    else
-                    {
-                        validator.AddPubSubMessage(message);
-                    }
+                    validator.AddPubSubMessage(message);
                 }, Ct).ConfigureAwait(false);
 
                 var report = validator.CreateReport();

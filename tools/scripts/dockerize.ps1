@@ -18,10 +18,31 @@
 Param(
     [string] $TarFileInput,
     [string] $OutputFolder,
-    [string] $MatrixName = "matrix"
+    [string] $MatrixName = "matrix",
+    [string[]] $PcapImages = @("opc-publisher")
 )
 
 $ErrorActionPreference = "Stop"
+
+# Images named here get libpcap staged into them. The OPC Publisher MCP
+# diagnostics tools capture traffic through SharpPcap, which P/Invokes
+# libpcap and probes for libpcap.so, libpcap.so.0, libpcap.so.0.8 and
+# libpcap.so.1. The .NET base images do not carry it, so without this the
+# tools are present but fail at the first call.
+#
+# The library is staged from a throwaway builder rather than installed into
+# the image: the runtime base is distroless, so it has no package manager
+# and no shell to run one with. Only the shared object crosses over, which
+# is the point - the shipped image gains the capability without gaining a
+# package manager.
+#
+# Capture also needs CAP_NET_RAW at run time, which a container does not get
+# by default. See docs/opc-publisher/mcp.md.
+$pcapArchitectures = @{
+    "amd64" = "linux/amd64"
+    "arm64" = "linux/arm64"
+}
+$pcapBuilderImage = "mcr.microsoft.com/azurelinux/base/core:3.0"
 $matrix = @{}
 Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
     | Group-Object { $_.Name }
@@ -35,6 +56,7 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
     $index = 0
     $dockerFile = ""
     $platforms = @()
+    $pcapStages = @{}
     $_.Group | ForEach-Object {
         $tarfile = $_.FullName
 
@@ -103,10 +125,40 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
         if ($configuration.Cmd.Count -gt 0) {
             $dockerFile += "`nCMD $($configuration.Cmd | ConvertTo-Json -Compress)"
         }
+
+        # Stage libpcap into this architecture's image when the image asks for
+        # it. Only the Azure Linux based architectures qualify: the 32 bit arm
+        # image is Alpine, so it is musl based and a glibc shared object copied
+        # into it would not load.
+        $wantsPcap = $false
+        if ($manifest[0].RepoTags.Count -gt 0) {
+            $repoTagName = $manifest[0].RepoTags[0].Split(":")[0]
+            $wantsPcap = $null -ne ($PcapImages | Where-Object { $repoTagName -like "*$_*" })
+        }
+        if ($wantsPcap -and $pcapArchitectures.ContainsKey($config.architecture)) {
+            $pcapStages[$config.architecture] = $pcapArchitectures[$config.architecture]
+            $dockerFile += "`nCOPY --from=pcap_$($config.architecture) /out/ /usr/lib/"
+        }
     }
 
     $dockerFile += "`nFROM `${TARGETOS}_`${TARGETARCH}"
     $dockerFile += "`n"
+
+    # Builder stages are emitted first so the COPY --from above resolves. Each
+    # is pinned to its target platform, so the shared object matches the image
+    # it is staged into rather than the machine doing the build. cp -P keeps the
+    # soname symlink, and the unversioned name is added because SharpPcap probes
+    # for plain libpcap.so first.
+    $pcapPreamble = ""
+    $pcapStages.GetEnumerator() | Sort-Object Key | ForEach-Object {
+        $pcapPreamble += "`nFROM --platform=$($_.Value) $pcapBuilderImage AS pcap_$($_.Key)"
+        $pcapPreamble += "`nRUN tdnf install -y libpcap && tdnf clean all"
+        $pcapPreamble += " && mkdir -p /out && cp -P /usr/lib/libpcap.so* /out/"
+        $pcapPreamble += " && ln -sf `$(ls -1 /out | grep -E '^libpcap\.so\.[0-9]+`$' | head -1) /out/libpcap.so"
+        $pcapPreamble += "`n"
+    }
+    $dockerFile = $pcapPreamble + $dockerFile
+
     $dockerFilePath = Join-Path $contextFolder "Dockerfile"
     $dockerFile | Out-File -FilePath $dockerFilePath
 

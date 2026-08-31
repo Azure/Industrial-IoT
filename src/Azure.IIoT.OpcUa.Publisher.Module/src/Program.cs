@@ -5,15 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Autofac.Extensions.DependencyInjection;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Furly.Extensions.Hosting;
-    using k8s;
+    using Azure.IIoT.OpcUa.Publisher.Module.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
     using System;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -22,6 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     /// <summary>
     /// Module
     /// </summary>
+    [ExcludeFromCodeCoverage(Justification =
+        "Host bootstrap; exercising it requires starting the application host.")]
     public static class Program
     {
         /// <summary>
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 #if DEBUG
             if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
                 a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)) ||
-                KubernetesClientConfiguration.IsInCluster())
+                KubernetesEnvironment.IsInCluster())
             {
                 Console.WriteLine("Waiting for debugger being attached...");
                 while (!Debugger.IsAttached)
@@ -102,7 +103,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder()
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .UseDefaultServiceProvider((_, options) =>
+                {
+                    options.ValidateScopes = true;
+                    options.ValidateOnBuild = true;
+                })
                 .ConfigureHostConfiguration(builder => builder
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", true)

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Result of a discovery run - part of last event element
@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "diagnostics", Order = 3,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public VariantValue? Diagnostics { get; set; }
+        public JsonNode? Diagnostics { get; set; }
 
         /// <summary>
         /// Operation audit context

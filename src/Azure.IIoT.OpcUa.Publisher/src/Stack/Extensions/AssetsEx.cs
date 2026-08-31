@@ -9,7 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
-    using System;
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -35,14 +36,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return (null, new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 });
             }
             try
             {
                 // Call create method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -93,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return (null, new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 });
             }
@@ -111,14 +112,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     f.ErrorInfo == null &&
                     f.TypeDefinition.NamespaceIndex == nsIndex &&
                     f.TypeDefinition.Identifier.Equals(kAssetFileType));
-            if (!NodeId.IsNull(fileNodeId.Node))
+            if (!NodeIdCompat.IsNull(fileNodeId.Node))
             {
                 return (fileNodeId.Node, null);
             }
             errorInfo = results.FirstOrDefault(d => d.ErrorInfo != null).ErrorInfo;
             errorInfo ??= new ServiceResultModel
             {
-                StatusCode = StatusCodes.BadNotFound,
+                StatusCode = StatusCodes.BadNotFound.Code,
                 ErrorMessage = "No file found for asset."
             };
             return (null, errorInfo);
@@ -140,14 +141,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 };
             }
             try
             {
                 // Call create method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -185,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 };
             }

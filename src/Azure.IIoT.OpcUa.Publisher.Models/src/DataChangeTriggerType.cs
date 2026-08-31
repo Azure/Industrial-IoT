@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Data change trigger
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DataChangeTriggerType>))]
     public enum DataChangeTriggerType
     {
         /// <summary>

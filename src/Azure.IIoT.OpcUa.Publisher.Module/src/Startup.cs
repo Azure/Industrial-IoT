@@ -6,21 +6,24 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
+    using Microsoft.Extensions.Options;
+#if IIOT_MCP
+    using Opc.Ua.Mcp;
+#endif
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Webservice startup
@@ -53,10 +56,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         }
 
         /// <summary>
+        /// Whether the OPC UA MCP tool server is enabled.
+        /// </summary>
+        private bool McpServerEnabled => Configuration
+            .GetValue<bool>(PublisherConfig.EnableMcpServerKey);
+
+        /// <summary>
         /// Configure services
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "AddConsoleFormatter<Syslog, ConsoleFormatterOptions> binds " +
+            "the framework ConsoleFormatterOptions whose members are statically " +
+            "analyzable; the trimming warning is a framework false positive.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "AddConsoleFormatter<Syslog, ConsoleFormatterOptions> binds " +
+            "the framework ConsoleFormatterOptions whose members are statically " +
+            "analyzable; the AOT warning is a framework false positive.")]
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
@@ -79,7 +96,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddResourceMonitoring(Configuration);
             services.AddExceptionSummarizer(builder =>
             {
-                builder.AddDefaultProviders();
+                // --mcp brings in AddStandardResilienceHandler, which registers
+                // Microsoft's HttpExceptionSummaryProvider. Two providers may
+                // not claim the same exception type, so the overlapping types
+                // are ceded to it - but only then, because on the default path
+                // nothing else would describe them.
+                builder.AddDefaultProviders(httpProviderRegistered: McpServerEnabled);
                 // TODO: Add opc ua exceptions
             });
 
@@ -106,21 +128,84 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddMeter(Diagnostics.Meter.Name))
                 ;
 
-            services.AddControllers()
-                .AddMvcOptions(options =>
-                    // VariantValue exposes a recursive value graph (e.g. a
-                    // ByteString surfaces every byte as a child element), which
-                    // makes the default recursive model validation extremely
-                    // expensive for large payloads such as method call arguments.
-                    // Suppress validation of its children since there is nothing
-                    // to validate on the opaque value tree anyway.
-                    options.ModelMetadataDetailsProviders.Add(
-                        new SuppressChildValidationMetadataProvider(typeof(VariantValue))))
-                .AddJsonSerializer()
-                .AddMessagePackSerializer()
-                ;
+            services.ConfigureHttpJsonOptions(options => Json.ApplyTo(options.SerializerOptions));
 
-            services.AddOpenApi();
+            // The REST surface serves its OpenAPI document through the built-in
+            // Microsoft.AspNetCore.OpenApi generator, which is source generator /
+            // trim friendly (unlike the removed Swashbuckle pipeline). The legacy
+            // "useopenapiv3" command line flag is still honored: when set the
+            // newer OpenAPI 3.1 document is emitted, otherwise the default OpenAPI
+            // 3.0 document. The removed Swashbuckle pipeline previously toggled a
+            // Swagger 2.0 document which the built-in generator does not produce;
+            // the flag therefore only selects between OpenAPI 3.x document versions
+            // now (this affects the generated document only, not the REST API).
+            var useOpenApiV3 = Configuration.GetValue<bool>(
+                Runtime.Configuration.OpenApi.UseOpenApiV3Key);
+            services.AddOpenApi(options => options.OpenApiVersion = useOpenApiV3
+                ? Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_1
+                : Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_0);
+
+            // Register configuration interfaces
+            services.AddSingleton<IConfiguration>(Configuration);
+            services.AddSingleton<IConfigurationRoot>(Configuration);
+
+            // The OPC UA MCP tool server rides the module's existing http
+            // listeners and authentication; see Configure below for the mapping.
+            if (McpServerEnabled)
+            {
+#if IIOT_MCP
+                services.AddOpcUaMcpCore();
+                services.AddOpcUaMcpDiagnostics(options =>
+                    options.EnableDiagnosticsTools = true);
+                services.AddMcpServer()
+                    .WithHttpTransport()
+                    .WithOpcUaMcpFilters()
+                    .WithOpcUaCoreTools(McpToolProfile.Full)
+                    .WithOpcUaDiagnosticsTools(McpToolProfile.Full,
+                        diagnosticsToolsEnabled: true);
+#else
+                // Compiled out of the ahead-of-time published module, where the
+                // MCP SDK's reflective schema generation cannot work. Fail loudly
+                // rather than starting without the endpoint that was asked for.
+                throw new NotSupportedException(
+                    "The MCP tool server is not available in an ahead-of-time " +
+                    "published OPC Publisher. Remove --mcp, or use a module that " +
+                    "was not published with IIoTPublishAot.");
+#endif
+            }
+
+            // Register publisher services and transports (previously registered
+            // through Autofac's ConfigureContainer). This is a separate overridable
+            // method so hosts (e.g. tests) can suppress the production transport
+            // wiring, mirroring the previously empty ConfigureContainer override.
+            ConfigurePublisherServices(services);
+        }
+
+        /// <summary>
+        /// Configure publisher services and connectivity transports. Overridable so
+        /// test hosts can substitute mock transports.
+        /// </summary>
+        /// <param name="services"></param>
+        protected virtual void ConfigurePublisherServices(IServiceCollection services)
+        {
+            services.AddPublisherServices();
+
+            //
+            // Order is important here because we want
+            // to fall back in the reverse order for
+            // sending operational and discovery events!
+            //
+            CoreServiceCollectionEx.AddMemoryKeyValueStore(services);
+            services.AddDaprStateStoreClient(Configuration);
+            CoreServiceCollectionEx.AddNullEventClient(services);
+            services.AddFileSystemEventClient(Configuration);
+            services.AddFileSystemRpcServer(Configuration);
+            services.AddHttpEventClient(Configuration);
+            services.AddDaprPubSubClient(Configuration);
+            services.AddEventHubsClient(Configuration);
+            services.AddMqttClient(Configuration);
+            services.AddIoTEdgeServices(Configuration);
+            services.AddIoTOperationsServices(Configuration);
         }
 
         /// <summary>
@@ -130,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
 #pragma warning disable CA1822 // Mark members as static
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+        public void Configure(IApplicationBuilder app)
 #pragma warning restore CA1822 // Mark members as static
         {
             // Surface direct method call failures (which bypass the ASP.NET
@@ -146,48 +231,74 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseOpenApi();
             app.UseOpenTelemetryPrometheusEndpoint();
+
+            // OpenAPI document endpoint is exposed unless disabled via the
+            // "disableopenapi" command line flag (PublisherOptions).
+            var openApiEnabled = app.ApplicationServices
+                .GetService<IOptions<PublisherOptions>>()?.Value
+                .DisableOpenApiEndpoint != true;
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapPublisherApi();
+                if (openApiEnabled)
+                {
+                    endpoints.MapOpenApi();
+                }
                 endpoints.MapHealthChecks("/healthz");
+
+                // Mapped inside the same pipeline as the REST api, and after
+                // UseAuthentication/UseAuthorization above, so the MCP endpoint
+                // is reached over the already configured listeners and is
+                // subject to the same api key authentication. RequireAuthorization
+                // makes that explicit rather than inherited by accident.
+                var mcpEnabled = app.ApplicationServices
+                    .GetService<IOptions<PublisherOptions>>()?.Value
+                    .EnableMcpServer == true;
+                if (mcpEnabled)
+                {
+#if IIOT_MCP
+                    // The tools can extract secure channel keys, capture traffic
+                    // and read capture artifacts. The unsecure listener carries
+                    // the api key in cleartext, so serving /mcp there would put
+                    // all of that one packet sniff away. Refuse on that port
+                    // whether it was enabled deliberately or left on by default.
+                    // Applied as an endpoint convention rather than pipeline
+                    // middleware so it cannot be reordered around: it wraps the
+                    // request delegate of every route MapMcp creates and runs
+                    // whenever that endpoint is selected. The REST api's own
+                    // exposure on the unsecure port is a separate, pre-existing
+                    // decision and is deliberately left alone.
+                    var unsecurePort = Runtime.Configuration.Kestrel.GetListenPorts(
+                        app.ApplicationServices.GetRequiredService<
+                            IOptions<PublisherOptions>>().Value).UnsecurePort;
+
+                    var mcp = endpoints.MapMcp("/mcp").RequireAuthorization();
+                    if (unsecurePort != null)
+                    {
+                        var blockedPort = unsecurePort.Value;
+                        mcp.Add(builder =>
+                        {
+                            var inner = builder.RequestDelegate;
+                            if (inner == null)
+                            {
+                                return;
+                            }
+                            builder.RequestDelegate = async context =>
+                            {
+                                if (context.Connection.LocalPort == blockedPort)
+                                {
+                                    context.Response.StatusCode = 403;
+                                    return;
+                                }
+                                await inner(context).ConfigureAwait(false);
+                            };
+                        });
+                    }
+#endif
+                }
             });
-
-            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
-        }
-
-        /// <summary>
-        /// Autofac configuration.
-        /// </summary>
-        /// <param name="builder"></param>
-        public virtual void ConfigureContainer(ContainerBuilder builder)
-        {
-            // Register publisher services and transports
-            builder.AddPublisherServices();
-
-            //
-            // Order is important here because we want
-            // to fall back in the reverse order for
-            // sending operational and discovery events!
-            //
-            builder.AddMemoryKeyValueStore();
-            builder.AddDaprStateStoreClient(Configuration);
-            builder.AddNullEventClient();
-            builder.AddFileSystemEventClient(Configuration);
-            builder.AddFileSystemRpcServer(Configuration);
-            builder.AddHttpEventClient(Configuration);
-            builder.AddDaprPubSubClient(Configuration);
-            builder.AddEventHubsClient(Configuration);
-            builder.AddMqttClient(Configuration);
-            builder.AddIoTEdgeServices(Configuration);
-            builder.AddIoTOperationsServices(Configuration);
-
-            // Register configuration interfaces
-            builder.RegisterInstance(Configuration)
-                .AsImplementedInterfaces();
         }
     }
 }

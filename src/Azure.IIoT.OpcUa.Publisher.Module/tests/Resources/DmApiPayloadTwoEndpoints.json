@@ -67,15 +67,15 @@
                             ]
                         },
                         {
-                            "TypeDefinitionId": "ns=16;i=235",
+                            "TypeDefinitionId": "nsu=http://opcfoundation.org/SimpleEvents;i=235",
                             "BrowsePath": [
-                                "16:CycleId"
+                                "nsu=http://opcfoundation.org/SimpleEvents;CycleId"
                             ]
                         },
                         {
-                            "TypeDefinitionId": "ns=16;i=235",
+                            "TypeDefinitionId": "nsu=http://opcfoundation.org/SimpleEvents;i=235",
                             "BrowsePath": [
-                                "16:CurrentStep"
+                                "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep"
                             ]
                         }
                     ],
@@ -85,7 +85,7 @@
                                 "FilterOperator": "OfType",
                                 "FilterOperands": [
                                     {
-                                        "Value": "ns=16;i=235"
+                                        "Value": "nsu=http://opcfoundation.org/SimpleEvents;i=235"
                                     }
                                 ]
                             }

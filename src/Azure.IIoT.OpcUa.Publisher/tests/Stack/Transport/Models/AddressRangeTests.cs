@@ -15,6 +15,186 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
 
     public class AddressRangeTests
     {
+        // ──────────── Contains ─────────────────────────────────────
+
+        [Fact]
+        public void Contains_AddressInsideRange_ReturnsTrue()
+        {
+            var range = new AddressRange(IPAddress.Parse("192.168.1.0"), 24);
+            var inside = new IPv4Address(IPAddress.Parse("192.168.1.100"));
+
+            Assert.True(range.Contains(inside));
+        }
+
+        [Fact]
+        public void Contains_LowBoundary_ReturnsTrue()
+        {
+            var range = new AddressRange(100u, 200u);
+            Assert.True(range.Contains((IPv4Address)100u));
+        }
+
+        [Fact]
+        public void Contains_HighBoundary_ReturnsTrue()
+        {
+            var range = new AddressRange(100u, 200u);
+            Assert.True(range.Contains((IPv4Address)200u));
+        }
+
+        [Fact]
+        public void Contains_AddressBelowRange_ReturnsFalse()
+        {
+            var range = new AddressRange(100u, 200u);
+            Assert.False(range.Contains((IPv4Address)99u));
+        }
+
+        [Fact]
+        public void Contains_AddressAboveRange_ReturnsFalse()
+        {
+            var range = new AddressRange(100u, 200u);
+            Assert.False(range.Contains((IPv4Address)201u));
+        }
+
+        // ──────────── Overlaps ─────────────────────────────────────
+
+        [Fact]
+        public void Overlaps_IdenticalRanges_ReturnsTrue()
+        {
+            var r1 = new AddressRange(100u, 200u);
+            var r2 = new AddressRange(100u, 200u);
+            Assert.True(r1.Overlaps(r2));
+            Assert.True(r2.Overlaps(r1));
+        }
+
+        [Fact]
+        public void Overlaps_PartialOverlap_ReturnsTrue()
+        {
+            var r1 = new AddressRange(100u, 150u);
+            var r2 = new AddressRange(140u, 200u);
+            Assert.True(r1.Overlaps(r2));
+            Assert.True(r2.Overlaps(r1));
+        }
+
+        [Fact]
+        public void Overlaps_OneContainsOther_ReturnsTrue()
+        {
+            var outer = new AddressRange(100u, 300u);
+            var inner = new AddressRange(150u, 250u);
+            Assert.True(outer.Overlaps(inner));
+            Assert.True(inner.Overlaps(outer));
+        }
+
+        [Fact]
+        public void Overlaps_AdjacentRangesNoOverlap_ReturnsFalse()
+        {
+            var r1 = new AddressRange(100u, 149u);
+            var r2 = new AddressRange(150u, 200u);
+            Assert.False(r1.Overlaps(r2));
+            Assert.False(r2.Overlaps(r1));
+        }
+
+        [Fact]
+        public void Overlaps_DisjointRanges_ReturnsFalse()
+        {
+            var r1 = new AddressRange(100u, 150u);
+            var r2 = new AddressRange(200u, 300u);
+            Assert.False(r1.Overlaps(r2));
+            Assert.False(r2.Overlaps(r1));
+        }
+
+        // ──────────── Reset + FillNextBatch ───────────────────────
+
+        [Fact]
+        public void Reset_AfterPartialBatch_AllowsRestartFromLow()
+        {
+            var range = new AddressRange(1u, 5u);
+            var batch1 = new List<uint>();
+            range.FillNextBatch(batch1, 3);
+            Assert.Equal(3, batch1.Count);
+            Assert.Equal(new List<uint> { 1u, 2u, 3u }, batch1);
+
+            range.Reset();
+
+            var batch2 = new List<uint>();
+            range.FillNextBatch(batch2, 10);
+            Assert.Equal(5, batch2.Count);
+            Assert.Equal(new List<uint> { 1u, 2u, 3u, 4u, 5u }, batch2);
+        }
+
+        [Fact]
+        public void FillNextBatch_ExhaustedRange_AddsNothing()
+        {
+            var range = new AddressRange(1u, 2u);
+            var batch = new List<uint>();
+            range.FillNextBatch(batch, 10);
+            Assert.Equal(2, batch.Count);
+
+            // Exhausted — nothing added
+            range.FillNextBatch(batch, 10);
+            Assert.Equal(2, batch.Count);
+        }
+
+        // ──────────── Copy ────────────────────────────────────────
+
+        [Fact]
+        public void Copy_CreatesSeparateObject_WithSameBounds()
+        {
+            var original = new AddressRange(100u, 200u, "eth0");
+            var copy = original.Copy();
+
+            Assert.NotSame(original, copy);
+            Assert.Equal(original.Low, copy.Low);
+            Assert.Equal(original.High, copy.High);
+            Assert.Equal(original.Nic, copy.Nic);
+        }
+
+        [Fact]
+        public void Copy_ResetOnCopy_DoesNotAffectOriginal()
+        {
+            var original = new AddressRange(1u, 3u);
+            var batch = new List<uint>();
+            original.FillNextBatch(batch, 2);  // advances internal cursor to 3
+
+            var copy = original.Copy();
+            var copyBatch = new List<uint>();
+            copy.FillNextBatch(copyBatch, 10);
+
+            // copy.Reset() is called on fresh copy — cursor starts at Low
+            Assert.Equal(3, copyBatch.Count);
+        }
+
+        // ──────────── GetHashCode + Equals ────────────────────────
+
+        [Fact]
+        public void GetHashCode_EqualRanges_HaveSameHashCode()
+        {
+            var r1 = new AddressRange(100u, 200u);
+            var r2 = new AddressRange(100u, 200u);
+            Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
+        }
+
+        [Fact]
+        public void Equals_NonAddressRangeObject_ReturnsFalse()
+        {
+            var r = new AddressRange(0u, 255u);
+            Assert.False(r.Equals("0.0.0.0/24"));
+        }
+
+        [Fact]
+        public void AddressRange_Constructor_ReversedBounds_NormalizesOrder()
+        {
+            // low > high — constructor should swap
+            var range = new AddressRange(200u, 100u);
+            Assert.Equal(100u, range.Low);
+            Assert.Equal(200u, range.High);
+        }
+
+        [Fact]
+        public void AddressRange_Constructor_SufferTooLarge_Throws()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new AddressRange(IPAddress.Loopback, 33));
+        }
+
         [Fact]
         public void TestSubnetRange1()
         {

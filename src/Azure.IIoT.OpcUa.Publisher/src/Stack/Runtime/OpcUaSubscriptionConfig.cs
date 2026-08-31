@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Configuration;
+    using Azure.IIoT.OpcUa.Core.Configuration;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
     using System;
@@ -35,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
         public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
         public const string MaxMonitoredItemPerSubscriptionKey = "MaxMonitoredItemPerSubscription";
+        public const string MaxSubscriptionPartitionsKey = "MaxSubscriptionPartitions";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
@@ -214,10 +215,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             options.AutoSetQueueSizes ??= GetBoolOrNull(AutoSetQueueSizesKey);
 
             options.MaxMonitoredItemPerSubscription ??= (uint?)GetIntOrNull(MaxMonitoredItemPerSubscriptionKey);
+            if (options.MaxSubscriptionPartitions == null)
+            {
+                var maxPartitions = GetIntOrNull(MaxSubscriptionPartitionsKey);
+                if (maxPartitions.HasValue)
+                {
+                    options.MaxSubscriptionPartitions = maxPartitions.Value > 0
+                        ? (uint)maxPartitions.Value
+                        : throw new ArgumentOutOfRangeException(MaxSubscriptionPartitionsKey,
+                            "MaxSubscriptionPartitions must be positive. Omit it for unbounded partitioning.");
+                }
+            }
 
-            var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-            options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None
-                ? true : GetBoolOrNull(FetchOpcBrowsePathFromRootKey);
+            //
+            // Only what the user asked for. This used to be forced on by the
+            // automatic routing mode, which needed the browse path to build a
+            // topic from; 3.0 removes that mode, so nothing turns the fetch on
+            // by itself any more.
+            //
+            options.FetchOpcBrowsePathFromRoot ??=
+                GetBoolOrNull(FetchOpcBrowsePathFromRootKey);
 
             if (options.DefaultDataChangeTrigger == null &&
                 Enum.TryParse<DataChangeTriggerType>(GetStringOrDefault(DefaultDataChangeTriggerKey),
@@ -225,6 +242,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DefaultDataChangeTrigger = trigger;
             }
+        }
+
+        /// <inheritdoc/>
+        protected override OpcUaSubscriptionOptions Bind()
+        {
+            return NormalizeLegacyBooleanAliases(
+                nameof(OpcUaSubscriptionOptions.DefaultSkipFirst),
+                nameof(OpcUaSubscriptionOptions.DefaultRepublishAfterTransfer),
+                nameof(OpcUaSubscriptionOptions.DefaultDiscardNew),
+                nameof(OpcUaSubscriptionOptions.EnableImmediatePublishing),
+                nameof(OpcUaSubscriptionOptions.EnableSequentialPublishing),
+                nameof(OpcUaSubscriptionOptions.ResolveDisplayName),
+                nameof(OpcUaSubscriptionOptions.AutoSetQueueSizes),
+                nameof(OpcUaSubscriptionOptions.UseDeferredAcknoledgements),
+                nameof(OpcUaSubscriptionOptions.DefaultSamplingUsingCyclicRead),
+                nameof(OpcUaSubscriptionOptions.FetchOpcBrowsePathFromRoot))
+                .Get<OpcUaSubscriptionOptions>() ?? new();
         }
 
         /// <summary>

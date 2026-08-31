@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public const string OpcUaDateTimeMaxValue = "9999-12-31T23:59:59Z";
 
         /// <summary>
-        /// DateTime value of: “9999-12-31T23:59:59Z”
+        /// DateTime value of: ï¿½9999-12-31T23:59:59Zï¿½
         /// </summary>
         private static readonly DateTime kDateTimeMaxJsonValue = new(3155378975990000000);
 
@@ -56,9 +56,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="dataValue"></param>
         public static DataValue ToOpcUaUniversalTime(this DataValue dataValue)
         {
-            dataValue.SourceTimestamp = dataValue.SourceTimestamp.ToOpcUaUniversalTime();
-            dataValue.ServerTimestamp = dataValue.ServerTimestamp.ToOpcUaUniversalTime();
-            return dataValue;
+            return dataValue
+                .WithSourceTimestamp(
+                    dataValue.SourceTimestamp.ToDateTime().ToOpcUaUniversalTime())
+                .WithServerTimestamp(
+                    dataValue.ServerTimestamp.ToDateTime().ToOpcUaUniversalTime());
         }
 
         /// <summary>

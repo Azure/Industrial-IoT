@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Direction to browse
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<BrowseDirection>))]
     public enum BrowseDirection
     {
         /// <summary>

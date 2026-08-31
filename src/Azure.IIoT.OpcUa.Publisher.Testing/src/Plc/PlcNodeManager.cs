@@ -108,8 +108,8 @@ namespace Plc
                 _externalReferences = externalReferences;
 
                 var root = CreateFolder(null, "OpcPlc", "OpcPlc", NamespaceType.PlcApplications);
-                root.AddReference(ReferenceTypes.Organizes, true, ObjectIds.ObjectsFolder);
-                references.Add(new NodeStateReference(ReferenceTypes.Organizes, false, root.NodeId));
+                root.AddReference(ReferenceTypeIds.Organizes, true, ObjectIds.ObjectsFolder);
+                references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, root.NodeId));
                 root.EventNotifier = EventNotifiers.SubscribeToEvents;
                 AddRootNotifier(root);
 
@@ -159,7 +159,7 @@ namespace Plc
             var folder = new FolderState(parent)
             {
                 SymbolicName = name,
-                ReferenceTypeId = ReferenceTypes.Organizes,
+                ReferenceTypeId = ReferenceTypeIds.Organizes,
                 TypeDefinitionId = ObjectTypeIds.FolderType,
                 NodeId = new NodeId(path, namespaceIndex),
                 BrowseName = new QualifiedName(path, namespaceIndex),
@@ -199,7 +199,7 @@ namespace Plc
                 stepSizeValue, minTypeValue, maxTypeValue)
             {
                 SymbolicName = name,
-                ReferenceTypeId = ReferenceTypes.Organizes,
+                ReferenceTypeId = ReferenceTypeIds.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType
             };
             return CreateBaseVariable(baseDataVariableState, parent, path, name, dataType,
@@ -225,7 +225,7 @@ namespace Plc
             var baseDataVariableState = new BaseDataVariableState(parent)
             {
                 SymbolicName = name,
-                ReferenceTypeId = ReferenceTypes.Organizes,
+                ReferenceTypeId = ReferenceTypeIds.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType
             };
             return CreateBaseVariable(baseDataVariableState, parent, path, name, dataType,
@@ -296,23 +296,42 @@ namespace Plc
             baseDataVariableState.AccessLevel = accessLevel;
             baseDataVariableState.UserAccessLevel = accessLevel;
             baseDataVariableState.Historizing = false;
-            baseDataVariableState.Value = defaultValue ?? TypeInfo.GetDefaultValue(dataType, valueRank, Server.TypeTree);
+            baseDataVariableState.Value = defaultValue == null
+                ? TypeInfo.GetDefaultVariantValue(dataType, valueRank, Server.TypeTree)
+                : ToVariant(defaultValue, valueRank);
             baseDataVariableState.StatusCode = StatusCodes.Good;
             baseDataVariableState.Timestamp = _timeService.UtcNow;
             baseDataVariableState.Description = new LocalizedText(description);
 
             if (valueRank == ValueRanks.OneDimension)
             {
-                baseDataVariableState.ArrayDimensions = new ReadOnlyList<uint>([0]);
+                baseDataVariableState.ArrayDimensions = [0];
             }
             else if (valueRank == ValueRanks.TwoDimensions)
             {
-                baseDataVariableState.ArrayDimensions = new ReadOnlyList<uint>([0, 0]);
+                baseDataVariableState.ArrayDimensions = [0, 0];
             }
 
             parent?.AddChild(baseDataVariableState);
 
             return baseDataVariableState;
+        }
+
+        private static Variant ToVariant(object value, int valueRank)
+        {
+            return value switch
+            {
+                bool boolValue => new Variant(boolValue),
+                int intValue => new Variant(intValue),
+                uint uintValue => new Variant(uintValue),
+                double doubleValue => new Variant(doubleValue),
+                string stringValue => new Variant(stringValue),
+                byte[] bytes when valueRank == ValueRanks.Scalar => new Variant(ByteString.From(bytes)),
+                byte[] bytes => new Variant((ArrayOf<byte>)bytes),
+                uint[] values => new Variant((ArrayOf<uint>)values),
+                Variant variant => variant,
+                _ => throw new NotSupportedException($"Cannot convert {value.GetType()} to an OPC UA Variant.")
+            };
         }
 
         /// <summary>

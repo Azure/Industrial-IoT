@@ -5,6 +5,7 @@
 
 namespace System.Linq
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,26 @@ namespace System.Linq
     /// </summary>
     public static class LinqEx2
     {
+        /// <summary>
+        /// Create batches of enumerables.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="items"></param>
+        /// <param name="count"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> items,
+            int count)
+        {
+            if (count <= 0)
+            {
+                throw new ArgumentException("Cannot create 0 or negative size batches");
+            }
+            return items
+                .Select((x, i) => Tuple.Create(x, i))
+                .GroupBy(x => x.Item2 / count)
+                .Select(g => g.Select(x => x.Item1));
+        }
+
         /// <summary>
         /// Merge enumerable b into set a.
         /// </summary>
@@ -53,6 +74,17 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Return object as an enumerable with one element.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> YieldReturn<T>(this T value)
+        {
+            yield return value;
+        }
+
+        /// <summary>
         /// Flattens a enumerable of enumerables
         /// </summary>
         /// <param name="obj"></param>
@@ -63,12 +95,17 @@ namespace System.Linq
             {
                 if (item is IEnumerable contained)
                 {
+                    //
+                    // Continue rather than break. Breaking here abandoned every
+                    // element after the first nested one, so flattening
+                    // [[1,[2,3]], 4] silently lost the 4.
+                    //
                     contained = contained.Flatten();
                     foreach (var cont in contained)
                     {
                         yield return cont;
                     }
-                    yield break;
+                    continue;
                 }
                 yield return item;
             }

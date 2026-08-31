@@ -46,7 +46,7 @@ namespace FileSystem
             BrowseName = new QualifiedName(isVolume ? path : ModelUtils.GetName(path),
                 nodeId.NamespaceIndex);
             DisplayName = new LocalizedText(isVolume ? path : ModelUtils.GetName(path));
-            Description = null;
+            Description = default;
             WriteMask = 0;
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
@@ -58,7 +58,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             DeleteFileSystemObject.Create(context, MethodIds.FileDirectoryType_DeleteFileSystemObject,
-                BrowseNames.DeleteFileSystemObject, BrowseNames.DeleteFileSystemObject, false);
+                (QualifiedName)BrowseNames.DeleteFileSystemObject, (LocalizedText)BrowseNames.DeleteFileSystemObject, false);
 
             CreateFile = new CreateFileMethodState(this)
             {
@@ -67,7 +67,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             CreateFile.Create(context, MethodIds.FileDirectoryType_CreateFile,
-                BrowseNames.CreateFile, BrowseNames.CreateFile, false);
+                (QualifiedName)BrowseNames.CreateFile, (LocalizedText)BrowseNames.CreateFile, false);
 
             CreateDirectory = new CreateDirectoryMethodState(this)
             {
@@ -76,7 +76,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             CreateDirectory.Create(context, MethodIds.FileDirectoryType_CreateDirectory,
-                BrowseNames.CreateDirectory, BrowseNames.CreateDirectory, false);
+                (QualifiedName)BrowseNames.CreateDirectory, (LocalizedText)BrowseNames.CreateDirectory, false);
 
             MoveOrCopy = new MoveOrCopyMethodState(this)
             {
@@ -85,7 +85,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             MoveOrCopy.Create(context, MethodIds.FileDirectoryType_MoveOrCopy,
-                BrowseNames.MoveOrCopy, BrowseNames.MoveOrCopy, false);
+                (QualifiedName)BrowseNames.MoveOrCopy, (LocalizedText)BrowseNames.MoveOrCopy, false);
         }
 
         private ServiceResult OnMoveOrCopy(ISystemContext _context, MethodState _method,
@@ -190,7 +190,7 @@ namespace FileSystem
             }
             catch (Exception ex)
             {
-                return ServiceResult.Create(ex, null,
+                return ServiceResult.Create(ex, default,
                     StatusCodes.BadUserAccessDenied);
             }
             fileHandle = 0;

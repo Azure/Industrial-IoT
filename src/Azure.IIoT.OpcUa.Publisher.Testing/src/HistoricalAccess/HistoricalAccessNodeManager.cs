@@ -55,11 +55,8 @@ namespace HistoricalAccess
         {
             AliasRoot = "HDA";
 
-            // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<HistoricalAccessServerConfiguration>();
-
-            // use suitable defaults if no configuration exists.
-            _configuration ??= new HistoricalAccessServerConfiguration
+            // use suitable defaults.
+            _configuration = new HistoricalAccessServerConfiguration
             {
                 ArchiveRoot = "Historian"
             };
@@ -112,9 +109,17 @@ namespace HistoricalAccess
         /// <param name="externalReferences"></param>
         public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
         {
-            lock (Server.DiagnosticsLock)
+            //
+            // No external lock here any more. #4188 removed IServerInternal
+            // .DiagnosticsLock: the server owns its lock and no longer hands it
+            // out, and NodeState now guards its own attributes, so these value
+            // writes are safe on their own.
+            //
+            var capabilities = Server.DiagnosticsNodeManager
+                .FindPredefinedNode<HistoryServerCapabilitiesState>(ObjectIds.HistoryServerCapabilities);
+
+            if (capabilities != null)
             {
-                var capabilities = Server.DiagnosticsNodeManager.GetDefaultHistoryCapabilities();
                 capabilities.AccessHistoryDataCapability.Value = true;
                 capabilities.InsertDataCapability.Value = true;
                 capabilities.ReplaceDataCapability.Value = true;
@@ -123,6 +128,9 @@ namespace HistoricalAccess
                 capabilities.DeleteAtTimeCapability.Value = true;
                 capabilities.InsertAnnotationCapability.Value = true;
             }
+
+            // TODO(Stage final): wire this through the new async diagnostics capability factory
+            // if the node is absent.
 
             lock (Lock)
             {
@@ -154,7 +162,7 @@ namespace HistoricalAccess
                 NodeId = new NodeId(folderName, NamespaceIndex),
                 BrowseName = new QualifiedName(folderName, NamespaceIndex)
             };
-            dataFolder.DisplayName = dataFolder.BrowseName.Name;
+            dataFolder.DisplayName = (LocalizedText)dataFolder.BrowseName.Name;
             dataFolder.WriteMask = AttributeWriteMask.None;
             dataFolder.UserWriteMask = AttributeWriteMask.None;
             dataFolder.EventNotifier = EventNotifiers.None;
@@ -332,7 +340,7 @@ namespace HistoricalAccess
         /// <param name="cache"></param>
         protected override void Read(
             ServerSystemContext context,
-            IList<ReadValueId> nodesToRead,
+            ArrayOf<ReadValueId> nodesToRead,
             IList<DataValue> values,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToValidate,
@@ -369,7 +377,8 @@ namespace HistoricalAccess
                         nodeToRead.AttributeId,
                         nodeToRead.ParsedIndexRange,
                         nodeToRead.DataEncoding,
-                        value);
+                        ref value);
+                    values[handle.Index] = value;
                 }
             }
         }
@@ -409,7 +418,7 @@ namespace HistoricalAccess
             var nodeToRead = new HistoryReadValueId
             {
                 NodeId = handle.NodeId,
-                ParsedIndexRange = NumericRange.Empty
+                ParsedIndexRange = default(NumericRange)
             };
 
             try
@@ -436,7 +445,7 @@ namespace HistoricalAccess
             catch (Exception e)
             {
                 var error = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error fetching initial values.");
-                monitoredItemObj.QueueValue(null, error, true);
+                monitoredItemObj.QueueValue(default, error, true);
                 return error;
             }
         }
@@ -547,7 +556,7 @@ namespace HistoricalAccess
 
                 if (configuration?.UseServerCapabilitiesDefaults != false)
                 {
-                    configuration = Server.AggregateManager.GetDefaultConfiguration(null);
+                    configuration = Server.AggregateManager.GetDefaultConfiguration(default);
                 }
 
                 configurationToUse.UseSlopedExtrapolation = configuration.UseSlopedExtrapolation;
@@ -611,7 +620,7 @@ namespace HistoricalAccess
             ServerSystemContext context,
             ReadRawModifiedDetails details,
             TimestampsToReturn timestampsToReturn,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -634,7 +643,8 @@ namespace HistoricalAccess
 
                     HistoryReadRequest request;
                     // load an exising request.
-                    if (nodeToRead.ContinuationPoint != null)
+                    if (!nodeToRead.ContinuationPoint.IsNull &&
+                        nodeToRead.ContinuationPoint.Length != 0)
                     {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -657,8 +667,10 @@ namespace HistoricalAccess
 
                     // process values until the max is reached.
                     var data = details.IsReadModified ? new HistoryModifiedData() : new HistoryData();
+                    var dataValues = new List<DataValue>();
+                    var modificationInfos = new List<ModificationInfo>();
 
-                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode)
+                    while (request.NumValuesPerNode == 0 || dataValues.Count < request.NumValuesPerNode)
                     {
                         if (request.Values.Count == 0)
                         {
@@ -667,7 +679,7 @@ namespace HistoricalAccess
 
                         var value = request.Values.First.Value;
                         request.Values.RemoveFirst();
-                        data.DataValues.Add(value);
+                        dataValues.Add(value);
 
                         if (data is HistoryModifiedData modifiedData)
                         {
@@ -679,8 +691,15 @@ namespace HistoricalAccess
                                 request.ModificationInfos.RemoveFirst();
                             }
 
-                            modifiedData.ModificationInfos.Add(modificationInfo);
+                            modificationInfos.Add(modificationInfo);
                         }
+                    }
+
+                    data.DataValues = dataValues;
+
+                    if (data is HistoryModifiedData modified)
+                    {
+                        modified.ModificationInfos = modificationInfos;
                     }
 
                     errors[handle.Index] = ServiceResult.Good;
@@ -691,12 +710,12 @@ namespace HistoricalAccess
                         // only set if both end time and start time are specified.
                         if (details.StartTime != DateTime.MinValue && details.EndTime != DateTime.MinValue)
                         {
-                            result.ContinuationPoint = SaveContinuationPoint(context, request);
+                            result.ContinuationPoint = (ByteString)SaveContinuationPoint(context, request);
                         }
                     }
 
                     // check if no data returned.
-                    else
+                    else if (dataValues.Count == 0)
                     {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
@@ -726,7 +745,7 @@ namespace HistoricalAccess
             ServerSystemContext context,
             ReadProcessedDetails details,
             TimestampsToReturn timestampsToReturn,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -749,7 +768,8 @@ namespace HistoricalAccess
 
                     HistoryReadRequest request;
                     // load an exising request.
-                    if (nodeToRead.ContinuationPoint != null)
+                    if (!nodeToRead.ContinuationPoint.IsNull &&
+                        nodeToRead.ContinuationPoint.Length != 0)
                     {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -780,8 +800,9 @@ namespace HistoricalAccess
 
                     // process values until the max is reached.
                     var data = new HistoryData();
+                    var dataValues = new List<DataValue>();
 
-                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode)
+                    while (request.NumValuesPerNode == 0 || dataValues.Count < request.NumValuesPerNode)
                     {
                         if (request.Values.Count == 0)
                         {
@@ -790,19 +811,21 @@ namespace HistoricalAccess
 
                         var value = request.Values.First.Value;
                         request.Values.RemoveFirst();
-                        data.DataValues.Add(value);
+                        dataValues.Add(value);
                     }
+
+                    data.DataValues = dataValues;
 
                     errors[handle.Index] = ServiceResult.Good;
 
                     // check if a continuation point is requred.
                     if (request.Values.Count > 0)
                     {
-                        result.ContinuationPoint = SaveContinuationPoint(context, request);
+                        result.ContinuationPoint = (ByteString)SaveContinuationPoint(context, request);
                     }
 
                     // check if no data returned.
-                    else
+                    else if (dataValues.Count == 0)
                     {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
@@ -832,7 +855,7 @@ namespace HistoricalAccess
             ServerSystemContext context,
             ReadAtTimeDetails details,
             TimestampsToReturn timestampsToReturn,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -855,7 +878,8 @@ namespace HistoricalAccess
 
                     HistoryReadRequest request;
                     // load an exising request.
-                    if (nodeToRead.ContinuationPoint != null)
+                    if (!nodeToRead.ContinuationPoint.IsNull &&
+                        nodeToRead.ContinuationPoint.Length != 0)
                     {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -878,8 +902,9 @@ namespace HistoricalAccess
 
                     // process values until the max is reached.
                     var data = new HistoryData();
+                    var dataValues = new List<DataValue>();
 
-                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode)
+                    while (request.NumValuesPerNode == 0 || dataValues.Count < request.NumValuesPerNode)
                     {
                         if (request.Values.Count == 0)
                         {
@@ -888,19 +913,21 @@ namespace HistoricalAccess
 
                         var value = request.Values.First.Value;
                         request.Values.RemoveFirst();
-                        data.DataValues.Add(value);
+                        dataValues.Add(value);
                     }
+
+                    data.DataValues = dataValues;
 
                     errors[handle.Index] = ServiceResult.Good;
 
                     // check if a continuation point is requred.
                     if (request.Values.Count > 0)
                     {
-                        result.ContinuationPoint = SaveContinuationPoint(context, request);
+                        result.ContinuationPoint = (ByteString)SaveContinuationPoint(context, request);
                     }
 
                     // check if no data returned.
-                    else
+                    else if (dataValues.Count == 0)
                     {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
@@ -926,7 +953,7 @@ namespace HistoricalAccess
         /// <param name="cache"></param>
         protected override void HistoryUpdateData(
             ServerSystemContext context,
-            IList<UpdateDataDetails> nodesToUpdate,
+            ArrayOf<UpdateDataDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -964,11 +991,14 @@ namespace HistoricalAccess
                     item.ReloadFromSource(context);
 
                     // process each item.
+                    var operationResults = new List<StatusCode>();
+
                     for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++)
                     {
                         StatusCode error = item.UpdateHistory(context, nodeToUpdate.UpdateValues[jj], nodeToUpdate.PerformInsertReplace);
-                        result.OperationResults.Add(error);
+                        operationResults.Add(error);
                     }
+                    result.OperationResults = operationResults;
 
                     errors[handle.Index] = ServiceResult.Good;
                 }
@@ -990,7 +1020,7 @@ namespace HistoricalAccess
         /// <param name="cache"></param>
         protected override void HistoryUpdateStructureData(
             ServerSystemContext context,
-            IList<UpdateStructureDataDetails> nodesToUpdate,
+            ArrayOf<UpdateStructureDataDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -1027,11 +1057,13 @@ namespace HistoricalAccess
                     }
 
                     // process each item.
+                    var operationResults = new List<StatusCode>();
+
                     for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++)
                     {
-                        if (ExtensionObject.ToEncodeable(nodeToUpdate.UpdateValues[jj].Value as ExtensionObject) is not Annotation annotation)
+                        if (!nodeToUpdate.UpdateValues[jj].WrappedValue.TryGetStructure(out Annotation annotation))
                         {
-                            result.OperationResults.Add(StatusCodes.BadTypeMismatch);
+                            operationResults.Add(StatusCodes.BadTypeMismatch);
                             continue;
                         }
 
@@ -1041,8 +1073,10 @@ namespace HistoricalAccess
                             nodeToUpdate.UpdateValues[jj],
                             nodeToUpdate.PerformInsertReplace);
 
-                        result.OperationResults.Add(error);
+                        operationResults.Add(error);
                     }
+
+                    result.OperationResults = operationResults;
 
                     errors[handle.Index] = ServiceResult.Good;
                 }
@@ -1064,7 +1098,7 @@ namespace HistoricalAccess
         /// <param name="cache"></param>
         protected override void HistoryDeleteRawModified(
             ServerSystemContext context,
-            IList<DeleteRawModifiedDetails> nodesToUpdate,
+            ArrayOf<DeleteRawModifiedDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -1095,7 +1129,7 @@ namespace HistoricalAccess
                     item.ReloadFromSource(context);
 
                     // delete the history.
-                    item.DeleteHistory(context, nodeToUpdate.StartTime, nodeToUpdate.EndTime, nodeToUpdate.IsDeleteModified);
+                    item.DeleteHistory(context, (System.DateTime)nodeToUpdate.StartTime, (System.DateTime)nodeToUpdate.EndTime, nodeToUpdate.IsDeleteModified);
                     errors[handle.Index] = ServiceResult.Good;
                 }
                 catch (Exception e)
@@ -1116,7 +1150,7 @@ namespace HistoricalAccess
         /// <param name="cache"></param>
         protected override void HistoryDeleteAtTime(
             ServerSystemContext context,
-            IList<DeleteAtTimeDetails> nodesToUpdate,
+            ArrayOf<DeleteAtTimeDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -1148,11 +1182,15 @@ namespace HistoricalAccess
                     item.ReloadFromSource(context);
 
                     // process each item.
+                    var operationResults = new List<StatusCode>();
+
                     for (var jj = 0; jj < nodeToUpdate.ReqTimes.Count; jj++)
                     {
-                        StatusCode error = item.DeleteHistory(context, nodeToUpdate.ReqTimes[jj]);
-                        result.OperationResults.Add(error);
+                        StatusCode error = item.DeleteHistory(context, (System.DateTime)nodeToUpdate.ReqTimes[jj]);
+                        operationResults.Add(error);
                     }
+
+                    result.OperationResults = operationResults;
 
                     errors[handle.Index] = ServiceResult.Good;
                 }
@@ -1197,7 +1235,7 @@ namespace HistoricalAccess
             HistoryReadValueId nodeToRead)
         {
             var sizeLimited = details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue;
-            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
+            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != default(NumericRange) || !(nodeToRead.DataEncoding).IsNull;
             var returnBounds = !details.IsReadModified && details.ReturnBounds;
             var timeFlowsBackward = (details.StartTime == DateTime.MinValue) || (details.EndTime != DateTime.MinValue && details.EndTime < details.StartTime);
 
@@ -1218,7 +1256,7 @@ namespace HistoricalAccess
             }
 
             // read history.
-            var view = item.ReadHistory(details.StartTime, details.EndTime, details.IsReadModified, handle.Node.BrowseName);
+            var view = item.ReadHistory((System.DateTime)details.StartTime, (System.DateTime)details.EndTime, details.IsReadModified, handle.Node.BrowseName);
 
             var startBound = -1;
             var endBound = -1;
@@ -1323,7 +1361,6 @@ namespace HistoricalAccess
                     }
                 }
             }
-
             // add late bound.
             while (returnBounds && details.EndTime != DateTime.MinValue)
             {
@@ -1384,7 +1421,7 @@ namespace HistoricalAccess
             HistoryReadValueId nodeToRead,
             NodeId aggregateId)
         {
-            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
+            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != default(NumericRange) || !(nodeToRead.DataEncoding).IsNull;
             var timeFlowsBackward = details.EndTime < details.StartTime;
 
             if (handle.Node is not ArchiveItemState item)
@@ -1397,7 +1434,7 @@ namespace HistoricalAccess
             var values = new LinkedList<DataValue>();
 
             // read history.
-            var view = item.ReadHistory(details.StartTime, details.EndTime, false);
+            var view = item.ReadHistory((System.DateTime)details.StartTime, (System.DateTime)details.EndTime, false);
 
             var ii = timeFlowsBackward ? view.Count - 1 : 0;
 
@@ -1493,12 +1530,12 @@ namespace HistoricalAccess
             {
                 if (startTime > details.ReqTimes[ii])
                 {
-                    startTime = details.ReqTimes[ii];
+                    startTime = (DateTime)details.ReqTimes[ii];
                 }
 
                 if (endTime < details.ReqTimes[ii])
                 {
-                    endTime = details.ReqTimes[ii];
+                    endTime = (DateTime)details.ReqTimes[ii];
                 }
             }
 
@@ -1509,7 +1546,7 @@ namespace HistoricalAccess
             for (var ii = 0; ii < details.ReqTimes.Count; ii++)
             {
                 // find the value at the time.
-                var index = item.FindValueAtOrBefore(view, details.ReqTimes[ii], !details.UseSimpleBounds, out var dataBeforeIgnored);
+                var index = item.FindValueAtOrBefore(view, (System.DateTime)details.ReqTimes[ii], !details.UseSimpleBounds, out var dataBeforeIgnored);
 
                 if (index < 0)
                 {
@@ -1537,7 +1574,7 @@ namespace HistoricalAccess
 
                     if (StatusCode.IsNotBad(value.StatusCode) && dataBeforeIgnored)
                     {
-                        value.StatusCode = value.StatusCode.SetCodeBits(StatusCodes.UncertainDataSubNormal);
+                        value = value.WithStatus(value.StatusCode.WithCodeBits(StatusCodes.UncertainDataSubNormal));
                     }
 
                     values.AddLast(value);
@@ -1551,7 +1588,7 @@ namespace HistoricalAccess
 
                     if (StatusCode.IsNotBad(value.StatusCode) && dataBeforeIgnored)
                     {
-                        value.StatusCode = value.StatusCode.SetCodeBits(StatusCodes.UncertainDataSubNormal);
+                        value = value.WithStatus(value.StatusCode.WithCodeBits(StatusCodes.UncertainDataSubNormal));
                     }
                 }
                 else
@@ -1560,7 +1597,7 @@ namespace HistoricalAccess
 
                     if (StatusCode.IsNotBad(value.StatusCode) && (dataBeforeIgnored || dataAfterIgnored))
                     {
-                        value.StatusCode = value.StatusCode.SetCodeBits(StatusCodes.UncertainDataSubNormal);
+                        value = value.WithStatus(value.StatusCode.WithCodeBits(StatusCodes.UncertainDataSubNormal));
                     }
                 }
 
@@ -1594,30 +1631,32 @@ namespace HistoricalAccess
             bool returnPartial,
             LinkedList<DataValue> values)
         {
-            var proccessedValue = calculator.GetProcessedValue(returnPartial);
-
-            while (proccessedValue != null)
+            while (calculator.TryGetProcessedValue(returnPartial, out var proccessedValue))
             {
                 // apply any index range or encoding.
                 if (applyIndexRangeOrEncoding)
                 {
-                    var rawValue = proccessedValue.Value;
-                    var result = BaseVariableState.ApplyIndexRangeAndDataEncoding(context, indexRange, dataEncoding, ref rawValue);
+                    var rawValue = proccessedValue.WrappedValue;
+                    var result = BaseVariableState.ApplyIndexRangeAndDataEncoding(
+                        context,
+                        indexRange,
+                        dataEncoding,
+                        ref rawValue);
 
-                    if (ServiceResult.IsBad(result))
+                    if (ServiceResult.IsGood(result))
                     {
-                        proccessedValue.Value = rawValue;
+                        proccessedValue = proccessedValue.WithWrappedValue(rawValue);
                     }
                     else
                     {
-                        proccessedValue.Value = null;
-                        proccessedValue.StatusCode = result.StatusCode;
+                        proccessedValue = proccessedValue
+                            .WithWrappedValue(Variant.Null)
+                            .WithStatus(result.StatusCode);
                     }
                 }
 
                 // queue the result.
                 values.AddLast(proccessedValue);
-                proccessedValue = calculator.GetProcessedValue(returnPartial);
             }
         }
 
@@ -1639,17 +1678,22 @@ namespace HistoricalAccess
             // apply any index range or encoding.
             if (applyIndexRangeOrEncoding)
             {
-                var rawValue = value.Value;
-                var result = BaseVariableState.ApplyIndexRangeAndDataEncoding(context, nodeToRead.ParsedIndexRange, nodeToRead.DataEncoding, ref rawValue);
+                var rawValue = value.WrappedValue;
+                var result = BaseVariableState.ApplyIndexRangeAndDataEncoding(
+                    context,
+                    nodeToRead.ParsedIndexRange,
+                    nodeToRead.DataEncoding,
+                    ref rawValue);
 
-                if (ServiceResult.IsBad(result))
+                if (ServiceResult.IsGood(result))
                 {
-                    value.Value = rawValue;
+                    value = value.WithWrappedValue(rawValue);
                 }
                 else
                 {
-                    value.Value = null;
-                    value.StatusCode = result.StatusCode;
+                    value = value
+                        .WithWrappedValue(Variant.Null)
+                        .WithStatus(result.StatusCode);
                 }
             }
 
@@ -1659,13 +1703,25 @@ namespace HistoricalAccess
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private sealed class HistoryReadRequest
+        private sealed class HistoryReadRequest : IHistoryContinuationPoint
         {
+            public Guid Id { get; set; }
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<DataValue> Values { get; set; }
             public LinkedList<ModificationInfo> ModificationInfos { get; set; }
             public uint NumValuesPerNode { get; set; }
             public AggregateFilter Filter { get; set; }
+
+            /// <summary>
+            /// The session disposes every continuation point it drops. Nothing
+            /// here is unmanaged, so this only releases the buffered history so
+            /// an abandoned point does not pin it until the session is cleared.
+            /// </summary>
+            public void Dispose()
+            {
+                Values?.Clear();
+                ModificationInfos?.Clear();
+            }
         }
 
         /// <summary>
@@ -1678,7 +1734,7 @@ namespace HistoricalAccess
         /// <param name="cache"></param>
         protected override void HistoryReleaseContinuationPoints(
             ServerSystemContext context,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
@@ -1709,7 +1765,7 @@ namespace HistoricalAccess
         /// <param name="continuationPoint"></param>
         private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
-            byte[] continuationPoint)
+            ByteString continuationPoint)
         {
             var session = context.OperationContext.Session;
 
@@ -1718,7 +1774,7 @@ namespace HistoricalAccess
                 return null;
             }
 
-            if (session.RestoreHistoryContinuationPoint(continuationPoint)
+            if (session.ContinuationPoints.RestoreHistory(continuationPoint)
                 is not HistoryReadRequest request)
             {
                 return null;
@@ -1744,7 +1800,8 @@ namespace HistoricalAccess
             }
 
             var id = Guid.NewGuid();
-            session.SaveHistoryContinuationPoint(id, request);
+            request.Id = id;
+            session.ContinuationPoints.SaveHistory(request);
             request.ContinuationPoint = id.ToByteArray();
             return request.ContinuationPoint;
         }

@@ -5,7 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
     using Opc.Ua.Test;
@@ -24,16 +25,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public static IEnumerable<INodeManagerFactory> Reference(
             ILoggerFactory? factory, TimeService timeservice)
         {
-            yield return new TestData.TestDataServer();
-            yield return new MemoryBuffer.MemoryBufferServer();
-            yield return new Boiler.BoilerServer();
+            _ = timeservice;
+            yield return QuickstartsNodeManagerFactories.CreateTestData();
+            yield return QuickstartsNodeManagerFactories.CreateMemoryBuffer();
+            yield return QuickstartsNodeManagerFactories.CreateBoiler();
             yield return new Vehicles.VehiclesServer();
-            yield return new Reference.ReferenceServer();
+            yield return QuickstartsNodeManagerFactories.CreateReference();
             yield return new HistoricalEvents.HistoricalEventsServer(timeservice);
             yield return new HistoricalAccess.HistoricalAccessServer(timeservice);
             yield return new Views.ViewsServer();
             yield return new DataAccess.DataAccessServer();
-            yield return new Alarms.AlarmConditionServer(timeservice);
+            yield return QuickstartsNodeManagerFactories.CreateAlarms();
             yield return new SimpleEvents.SimpleEventsServer();
             yield return new Plc.PlcServer(timeservice,
                 (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>(), 0);

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,14 +9,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using BitFaster.Caching.Lru;
-    using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Security.Certificates;
+    using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -49,16 +50,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create kv manager
         /// </summary>
         /// <param name="loggerFactory"></param>
-        /// <param name="serializer"></param>
         /// <param name="configuration"></param>
         /// <param name="clientOptions"></param>
         /// <param name="subscriptionOptions"></param>
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
-        public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
+        /// <param name="runtimeStrategy"></param>
+        /// <param name="endpointSelector"></param>
+        public OpcUaClientManager(ILoggerFactory loggerFactory,
             IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
-            TimeProvider? timeProvider = null, IMetricsContext? metrics = null)
+            TimeProvider? timeProvider = null, IMetricsContext? metrics = null,
+            ManagedSessionRuntimeStrategy? runtimeStrategy = null,
+            IOpcUaEndpointSelector? endpointSelector = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
@@ -68,20 +72,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(clientOptions));
             _subscriptionOptions = subscriptionOptions ??
                 throw new ArgumentNullException(nameof(subscriptionOptions));
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
+            _endpointSelector = endpointSelector ?? OpcUaEndpointSelector.Instance;
+
+            var messageContextTelemetry = _configuration.Value.CreateMessageContext().Telemetry;
+            _runtimeStrategy = runtimeStrategy ?? CreateManagedRuntimeStrategy(
+                messageContextTelemetry ?? new LoggerTelemetryContext(_loggerFactory));
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
 
-            _reverseConnectManager = new ReverseConnectManager();
+            _reverseConnectManager = new ReverseConnectManager(messageContextTelemetry);
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
-            _configuration.Validate += OnValidate;
+            _configuration.AcceptError = OnAcceptError;
             InitializeMetrics();
+        }
+
+        /// <summary>
+        /// Create the managed runtime used when none is injected by composition.
+        /// </summary>
+        /// <param name="telemetry"></param>
+        private ManagedSessionRuntimeStrategy CreateManagedRuntimeStrategy(
+            ITelemetryContext telemetry)
+        {
+            return new ManagedSessionRuntimeStrategy(
+                new ManagedSessionConnector(_configuration.Value, telemetry, _timeProvider),
+                telemetry, requestFactory: null,
+                ManagedSessionOptionsAdapter.CreatePoolOptions(_clientOptions.Value),
+                _timeProvider);
         }
 
         /// <inheritdoc/>
@@ -106,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var endpointUrl = new Uri(endpoint.Endpoint.Url);
             try
             {
-                var endpointDescription = await OpcUaClient.SelectEndpointAsync(
+                var endpointDescription = await _endpointSelector.SelectAsync(
                     _configuration.Value, endpointUrl, null,
                     endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
                     endpoint.Endpoint.SecurityPolicy, _logger, endpoint.Endpoint,
@@ -123,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     updateBeforeConnect: true, // Update endpoint through discovery
                     checkDomain: false, // Domain must match on connect
                     "Test" + Guid.NewGuid().ToString("N"),
-                    10000, userIdentity, null, ct).ConfigureAwait(false);
+                    10000, userIdentity, default, ct).ConfigureAwait(false);
                 try
                 {
                     Debug.Assert(session != null);
@@ -163,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.GetDiagnosticsFailed(ex, kv.Value);
+                    _logger.GetDiagnosticsFailed(ex, kv.Key);
                 }
                 yield return new ConnectionDiagnosticsModel
                 {
@@ -218,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
             };
             var queue = new Queue<Tuple<Uri, List<string>>>();
-            var localeIds = locales != null ? new StringCollection(locales) : null;
+            var localeIds = locales != null ? new List<string>(locales) : null;
             queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
             ct.ThrowIfCancellationRequested();
             while (queue.Count > 0)
@@ -231,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 20000, visitedUris,
-                            queue, results, findServersOnNetwork),
+                            queue, results, findServersOnNetwork, ct),
                         _ => !ct.IsCancellationRequested, Retry.NoBackoff,
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
@@ -262,17 +283,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
             // Get endpoint descriptions from endpoint url
             var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
-                client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
+                client.Endpoint.EndpointUrl, default, default, ct).ConfigureAwait(false);
 
             // Match to provided endpoint info
-            var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
+            var ep = endpoints.Endpoints.ToArray()?.FirstOrDefault(e => e.IsSameAs(endpoint));
             if (ep == null)
             {
                 _logger.NoEndpoints(discoveryUrl);
                 throw new ResourceNotFoundException("Endpoint not found");
             }
             _logger.FoundEndpoint(discoveryUrl);
-            return ep.ServerCertificate.ToCertificateChain();
+            return ep.ServerCertificate.ToArray().ToCertificateChain();
         }
 
         /// <inheritdoc/>
@@ -348,18 +369,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _reverseConnectManager.Dispose();
 
-                _configuration.Validate -= OnValidate;
+                _configuration.AcceptError = null;
             }
         }
 
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            lock (_clientsGate)
             {
-                return;
+                if (_disposed)
+                {
+                    return;
+                }
+                _disposed = true;
             }
-            _disposed = true;
 
             _logger.StoppingAllClients(_clients.Count);
             foreach (var client in _clients)
@@ -375,6 +399,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             _clients.Clear();
+            await _runtimeStrategy.DisposeAsync().ConfigureAwait(false);
             _logger.StoppedAllClients();
         }
 
@@ -389,10 +414,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="queue"></param>
         /// <param name="result"></param>
         /// <param name="findServersOnNetwork"></param>
-        private async Task DiscoverAsync(Uri discoveryUrl, StringCollection? localeIds,
+        /// <param name="ct"></param>
+        private async Task DiscoverAsync(Uri discoveryUrl, List<string>? localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result,
-            bool findServersOnNetwork)
+            bool findServersOnNetwork, CancellationToken ct)
         {
             var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             endpointConfiguration.OperationTimeout = timeout;
@@ -401,15 +427,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Get endpoints from current discovery server
             //
             var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
-                client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
-            if (!(endpoints?.Endpoints?.Any() ?? false))
+                client.Endpoint.EndpointUrl, localeIds, default, ct).ConfigureAwait(false);
+            if (endpoints.Endpoints.Count == 0)
             {
                 _logger.NoEndpoints(discoveryUrl);
                 return;
             }
             _logger.FoundEndpoints(discoveryUrl);
 
-            foreach (var ep in endpoints.Endpoints.Where(ep =>
+            foreach (var ep in (endpoints.Endpoints.ToArray() ?? []).Where(ep =>
                 ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer))
             {
                 result.Add(new DiscoveredEndpointModel
@@ -435,7 +461,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var response = await client.FindServersOnNetworkAsync(new RequestHeader(),
-                    0, 1000, []).ConfigureAwait(false);
+                    0, 1000, [], ct).ConfigureAwait(false);
                 foreach (var server in response?.Servers ?? [])
                 {
                     var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
@@ -458,10 +484,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // into the discovery queue
             //
             var found = await client.FindServersAsync(new RequestHeader(),
-                client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+                client.Endpoint.EndpointUrl, localeIds, default, ct).ConfigureAwait(false);
             if (found?.Servers != null)
             {
-                foreach (var server in found.Servers.SelectMany(s => s.DiscoveryUrls))
+                foreach (var server in (found.Servers.ToArray() ?? [])
+                    .SelectMany(s => s.DiscoveryUrls.ToArray() ?? []))
                 {
                     var url = CreateDiscoveryUri(server, discoveryUrl.Port);
                     if (!visitedUris.Contains(url))
@@ -521,39 +548,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Load kv configuration
+        /// Decide whether to accept a peer certificate the stack could not
+        /// validate.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
+        /// <param name="certificate"></param>
+        /// <param name="error"></param>
+        private bool OnAcceptError(Certificate certificate, ServiceResult error)
         {
-            if (e.Accept || e.AcceptAll)
-            {
-                return;
-            }
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            if (error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
                 if (_configuration.Value.SecurityConfiguration.AutoAcceptUntrustedCertificates)
                 {
-                    _logger.AcceptingUntrustedCert(e.Certificate.Thumbprint, e.Certificate.Subject);
-                    e.AcceptAll = true;
-                    e.Accept = true;
+                    _logger.AcceptingUntrustedCert(certificate.Thumbprint, certificate.Subject);
+                    return true;
                 }
 
                 // Validate thumbprint
-                else if (e.Certificate.RawData != null &&
-                    !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
+                if (certificate.RawData != null &&
+                    !string.IsNullOrWhiteSpace(certificate.Thumbprint) &&
                     _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
-                    e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
+                    certificate.Thumbprint == id.Connection.Endpoint.Certificate))
                 {
-                    e.Accept = true;
-
-                    _logger.AcceptingUntrustedCertByThumbprint(e.Certificate.Thumbprint, e.Certificate.Subject);
+                    _logger.AcceptingUntrustedCertByThumbprint(certificate.Thumbprint, certificate.Subject);
 
                     // add the certificate to trusted store
                     _configuration.Value.SecurityConfiguration
-                        .AddTrustedPeer(e.Certificate.RawData);
+                        .AddTrustedPeer(certificate.RawData);
                     try
                     {
                         var store = _configuration.Value.
@@ -561,8 +581,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         try
                         {
-                            store.DeleteAsync(e.Certificate.Thumbprint);
-                            store.AddAsync(e.Certificate);
+                            store.DeleteAsync(certificate.Thumbprint);
+                            store.AddAsync(certificate);
                         }
                         finally
                         {
@@ -571,14 +591,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.AddPeerCertToTrustedStoreFailed(ex, e.Certificate.Thumbprint, e.Certificate.Subject);
+                        _logger.AddPeerCertToTrustedStoreFailed(ex, certificate.Thumbprint, certificate.Subject);
                     }
+                    return true;
                 }
             }
-            if (!e.Accept)
-            {
-                _logger.RejectingPeerCert(e.Certificate.Thumbprint, e.Certificate.Subject, e.Error.StatusCode);
-            }
+            _logger.RejectingPeerCert(certificate.Thumbprint, certificate.Subject, error.StatusCode);
+            return false;
         }
 
         /// <summary>
@@ -586,7 +605,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        private OpcUaClient GetOrAddClient(ConnectionModel connection)
+        private ManagedOpcUaClient GetOrAddClient(ConnectionModel connection)
         {
             // Lazy start connect manager
             var reverseConnect = connection.IsReverseConnect();
@@ -595,21 +614,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw _reverseConnectStartException.Value;
             }
 
-            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing client
-            var client = _clients.GetOrAdd(id, id =>
+            while (true)
             {
-                var client = new OpcUaClient(_configuration.Value, id, _serializer,
-                    _loggerFactory, _timeProvider, _metrics, () => OnClientClosedAsync(id),
-                    OnConnectionStateChange, reverseConnect ? _reverseConnectManager : null,
-                    OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
-                _logger.CreatedNewClient(client);
-                return client;
-            });
+                ManagedOpcUaClient client;
+                lock (_clientsGate)
+                {
+                    ObjectDisposedException.ThrowIf(_disposed, this);
+                    client = _clients.GetOrAdd(id, static (key, manager) =>
+                    {
+                        var runtime = manager._runtimeStrategy.Create(
+                            new OpcUaClientRuntimeContext
+                            {
+                                Configuration = manager._configuration.Value,
+                                Connection = key,
+                                LoggerFactory = manager._loggerFactory,
+                                TimeProvider = manager._timeProvider,
+                                Metrics = manager._metrics,
+                                OnClose = () => manager.OnClientClosedAsync(key),
+                                Notifier = manager.OnConnectionStateChange,
+                                ReverseConnectManager = manager._reverseConnectManager,
+                                DiagnosticsCallback = manager.OnClientConnectionDiagnosticChange,
+                                ClientOptions = manager._clientOptions,
+                                SubscriptionOptions = manager._subscriptionOptions,
+                                EndpointSelector = manager._endpointSelector
+                            });
+                        manager._logger.CreatedNewClient(key);
+                        return runtime;
+                    }, this);
+                    if (client.TryAddRef())
+                    {
+                        return client;
+                    }
 
-            client.AddRef();
-            return client;
+                    ((ICollection<KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>>)_clients)
+                        .Remove(new KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>(id,
+                            client));
+                }
+            }
         }
 
         /// <summary>
@@ -619,7 +661,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async Task OnClientClosedAsync(ConnectionIdentifier id)
         {
-            if (_clients.TryRemove(id, out var client))
+            ManagedOpcUaClient? client;
+            lock (_clientsGate)
+            {
+                if (!_clients.TryGetValue(id, out client) ||
+                    !((ICollection<KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>>)_clients)
+                        .Remove(new KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>(id,
+                            client)))
+                {
+                    return;
+                }
+            }
+            if (client != null)
             {
                 try
                 {
@@ -627,7 +680,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // must not await the management loop task (deadlock).
                     await client.CloseAsync(false,
                         fromManagementLoop: true).ConfigureAwait(false);
-                    _logger.ClosedClient(client);
+                    _logger.ClosedClient(id);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -696,13 +749,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _clientOptions;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
-        private readonly IJsonSerializer _serializer;
+        private readonly IOpcUaEndpointSelector _endpointSelector;
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<
             AsyncProducerConsumerQueue<ChannelDiagnosticModel>, bool> _listeners = new();
-        private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
-        private readonly IMetricsContext _metrics;
+        private readonly ConcurrentDictionary<ConnectionIdentifier, ManagedOpcUaClient> _clients = new();
+        private readonly Lock _clientsGate = new();
+        private readonly ManagedSessionRuntimeStrategy _runtimeStrategy;        private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }
 
@@ -716,7 +770,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Failed to get diagnostics for client {Client}.")]
         public static partial void GetDiagnosticsFailed(this ILogger logger, Exception ex,
-            OpcUaClient client);
+            ConnectionIdentifier client);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Try finding endpoints at {DiscoveryUrl}...")]
@@ -790,10 +844,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
             Message = "{Client}: Created new client.")]
-        public static partial void CreatedNewClient(this ILogger logger, OpcUaClient client);
+        public static partial void CreatedNewClient(this ILogger logger, ConnectionIdentifier client);
 
         [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Information,
             Message = "{Client}: Closed client.")]
-        public static partial void ClosedClient(this ILogger logger, OpcUaClient client);
+        public static partial void ClosedClient(this ILogger logger, ConnectionIdentifier client);
     }
 }

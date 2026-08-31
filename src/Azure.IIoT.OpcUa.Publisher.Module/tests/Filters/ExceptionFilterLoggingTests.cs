@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Filters
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -23,7 +23,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Filters
     using Moq;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Net;
+    using System.Net.Sockets;
+    using System.Security;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -53,6 +56,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Filters
             filter.Filter(exception, out var status);
 
             Assert.Equal(expected, status);
+        }
+
+        [Theory]
+        [MemberData(nameof(ControllerExceptionMappings))]
+        public void ControllerFilterPreservesStatusMapping(
+            Func<Exception> factory, int expected)
+        {
+            var (logger, _) = CreateLogger();
+            var exception = factory();
+            var context = CreateExceptionContext(exception, logger);
+
+            new ControllerExceptionFilterAttribute().OnException(context);
+
+            var result = Assert.IsType<ObjectResult>(context.Result);
+            Assert.Equal(expected, result.StatusCode);
+            Assert.Equal(exception.Message, Assert.IsType<string>(result.Value));
+        }
+
+        [Fact]
+        public void ControllerFilterUsesProblemDetailsForMethodCallStatusException()
+        {
+            var (logger, _) = CreateLogger();
+            var context = CreateExceptionContext(
+                new MethodCallStatusException(418, "short", "Teapot"), logger);
+
+            new ControllerExceptionFilterAttribute().OnException(context);
+
+            var result = Assert.IsType<ObjectResult>(context.Result);
+            Assert.Null(result.StatusCode);
+            var problem = Assert.IsType<ProblemDetails>(result.Value);
+            Assert.Equal(418, problem.Status);
+            Assert.Equal("Teapot", problem.Title);
+            Assert.Equal("short", problem.Detail);
+        }
+
+        [Theory]
+        [MemberData(nameof(RouterAdditionalExceptionMappings))]
+        public void RouterFilterPreservesAdditionalStatusMapping(
+            Func<Exception> factory, int expected)
+        {
+            var filter = new RouterExceptionFilterAttribute();
+
+            var result = filter.Filter(factory(), out var status);
+
+            Assert.Equal(expected, status);
+            if (expected == (int)HttpStatusCode.Gone)
+            {
+                Assert.IsType<OperationCanceledException>(result);
+                Assert.Equal("Request was canceled by the client or after timeout.",
+                    result.Message);
+            }
         }
 
         [Fact]
@@ -139,6 +193,178 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Filters
             {
                 Exception = exception
             };
+        }
+
+        public static IEnumerable<object[]> ControllerExceptionMappings
+        {
+            get
+            {
+                yield return
+                [
+                    new Func<Exception>(() => new ResourceNotFoundException("boom")),
+                    (int)HttpStatusCode.NotFound
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ResourceInvalidStateException("boom")),
+                    (int)HttpStatusCode.Forbidden
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ResourceConflictException("boom")),
+                    (int)HttpStatusCode.Conflict
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new UnauthorizedAccessException("boom")),
+                    (int)HttpStatusCode.Unauthorized
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new SecurityException("boom")),
+                    (int)HttpStatusCode.Unauthorized
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new SerializerException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new MethodCallException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new BadRequestException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ArgumentException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new NotSupportedException("boom")),
+                    (int)HttpStatusCode.MethodNotAllowed
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new NotImplementedException("boom")),
+                    (int)HttpStatusCode.NotImplemented
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new TimeoutException("boom")),
+                    (int)HttpStatusCode.RequestTimeout
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new SocketException(
+                        (int)SocketError.ConnectionRefused)),
+                    (int)HttpStatusCode.BadGateway
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new IOException("boom")),
+                    (int)HttpStatusCode.BadGateway
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ServerBusyException("boom")),
+                    (int)HttpStatusCode.TooManyRequests
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ResourceOutOfDateException("boom")),
+                    (int)HttpStatusCode.PreconditionFailed
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ExternalDependencyException("boom")),
+                    (int)HttpStatusCode.ServiceUnavailable
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new InvalidOperationException("boom")),
+                    (int)HttpStatusCode.InternalServerError
+                ];
+            }
+        }
+
+        public static IEnumerable<object[]> RouterAdditionalExceptionMappings
+        {
+            get
+            {
+                yield return
+                [
+                    new Func<Exception>(() => new SecurityException("boom")),
+                    (int)HttpStatusCode.Unauthorized
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new MethodCallStatusException(
+                        418, "boom", "Teapot")),
+                    418
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new SerializerException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new MethodCallException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ArgumentException("boom")),
+                    (int)HttpStatusCode.BadRequest
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new NotSupportedException("boom")),
+                    (int)HttpStatusCode.MethodNotAllowed
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new SocketException(
+                        (int)SocketError.ConnectionRefused)),
+                    (int)HttpStatusCode.BadGateway
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new IOException("boom")),
+                    (int)HttpStatusCode.BadGateway
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new MessageSizeLimitException("boom")),
+                    (int)HttpStatusCode.RequestEntityTooLarge
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new TaskCanceledException("boom")),
+                    (int)HttpStatusCode.Gone
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new OperationCanceledException("boom")),
+                    (int)HttpStatusCode.Gone
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ExternalDependencyException("boom")),
+                    (int)HttpStatusCode.ServiceUnavailable
+                ];
+                yield return
+                [
+                    new Func<Exception>(() => new ResourceOutOfDateException("boom")),
+                    (int)HttpStatusCode.PreconditionFailed
+                ];
+            }
         }
 
         internal sealed record LogEntry(LogLevel Level, string Message, Exception? Exception);

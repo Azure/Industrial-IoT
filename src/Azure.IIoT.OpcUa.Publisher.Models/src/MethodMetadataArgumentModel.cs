@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Method argument metadata model
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "defaultValue", Order = 3,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public VariantValue? DefaultValue { get; set; }
+        public JsonNode? DefaultValue { get; set; }
 
         /// <summary>
         /// Optional, scalar if not set

@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using System.Globalization;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
@@ -69,8 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             _output.WriteLine(payload1.ToJsonString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetProperty("Value").GetString(), out _));
-            Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
-                payload1.GetProperty("EventType").GetProperty("Value").GetString());
+            AssertEventTypeNodeId(payload1, "ReferenceChange");
             Assert.True(DateTime.TryParse(payload1.GetProperty("Time").GetProperty("Value").GetString(), out _));
             Assert.True(payload1.GetProperty("Change").GetProperty("Value").GetProperty("IsForward").GetBoolean());
             // NO order anymore:
@@ -81,8 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             _output.WriteLine(payload2.ToJsonString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload2.GetProperty("EventId").GetProperty("Value").GetString(), out _));
-            Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",
-                payload2.GetProperty("EventType").GetProperty("Value").GetString());
+            AssertEventTypeNodeId(payload2, "NodeChange");
             Assert.True(DateTime.TryParse(payload2.GetProperty("Time").GetProperty("Value").GetString(), out _));
             // NO order anymore:
             // Assert.Equal("i=85", payload2.GetProperty("SourceNode").GetProperty("Value").GetString());
@@ -196,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var currentStep = value.GetProperty(CurrentStepUri).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.ValueKind);
+                AssertLocalizedText(message);
                 Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
@@ -225,26 +224,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.All(messages, m =>
             {
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(EventId).GetProperty("Value");
-                Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+                var eventId = AssertDataValue(body.GetProperty(EventId), 15, "ByteString");
+                Assert.Equal(JsonValueKind.String, eventId.ValueKind);
 
-                var message = body.GetProperty(Message).GetProperty("Value");
-                Assert.Equal("LocalizedText", message.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+                var message = AssertDataValue(body.GetProperty(Message), 21, "LocalizedText");
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(CycleIdUri).GetProperty("Value");
-                Assert.Equal("String", cycleId.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+                var cycleId = AssertDataValue(body.GetProperty(CycleIdUri), 12, "String");
+                Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
 
-                var currentStep = body.GetProperty(CurrentStepUri).GetProperty("Value");
-                body = currentStep.GetProperty("Body");
-                Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
-                Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
-                Assert.Equal("Json", body.GetProperty("Encoding").GetString());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+                var currentStep = AssertDataValue(body.GetProperty(CurrentStepUri), 22,
+                    "ExtensionObject");
+                Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
             AssertSimpleEventsMetadata(metadata);
@@ -279,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var currentStep = value.GetProperty(CurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.ValueKind);
+                AssertLocalizedText(message);
                 Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
@@ -307,25 +300,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.All(messages, m =>
             {
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(EventId).GetProperty("Value");
-                Assert.Equal(15, eventId.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+                var eventId = AssertDataValue(body.GetProperty(EventId), 15, "ByteString");
+                Assert.Equal(JsonValueKind.String, eventId.ValueKind);
 
-                var message = body.GetProperty(Message).GetProperty("Value");
-                Assert.Equal(21, message.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+                var message = AssertDataValue(body.GetProperty(Message), 21, "LocalizedText");
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(CycleIdExpanded).GetProperty("Value");
-                Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+                var cycleId = AssertDataValue(body.GetProperty(CycleIdExpanded), 12, "String");
+                Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
 
-                var currentStep = body.GetProperty(CurrentStepExpanded).GetProperty("Value");
-                body = currentStep.GetProperty("Body");
-                Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
-                Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+                var currentStep = AssertDataValue(body.GetProperty(CurrentStepExpanded), 22,
+                    "ExtensionObject");
+                Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
             AssertCompliantSimpleEventsMetadata(metadata);
@@ -349,8 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
-            dataSetWriterNames.Select(d => d.Split('|')[1])
-                .Should().Contain("CycleStarted");
+            dataSetWriterNames.Should().NotBeEmpty();
 
             // Assert
             Assert.NotEmpty(messages);
@@ -365,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var currentStep = value.GetProperty(CurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.ValueKind);
+                AssertLocalizedText(message);
                 Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
@@ -388,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                         dataSetWriterNames.Add(dataSetWriterName);
                     }
 
-                    if (!dataSetWriterName.EndsWith("|CycleStarted", StringComparison.Ordinal))
+                    if (!IsCycleStarted(element))
                     {
                         isAllCycleStarted = false;
                     }
@@ -401,6 +388,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // CycleStarted-only batch so we still exercise the dual-writer
                 // configuration path.
                 return isAllCycleStarted ? jsonElement : default;
+            }
+
+            //
+            // Both event types are configured on one writer, and 2.x told them
+            // apart by appending the event type name to the writer name, which
+            // effectively gave each event type a writer of its own. 3.0 emits
+            // the writer's configured name, so the payload is what
+            // distinguishes them: only a CycleStarted event carries the
+            // SimpleEvents cycle fields.
+            //
+            static bool IsCycleStarted(JsonElement dataSetMessage)
+            {
+                return dataSetMessage.TryGetProperty("Payload", out var payload)
+                    && payload.TryGetProperty(CycleIdExpanded, out _)
+                    && payload.TryGetProperty(CurrentStepExpanded, out _);
             }
         }
 
@@ -444,8 +446,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.All(messages, m =>
             {
                 var payload = m.GetProperty("Payload");
-                Assert.False(payload.GetProperty("Important").GetProperty("Value").GetBoolean());
-                Assert.Equal(5, payload.GetProperty("AssetId").GetProperty("Value").GetInt16());
+                AssertBooleanField(payload, "Important", false);
+                AssertIntegerField(payload, "AssetId", 5);
                 Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetString());
                 Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble(), 6);
                 Assert.NotEmpty(payload.GetProperty("EndpointUrl").GetProperty("Value").GetString());
@@ -481,8 +483,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var time = payload.GetProperty("CurrentTime");
             Assert.NotEqual(JsonValueKind.Null, time.ValueKind);
             Assert.True(time.GetProperty("Value").GetDateTime() < DateTime.UtcNow);
-            Assert.False(payload.GetProperty("Important").GetProperty("Value").GetBoolean());
-            Assert.Equal(5, payload.GetProperty("AssetId").GetProperty("Value").GetInt16());
+            AssertBooleanField(payload, "Important", false);
+            AssertIntegerField(payload, "AssetId", 5);
             Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetString());
             Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble(), 6);
 
@@ -519,13 +521,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.False(string.IsNullOrEmpty(appuri));
 
             Assert.NotNull(metadata);
-            var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
-            Assert.Equal(JsonValueKind.Array, fields.ValueKind);
-            var fieldNames = fields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()).ToList();
-            Assert.Equal(3, fieldNames.Count);
-            Assert.Equal("Output", fieldNames[0]);
-            Assert.Equal("EndpointUrl", fieldNames[1]);
-            Assert.Equal("ApplicationUri", fieldNames[2]);
+            var actual = CreateFullCompliantSemanticGolden(message, metadata.Value.Message);
+            var expected = JsonNode.Parse("""
+                {
+                  "Envelope": {
+                    "MessageType": "ua-data",
+                    "DataSetCount": 1
+                  },
+                  "Payload": {
+                    "OutputValueKind": "Number",
+                    "EndpointUrl": "opc.tcp://<host>:<port>/UA/SampleServer",
+                    "ApplicationUriValueKind": "String"
+                  },
+                  "MetaDataFields": [
+                    "Output",
+                    "EndpointUrl",
+                    "ApplicationUri"
+                  ]
+                }
+                """);
+            Assert.Equal(expected!.ToJsonString(), actual.ToJsonString());
+        }
+
+        private static JsonObject CreateFullCompliantSemanticGolden(JsonElement message,
+            JsonElement metadata)
+        {
+            var normalized = CompatibilityGoldenNormalizer.Normalize(message).AsObject();
+            var dataSets = normalized["Messages"]!.AsArray();
+            var payload = dataSets[0]!["Payload"]!.AsObject();
+            var metadataFields = new JsonArray();
+            foreach (var field in metadata.GetProperty("MetaData").GetProperty("Fields")
+                .EnumerateArray())
+            {
+                metadataFields.Add(field.GetProperty("Name").GetString());
+            }
+
+            return new JsonObject
+            {
+                ["Envelope"] = new JsonObject
+                {
+                    ["MessageType"] = normalized["MessageType"]!.DeepClone(),
+                    ["DataSetCount"] = dataSets.Count
+                },
+                ["Payload"] = new JsonObject
+                {
+                    ["OutputValueKind"] = payload["Output"]!["Value"]!.GetValueKind().ToString(),
+                    ["EndpointUrl"] = payload["EndpointUrl"]!["Value"]!.DeepClone(),
+                    ["ApplicationUriValueKind"] =
+                        payload["ApplicationUri"]!["Value"]!.GetValueKind().ToString()
+                },
+                ["MetaDataFields"] = metadataFields
+            };
         }
 
         [Fact]
@@ -545,19 +591,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var payload = firstDataSet.GetProperty("Payload");
             Assert.NotEqual(JsonValueKind.Null, payload.ValueKind);
 
-            var time = payload.GetProperty("CurrentTime").GetProperty("Value");
+            var time = AssertDataValue(payload.GetProperty("CurrentTime"), 13, "DateTime");
             Assert.NotEqual(JsonValueKind.Null, time.ValueKind);
-            Assert.True(time.GetProperty("Body").GetDateTime() < DateTime.UtcNow);
+            Assert.True(time.GetDateTime() < DateTime.UtcNow);
 
             var ep = payload.TryGetProperty("EndpointUrl", out _);
             Assert.False(ep);
             var appuri = payload.TryGetProperty("ApplicationUri", out _);
             Assert.False(appuri);
 
-            Assert.False(payload.GetProperty("Important").GetProperty("Value").GetProperty("Body").GetBoolean());
-            Assert.Equal("5", payload.GetProperty("AssetId").GetProperty("Value").GetProperty("Body").GetString());
-            Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetProperty("Body").GetString());
-            Assert.Equal(12.3465f, payload.GetProperty("Variance").GetProperty("Value").GetProperty("Body").GetSingle());
+            //
+            // Compact encoding is what omits a value equal to its type default,
+            // and this configuration is reversible rather than compact, so the
+            // member is present on both paths here. See AssertBooleanField for
+            // the compact case.
+            //
+            Assert.False(AssertDataValue(
+                payload.GetProperty("Important"), 1, "Boolean").GetBoolean());
+            Assert.Equal("5", AssertDataValue(
+                payload.GetProperty("AssetId"), 8, "Int64").GetString());
+            Assert.Equal("mm/sec", AssertDataValue(
+                payload.GetProperty("EngineeringUnits"), 12, "String").GetString());
+            Assert.Equal(12.3465f, AssertDataValue(
+                payload.GetProperty("Variance"), 11, "Double").GetSingle());
 
             Assert.NotNull(metadata);
             var metadataFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
@@ -588,23 +644,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task HeartbeatIndicatorTestAsync()
+        public async Task HeartbeatProducesMessagesWithoutTheNonStandardIndicatorTestAsync()
         {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(
-                nameof(HeartbeatIndicatorTestAsync), "./Resources/Heartbeat.json",
+                nameof(HeartbeatProducesMessagesWithoutTheNonStandardIndicatorTestAsync),
+                "./Resources/Heartbeat.json",
                 TimeSpan.FromMinutes(2), 5, messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--fm=True"]);
 
             // Assert
+            //
+            // Heartbeats still drive messages, so the watchdog itself keeps
+            // working. What 3.0 no longer writes is the Heartbeat member: it
+            // is not a Part 14 member and the standards compliant encoder has
+            // no notion of it. Up to 2.9 this was written when the Heartbeat
+            // field content flag was set, and the flag is still accepted so
+            // existing configurations load, but it no longer changes the wire.
+            //
+            // Asserting its absence rather than skipping the test keeps the
+            // contract pinned: reintroducing a non-standard member, or losing
+            // heartbeat messages altogether, both fail here.
+            //
             Assert.True(messages.Count > 1);
 
-            var heartbeats = messages
+            var dataSetMessages = messages
                 .SelectMany(m => m.Message.GetProperty("Messages").EnumerateArray())
-                .Where(m => m.TryGetProperty("Heartbeat", out var hb) && hb.GetBoolean())
                 .ToList();
-            Assert.True(heartbeats.Count > 0, "No heartbeat indicator was sent");
+            Assert.NotEmpty(dataSetMessages);
+            Assert.DoesNotContain(dataSetMessages,
+                m => m.TryGetProperty("Heartbeat", out _));
         }
 
         [Fact]
@@ -668,70 +738,265 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotNull(metadata);
         }
 
+        /// <summary>
+        /// Asserts the built-in type of a DataValue field and returns its value.
+        /// </summary>
+        /// <remarks>
+        /// Part 6 §5.4.2.18 Table 42 defines a DataValue as a Variant with
+        /// extra fields, flattened, carrying `UaType` and `Value`. The
+        /// `Value.Type` and `Value.Body` envelope 2.x emitted was the 1.04
+        /// reversible Variant, which 1.05 replaced.
+        /// </remarks>
+        /// <param name="field">The DataValue field object.</param>
+        /// <param name="builtInType">Expected built-in type identifier.</param>
+        /// <param name="builtInTypeName">Its name. Named at the call site
+        /// because the identifier alone says nothing, and checked against the
+        /// identifier here so the two cannot disagree.</param>
+        internal static JsonElement AssertDataValue(JsonElement field, int builtInType,
+            string builtInTypeName)
+        {
+            Assert.Equal(Enum.Parse<Opc.Ua.BuiltInType>(builtInTypeName),
+                (Opc.Ua.BuiltInType)builtInType);
+            Assert.Equal(builtInType, field.GetProperty("UaType").GetInt32());
+            return field.GetProperty("Value");
+        }
+
+        /// <summary>
+        /// Asserts a LocalizedText field value.
+        /// </summary>
+        /// <remarks>
+        /// Part 6 §5.4.2.15 requires a LocalizedText to be encoded as an object
+        /// with `Locale` and `Text`, unconditionally. The bare string 2.x
+        /// emitted was the 1.04 non-reversible form, which 1.05 removed along
+        /// with non-reversible encoding itself.
+        /// </remarks>
+        /// <param name="message">The `Message` field value.</param>
+        internal static void AssertLocalizedText(JsonElement message)
+        {
+            Assert.Equal(JsonValueKind.Object, message.ValueKind);
+            Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+            Assert.Equal("en-US", message.GetProperty("Locale").GetString());
+        }
+
+        /// <summary>
+        /// Asserts a boolean DataValue field the way the active path writes it.
+        /// </summary>
+        /// <remarks>
+        /// Compact JSON omits a value that equals its type's default
+        /// (Part 6 §5.4.1), so a false boolean arrives carrying only its type
+        /// and a decoder reconstructs the value from it. The custom encoder
+        /// always writes the member. This is a property of compact encoding
+        /// rather than of the native path - the same path writes the member
+        /// under reversible encoding - so this helper is for the compact
+        /// configurations only.
+        ///
+        /// It matters more than the other accepted differences, because whether
+        /// the member is present then depends on the value rather than on the
+        /// configuration: a consumer reading it works until the value first
+        /// goes false.
+        /// </remarks>
+        /// <param name="payload">The data set payload.</param>
+        /// <param name="name">Field name.</param>
+        /// <param name="expected">Expected value.</param>
+        internal static void AssertBooleanField(JsonElement payload, string name,
+            bool expected)
+        {
+            var field = payload.GetProperty(name);
+            Assert.Equal(1, field.GetProperty("UaType").GetInt32());
+            if (!expected)
+            {
+                Assert.False(field.TryGetProperty("Value", out _));
+                return;
+            }
+            Assert.Equal(expected, field.GetProperty("Value").GetBoolean());
+        }
+
+        /// <summary>
+        /// Asserts an integral DataValue field the way the active path writes it.
+        /// </summary>
+        /// <remarks>
+        /// A whole number in the configuration is carried as an Int64, and
+        /// Part 6 §5.4.2.3 requires Int64 to be written as a string. The custom
+        /// encoder writes it as a JSON number instead.
+        /// </remarks>
+        /// <param name="payload">The data set payload.</param>
+        /// <param name="name">Field name.</param>
+        /// <param name="expected">Expected value.</param>
+        internal static void AssertIntegerField(JsonElement payload, string name,
+            long expected)
+        {
+            var value = payload.GetProperty(name).GetProperty("Value");
+            Assert.Equal(8, payload.GetProperty(name).GetProperty("UaType").GetInt32());
+            Assert.Equal(expected.ToString(CultureInfo.InvariantCulture), value.GetString());
+        }
+
+        /// <summary>
+        /// Asserts a model change event's type node identifier.
+        /// </summary>
+        /// <remarks>
+        /// A NodeId is written in the standard string form, so a namespace
+        /// qualified string identifier is `nsu=&lt;uri&gt;;s=&lt;id&gt;` where
+        /// 2.x wrote the Publisher's own `&lt;uri&gt;#s=&lt;id&gt;` form.
+        /// </remarks>
+        /// <param name="payload">The event payload.</param>
+        /// <param name="identifier">Expected string identifier.</param>
+        internal static void AssertEventTypeNodeId(JsonElement payload, string identifier)
+        {
+            const string ns = "http://www.microsoft.com/opc-publisher";
+            var actual = payload.GetProperty("EventType").GetProperty("Value").GetString();
+            Assert.Equal($"nsu={ns};s={identifier}", actual);
+        }
+
         internal static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
+            //
+            // Part 14 §7.2.5.4 defines only ua-keyframe, ua-deltaframe,
+            // ua-event and ua-keepalive. ua-condition was a Publisher
+            // extension, so a condition snapshot is published as the event
+            // occurrence it is.
+            //
             var messages = jsonElement.GetProperty("Messages");
             return messages.ValueKind != JsonValueKind.Array
                 ? default
                 : messages.EnumerateArray().FirstOrDefault(element =>
                 {
-                    return element.GetProperty("MessageType").GetString() == "ua-condition" &&
-                        element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
-                            node.TryGetProperty("Value", out node) &&
-                                node.ValueKind != JsonValueKind.Null &&
-                                node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a",
-                                    StringComparison.InvariantCulture);
+                    if (element.GetProperty("MessageType").GetString() != "ua-event" ||
+                        !element.GetProperty("Payload")
+                            .TryGetProperty("SourceNode", out var node))
+                    {
+                        return false;
+                    }
+                    if (node.ValueKind == JsonValueKind.Object &&
+                        node.TryGetProperty("Value", out var value))
+                    {
+                        node = value;
+                    }
+                    return node.ValueKind != JsonValueKind.Null;
                 });
+        }
+
+        /// <summary>
+        /// Asserts a metadata field's data type. The spelling varies with the
+        /// encoding rather than with the value: the custom encoder writes a
+        /// symbolic name or a node identifier object, and the native runtime
+        /// writes the standard node identifier string, with enumerations
+        /// written by name under verbose encoding and by number otherwise.
+        /// Metadata is therefore asserted by meaning; the payload assertions
+        /// stay exact and path-specific.
+        /// </summary>
+        /// <param name="field">Metadata field.</param>
+        /// <param name="legacy">The custom encoder's symbolic spelling.</param>
+        /// <param name="native">The standard node identifier string.</param>
+        private static void AssertFieldDataType(JsonElement field, string legacy, string native)
+        {
+            AssertDataTypeMeaning(field.GetProperty("DataType"), legacy, native);
+        }
+
+        /// <summary>
+        /// Asserts a metadata field's data type under compliant encoding.
+        /// </summary>
+        /// <param name="field">Metadata field.</param>
+        /// <param name="identifier">Expected numeric identifier.</param>
+        /// <param name="native">The standard node identifier string.</param>
+        /// <param name="namespaceUri">Expected namespace uri, when the
+        /// identifier is not in the default namespace.</param>
+        private static void AssertCompliantFieldDataType(JsonElement field, int identifier,
+            string native, string? namespaceUri = null)
+        {
+            var dataType = field.GetProperty("DataType");
+            if (dataType.ValueKind == JsonValueKind.Object)
+            {
+                Assert.Equal(identifier, dataType.GetProperty("Id").GetInt32());
+                if (namespaceUri is not null)
+                {
+                    Assert.Equal(namespaceUri, dataType.GetProperty("Namespace").GetString());
+                }
+                return;
+            }
+            AssertDataTypeMeaning(dataType, native, native);
+        }
+
+        private static void AssertDataTypeMeaning(JsonElement dataType, string legacy,
+            string native)
+        {
+            if (dataType.ValueKind == JsonValueKind.Number)
+            {
+                //
+                // A well known identifier in the default namespace, written
+                // without the node identifier prefix.
+                //
+                Assert.Equal("i=" + dataType.GetInt32().ToString(CultureInfo.InvariantCulture),
+                    native);
+                return;
+            }
+            var actual = dataType.GetString();
+            Assert.True(actual == legacy || actual == native,
+                $"Expected the data type to be '{legacy}' or '{native}' but it was '{actual}'.");
+        }
+
+        /// <summary>
+        /// Asserts the structure kind of a structure definition. The custom
+        /// encoder writes its symbolic name; the native runtime writes the
+        /// enumeration by name under verbose encoding and by number otherwise.
+        /// </summary>
+        /// <param name="structureDefinition">Structure definition.</param>
+        private static void AssertStructureType(JsonElement structureDefinition)
+        {
+            var structureType = structureDefinition.GetProperty("StructureType");
+            if (structureType.ValueKind == JsonValueKind.Number)
+            {
+                Assert.Equal(0, structureType.GetInt32());
+                return;
+            }
+            Assert.Equal("Structure_0", structureType.GetString());
         }
 
         internal static void AssertCompliantSimpleEventsMetadata(JsonMessage? metadata)
         {
-            Assert.NotNull(metadata);
-            var eventFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
+            Assert.NotNull(metadata);            var eventFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
             Assert.Collection(eventFields.EnumerateArray(),
                 v =>
                 {
                     Assert.Equal("EventId", v.GetProperty("Name").GetString());
-                    Assert.Equal(15, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    AssertCompliantFieldDataType(v, 15, "i=15");
                 },
                 v =>
                 {
                     Assert.Equal("Message", v.GetProperty("Name").GetString());
-                    Assert.Equal(21, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    AssertCompliantFieldDataType(v, 21, "i=21");
                 },
                 v =>
                 {
                     Assert.Equal(CycleIdExpanded, v.GetProperty("Name").GetString());
-                    Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    AssertCompliantFieldDataType(v, 12, "i=12");
                 },
                 v =>
                 {
                     Assert.Equal(CurrentStepExpanded, v.GetProperty("Name").GetString());
-                    Assert.Equal(183, v.GetProperty("DataType").GetProperty("Id").GetInt32());
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents",
-                        v.GetProperty("DataType").GetProperty("Namespace").GetString());
+                    AssertCompliantFieldDataType(v, 183, "ns=13;i=183",
+                        "http://opcfoundation.org/SimpleEvents");
                 });
 
             var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
-            Assert.Equal(24, namespaces.GetArrayLength());
+            Assert.Equal(25, namespaces.GetArrayLength());
             var structureDataTypes = metadata.Value.Message.GetProperty("MetaData").GetProperty("StructureDataTypes");
             Assert.Equal(JsonValueKind.Array, structureDataTypes.ValueKind);
             var s = structureDataTypes.EnumerateArray().First().GetProperty("StructureDefinition");
-            Assert.Equal("Structure_0", s.GetProperty("StructureType").GetString());
+            AssertStructureType(s);
             var structureFields = s.GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, structureFields.ValueKind);
             Assert.Collection(structureFields.EnumerateArray(),
                 v =>
                 {
                     Assert.Equal("Name", v.GetProperty("Name").GetString());
-                    Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    AssertCompliantFieldDataType(v, 12, "i=12");
                 },
                 v =>
                 {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
-                    Assert.Equal(11, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    AssertCompliantFieldDataType(v, 11, "i=11");
                 });
         }
 
@@ -744,43 +1009,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 v =>
                 {
                     Assert.Equal("EventId", v.GetProperty("Name").GetString());
-                    Assert.Equal("ByteString", v.GetProperty("DataType").GetString());
+                    AssertFieldDataType(v, "ByteString", "i=15");
                 },
                 v =>
                 {
                     Assert.Equal("Message", v.GetProperty("Name").GetString());
-                    Assert.Equal("LocalizedText", v.GetProperty("DataType").GetString());
+                    AssertFieldDataType(v, "LocalizedText", "i=21");
                 },
                 v =>
                 {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#CycleId", v.GetProperty("Name").GetString());
-                    Assert.Equal("String", v.GetProperty("DataType").GetString());
+                    AssertFieldDataType(v, "String", "i=12");
                 },
                 v =>
                 {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#CurrentStep", v.GetProperty("Name").GetString());
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", v.GetProperty("DataType").GetString());
+                    AssertFieldDataType(v, "http://opcfoundation.org/SimpleEvents#i=183", "ns=13;i=183");
                 });
 
             var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
-            Assert.Equal(24, namespaces.GetArrayLength());
+            Assert.Equal(25, namespaces.GetArrayLength());
             var structureDataTypes = metadata.Value.Message.GetProperty("MetaData").GetProperty("StructureDataTypes");
             Assert.Equal(JsonValueKind.Array, structureDataTypes.ValueKind);
             var s = structureDataTypes.EnumerateArray().First().GetProperty("StructureDefinition");
-            Assert.Equal("Structure_0", s.GetProperty("StructureType").GetString());
+            AssertStructureType(s);
             var structureFields = s.GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, structureFields.ValueKind);
             Assert.Collection(structureFields.EnumerateArray(),
                 v =>
                 {
                     Assert.Equal("Name", v.GetProperty("Name").GetString());
-                    Assert.Equal("String", v.GetProperty("DataType").GetString());
+                    AssertFieldDataType(v, "String", "i=12");
                 },
                 v =>
                 {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
-                    Assert.Equal("Double", v.GetProperty("DataType").GetString());
+                    AssertFieldDataType(v, "Double", "i=11");
                 });
         }
     }

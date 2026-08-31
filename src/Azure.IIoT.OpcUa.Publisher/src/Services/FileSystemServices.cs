@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo };
                 }
-                var requests = new CallMethodRequestCollection
+                var requests = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (results[0].ErrorInfo != null ||
                     results[0].Result?.OutputArguments == null ||
                     results[0].Result.OutputArguments.Count == 0 ||
-                    results[0].Result.OutputArguments[0].Value is not NodeId result)
+                    !results[0].Result.OutputArguments[0].TryGetValue(out NodeId result))
                 {
                     return new ServiceResponse<FileSystemObjectModel>
                     {
@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo };
                 }
 
-                var requests = new CallMethodRequestCollection
+                var requests = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -264,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (results[0].ErrorInfo != null ||
                     results[0].Result?.OutputArguments == null ||
                     results[0].Result.OutputArguments.Count == 0 ||
-                    results[0].Result.OutputArguments[0].Value is not NodeId result)
+                    !results[0].Result.OutputArguments[0].TryGetValue(out NodeId result))
                 {
                     return new ServiceResponse<FileSystemObjectModel>
                     {
@@ -309,14 +309,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 var result = parents.Count > 0 ? parents[0] : default;
                 nodeId = result.Node;
-                if (NodeId.IsNull(nodeId) ||
+                if (NodeIdCompat.IsNull(nodeId) ||
                     result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)
                 {
                     return new ServiceResponse<FileSystemObjectModel>
                     {
                         ErrorInfo = new ServiceResultModel
                         {
-                            StatusCode = StatusCodes.BadNodeIdInvalid,
+                            StatusCode = (uint)StatusCodes.BadNodeIdInvalid,
                             ErrorMessage = "Could not find a file directory object parent."
                         }
                     };
@@ -371,17 +371,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     var result = parents.Count > 0 ? parents[0] : default;
                     nodeId = result.Node;
-                    if (NodeId.IsNull(nodeId) ||
+                    if (NodeIdCompat.IsNull(nodeId) ||
                         result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)
                     {
                         return new ServiceResultModel
                         {
-                            StatusCode = StatusCodes.BadNodeIdInvalid,
+                            StatusCode = (uint)StatusCodes.BadNodeIdInvalid,
                             ErrorMessage = "Could not find a file directory object parent."
                         };
                     }
                 }
-                var requests = new CallMethodRequestCollection
+                var requests = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -440,7 +440,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var nodeId = fileSystemObject.NodeId.ToNodeId(session.MessageContext);
             if (fileSystemObject.BrowsePath?.Count > 0)
             {
-                nodeId ??= ObjectIds.RootFolder;
+                if (NodeIdCompat.IsNull(nodeId))
+                {
+                    nodeId = ObjectIds.RootFolder;
+                }
                 try
                 {
                     nodeId = await session.ResolveBrowsePathToNodeAsync(header,
@@ -452,11 +455,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return (NodeId.Null, ex.ToServiceResultModel());
                 }
             }
-            if (NodeId.IsNull(nodeId))
+            if (NodeIdCompat.IsNull(nodeId))
             {
                 return (NodeId.Null, new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNodeIdInvalid,
+                    StatusCode = (uint)StatusCodes.BadNodeIdInvalid,
                     ErrorMessage = "Invalid node id and browse path in file system object"
                 });
             }
@@ -493,7 +496,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Only add what we did not match to browse deeper
                 var stop = matching.Select(r => r.NodeId).ToHashSet();
-                references.RemoveAll(r => stop.Contains((NodeId)r.NodeId));
+                references.RemoveAll(r => stop.Contains(ExpandedNodeId.ToNodeId(r.NodeId,
+                    context.Session.MessageContext.NamespaceUris)));
                 return matching.Select(match => new ServiceResponse<FileSystemObjectModel>
                 {
                     Result = new FileSystemObjectModel
@@ -624,7 +628,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         return (null, new ServiceResultModel
                         {
-                            StatusCode = StatusCodes.BadNotWritable,
+                            StatusCode = (uint)StatusCodes.BadNotWritable,
                             ErrorMessage = "File is not writable."
                         });
                     }

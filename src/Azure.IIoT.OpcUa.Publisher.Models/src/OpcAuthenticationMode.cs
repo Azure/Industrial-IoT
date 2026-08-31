@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// via UseSecurity or EndpointSecurityMode to protect authentication secrets.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<OpcAuthenticationMode>))]
     public enum OpcAuthenticationMode
     {
         /// <summary>

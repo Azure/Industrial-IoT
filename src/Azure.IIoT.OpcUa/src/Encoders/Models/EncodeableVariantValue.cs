@@ -5,57 +5,54 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
-    using System;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Encodeable wrapper for Json tokens
     /// </summary>
-    public sealed class EncodeableVariantValue : IEncodeable, IJsonEncodeable
+    public sealed class EncodeableVariantValue : IEncodeable
     {
         /// <summary>
         /// The encoded object
         /// </summary>
-        public VariantValue Value { get; private set; }
+        public JsonNode? Value { get; private set; }
 
         /// <summary>
         /// Create encodeable token
         /// </summary>
-        /// <param name="serializer"></param>
         /// <param name="value"></param>
-        public EncodeableVariantValue(IJsonSerializer serializer, VariantValue? value = null)
+        public EncodeableVariantValue(JsonNode? value = null)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            Value = value ?? VariantValue.Null;
+            Value = value;
         }
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
-            "s=" + nameof(EncodeableVariantValue);
+            (ExpandedNodeId)("s=" + nameof(EncodeableVariantValue));
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
-            "s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultBinary";
+            (ExpandedNodeId)("s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultBinary");
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
-            "s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultXml";
+            (ExpandedNodeId)("s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultXml");
 
         /// <inheritdoc/>
         public ExpandedNodeId JsonEncodingId =>
-            "s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultJson";
+            (ExpandedNodeId)("s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultJson");
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder)
         {
-            Value = _serializer.Parse(decoder.ReadString(nameof(Value)));
+            Value = JsonNode.Parse(decoder.ReadString(nameof(Value)));
         }
 
         /// <inheritdoc/>
         public void Encode(IEncoder encoder)
         {
-            encoder.WriteString(nameof(Value), _serializer.SerializeToString(Value));
+            encoder.WriteString(nameof(Value), Value?.ToJsonString() ?? "null");
         }
 
         /// <inheritdoc/>
@@ -63,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         {
             if (encodeable is EncodeableVariantValue wrapper)
             {
-                return wrapper.Value == Value;
+                return JsonNode.DeepEquals(wrapper.Value, Value);
             }
             return false;
         }
@@ -71,9 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <inheritdoc/>
         public object Clone()
         {
-            return new EncodeableVariantValue(_serializer, Value);
+            return new EncodeableVariantValue(Value?.DeepClone());
         }
-
-        private readonly IJsonSerializer _serializer;
     }
 }

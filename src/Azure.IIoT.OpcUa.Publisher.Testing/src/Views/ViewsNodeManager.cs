@@ -52,8 +52,7 @@ namespace Views
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<ViewsServerConfiguration>()
-                ?? new ViewsServerConfiguration();
+            _configuration = new ViewsServerConfiguration();
         }
 
         /// <summary>
@@ -127,7 +126,7 @@ namespace Views
                     SystemContext,
                     pnd1.Construct(),
                     new QualifiedName("Boiler #1", NamespaceIndex),
-                    null,
+                    default,
                     true);
 
                 boiler1.AddReference(ReferenceTypeIds.Organizes, true, root.NodeId);
@@ -142,7 +141,7 @@ namespace Views
                     SystemContext,
                     pnd2.Construct(),
                     new QualifiedName("Boiler #2", NamespaceIndex),
-                    null,
+                    default,
                     true);
 
                 boiler2.AddReference(ReferenceTypeIds.Organizes, true, root.NodeId);

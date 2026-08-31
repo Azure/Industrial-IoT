@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,13 +7,15 @@ namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Furly.Extensions.Configuration;
-    using Furly.Extensions.Hosting;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Configuration;
+    using Azure.IIoT.OpcUa.Core.Hosting;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Runtime.InteropServices;
@@ -32,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
         public const string UseFileChangePollingKey = "UseFileChangePolling";
+        public const string UseNativePubSubKey = "UseNativePubSub";
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExist";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
@@ -92,6 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DisableResourceMonitoringKey = "DisableResourceMonitoring";
         public const string HttpServerPortKey = "HttpServerPort";
         public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
+        public const string EnableMcpServerKey = "EnableMcpServer";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -143,6 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RuntimeStateRoutingInfoDefault = "runtimeinfo";
         public const bool EnableRuntimeStateReportingDefault = false;
         public const bool UseStandardsCompliantEncodingDefault = false;
+        public const bool UseNativePubSubDefault = true;
         public const bool EnableDataSetRoutingInfoDefault = false;
         public const bool EnableCloudEventsDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
@@ -170,6 +175,8 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             options.PublishedNodesFile ??= GetStringOrDefault(PublishedNodesFileKey);
             options.UseFileChangePolling ??= GetBoolOrNull(UseFileChangePollingKey);
+            options.UseNativePubSub ??= GetBoolOrDefault(UseNativePubSubKey,
+                UseNativePubSubDefault);
 
             if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
                 GetStringOrDefault(DefaultTransportKey), out var transport))
@@ -182,23 +189,17 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.MessagingProfile == null)
             {
-                if (!Enum.TryParse<MessagingMode>(GetStringOrDefault(MessagingModeKey),
-                    out var messagingMode))
+                var configuredMode = GetStringOrDefault(MessagingModeKey);
+                ThrowIfRemovedMessagingMode(configuredMode);
+                if (!Enum.TryParse<MessagingMode>(configuredMode, out var messagingMode))
                 {
-                    messagingMode = options.UseStandardsCompliantEncoding == true ?
-                        MessagingMode.PubSub : MessagingMode.Samples;
+                    messagingMode = MessagingMode.PubSub;
                 }
 
-                if (GetBoolOrDefault(FullFeaturedMessageKey, false))
+                if (GetBoolOrDefault(FullFeaturedMessageKey, false) &&
+                    messagingMode == MessagingMode.PubSub)
                 {
-                    if (messagingMode == MessagingMode.PubSub)
-                    {
-                        messagingMode = MessagingMode.FullNetworkMessages;
-                    }
-                    if (messagingMode == MessagingMode.Samples)
-                    {
-                        messagingMode = MessagingMode.FullSamples;
-                    }
+                    messagingMode = MessagingMode.FullNetworkMessages;
                 }
 
                 if (!Enum.TryParse<MessageEncoding>(GetStringOrDefault(MessageEncodingKey),
@@ -253,7 +254,6 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             options.WriteValueWhenDataSetHasSingleEntry
                 ??= GetBoolOrNull(WriteValueWhenDataSetHasSingleEntryKey);
-            options.RemoveDuplicatesFromBatch ??= GetBoolOrNull(RemoveDuplicatesFromBatchKey);
 
             options.MaxNetworkMessageSendQueueSize ??= GetIntOrDefault(MaxNetworkMessageSendQueueSizeKey,
                     MaxNetworkMessageSendQueueSizeDefault);
@@ -405,10 +405,20 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultNamespaceFormat = namespaceFormat;
             }
 
+            //
+            // No default: the plaintext listener is opt in. GetIntOrNull would
+            // return the default for an absent, empty or unparseable value,
+            // which left the port always on and made the "Default: disabled"
+            // the option documents unreachable by any configuration input. The
+            // api key is sent in clear text on this listener, so it stays off
+            // until asked for -- "--unsecurehttp" with no value supplies
+            // UnsecureHttpServerPortDefault.
+            //
             options.UnsecureHttpServerPort ??= GetIntOrNull(
-                    UnsecureHttpServerPortKey, UnsecureHttpServerPortDefault);
+                    UnsecureHttpServerPortKey);
             options.HttpServerPort ??= GetIntOrNull(
                     HttpServerPortKey, HttpServerPortDefault);
+            options.EnableMcpServer ??= GetBoolOrNull(EnableMcpServerKey);
 
             options.ApiKeyOverride ??= GetStringOrDefault(ApiKeyOverrideKey);
 
@@ -463,6 +473,210 @@ namespace Azure.IIoT.OpcUa.Publisher
             options.DisableSubscriptionTransfer ??= GetBoolOrNull(DisableSubscriptionTransferKey);
         }
 
+        /// <inheritdoc/>
+        protected override PublisherOptions Bind()
+        {
+            var topicTemplates = Configuration.GetSection(
+                nameof(PublisherOptions.TopicTemplates)).Get<TopicTemplatesOptions>();
+            var discovery = Configuration.GetSection(
+                nameof(PublisherOptions.AioNetworkDiscovery)).Get<DiscoveryConfigModel>();
+            var schemaOptions = NormalizeLegacyBooleanAliases(
+                nameof(SchemaOptions.PreferAvroOverJsonSchema))
+                .GetSection(nameof(PublisherOptions.SchemaOptions))
+                .Get<SchemaOptions>();
+            var options = new PublisherOptions
+            {
+                PublisherId = GetStringOrDefault(nameof(PublisherOptions.PublisherId)),
+                SiteId = GetStringOrDefault(nameof(PublisherOptions.SiteId)),
+                PublishedNodesFile = GetStringOrDefault(nameof(PublisherOptions.PublishedNodesFile)),
+                UseFileChangePolling = GetBoolOrNull(nameof(PublisherOptions.UseFileChangePolling)),
+                UseNativePubSub = GetBoolOrNull(nameof(PublisherOptions.UseNativePubSub)),
+                CreatePublishFileIfNotExist = GetBoolOrNull(
+                    nameof(PublisherOptions.CreatePublishFileIfNotExist)),
+                RenewTlsCertificateOnStartup = GetBoolOrNull(
+                    nameof(PublisherOptions.RenewTlsCertificateOnStartup)),
+                MaxNodesPerDataSet = GetIntOrDefault(nameof(PublisherOptions.MaxNodesPerDataSet)),
+                BatchSize = GetIntOrNull(nameof(PublisherOptions.BatchSize)),
+                BatchTriggerInterval = GetDurationOrNull(
+                    nameof(PublisherOptions.BatchTriggerInterval)),
+                MaxNetworkMessageSize = GetIntOrNull(
+                    nameof(PublisherOptions.MaxNetworkMessageSize)),
+                DiagnosticsInterval = GetDurationOrNull(
+                    nameof(PublisherOptions.DiagnosticsInterval)),
+                DiagnosticsTarget = GetEnumOrNull<PublisherDiagnosticTargetType>(
+                    nameof(PublisherOptions.DiagnosticsTarget)),
+                DebugLogNotifications = GetBoolOrNull(
+                    nameof(PublisherOptions.DebugLogNotifications)),
+                DebugLogNotificationsFilter = GetStringOrDefault(
+                    nameof(PublisherOptions.DebugLogNotificationsFilter)),
+                DebugLogNotificationsWithHeartbeat = GetBoolOrNull(
+                    nameof(PublisherOptions.DebugLogNotificationsWithHeartbeat)),
+                DebugLogEncodedNotifications = GetBoolOrNull(
+                    nameof(PublisherOptions.DebugLogEncodedNotifications)),
+                MaxNetworkMessageSendQueueSize = GetIntOrNull(
+                    nameof(PublisherOptions.MaxNetworkMessageSendQueueSize)),
+                DefaultWriterGroupPartitions = GetIntOrNull(
+                    nameof(PublisherOptions.DefaultWriterGroupPartitions)),
+                UseStandardsCompliantEncoding = GetBoolOrNull(
+                    nameof(PublisherOptions.UseStandardsCompliantEncoding)),
+                WriteValueWhenDataSetHasSingleEntry = GetBoolOrNull(
+                    nameof(PublisherOptions.WriteValueWhenDataSetHasSingleEntry)),
+                MessageTimestamp = GetEnumOrNull<MessageTimestamp>(
+                    nameof(PublisherOptions.MessageTimestamp)),
+                DefaultTransport = GetEnumOrNull<WriterGroupTransport>(
+                    nameof(PublisherOptions.DefaultTransport)),
+                DefaultQualityOfService = GetEnumOrNull<QoS>(
+                    nameof(PublisherOptions.DefaultQualityOfService)),
+                DefaultMessageTimeToLive = GetDurationOrNull(
+                    nameof(PublisherOptions.DefaultMessageTimeToLive)),
+                DefaultMessageRetention = GetBoolOrNull(
+                    nameof(PublisherOptions.DefaultMessageRetention)),
+                DefaultMaxDataSetMessagesPerPublish = GetUIntOrNull(
+                    nameof(PublisherOptions.DefaultMaxDataSetMessagesPerPublish)),
+                EnableRuntimeStateReporting = GetBoolOrNull(
+                    nameof(PublisherOptions.EnableRuntimeStateReporting)),
+                RuntimeStateRoutingInfo = GetStringOrDefault(
+                    nameof(PublisherOptions.RuntimeStateRoutingInfo)),
+                DisableComplexTypeSystem = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableComplexTypeSystem)),
+                DisableDataSetMetaData = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableDataSetMetaData)),
+                DefaultMetaDataUpdateTime = GetDurationOrNull(
+                    nameof(PublisherOptions.DefaultMetaDataUpdateTime)),
+                AsyncMetaDataLoadTimeout = GetDurationOrNull(
+                    nameof(PublisherOptions.AsyncMetaDataLoadTimeout)),
+                EnableCloudEvents = GetBoolOrNull(nameof(PublisherOptions.EnableCloudEvents)),
+                EnableDataSetRoutingInfo = GetBoolOrNull(
+                    nameof(PublisherOptions.EnableDataSetRoutingInfo)),
+                EnableDataSetKeepAlives = GetBoolOrNull(
+                    nameof(PublisherOptions.EnableDataSetKeepAlives)),
+                SendDataSetKeepAlivesAsKeyFrame = GetBoolOrNull(
+                    nameof(PublisherOptions.SendDataSetKeepAlivesAsKeyFrame)),
+                DefaultKeyFrameCount = GetUIntOrNull(
+                    nameof(PublisherOptions.DefaultKeyFrameCount)),
+                DisableSessionPerWriterGroup = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableSessionPerWriterGroup)),
+                DefaultUseReverseConnect = GetBoolOrNull(
+                    nameof(PublisherOptions.DefaultUseReverseConnect)),
+                DisableSubscriptionTransfer = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableSubscriptionTransfer)),
+                ForceCredentialEncryption = GetBoolOrNull(
+                    nameof(PublisherOptions.ForceCredentialEncryption)),
+                DefaultNamespaceFormat = GetEnumOrNull<NamespaceFormat>(
+                    nameof(PublisherOptions.DefaultNamespaceFormat)),
+                DisableOpenApiEndpoint = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableOpenApiEndpoint)),
+                ScaleTestCount = GetIntOrNull(nameof(PublisherOptions.ScaleTestCount)),
+                IgnoreConfiguredPublishingIntervals = GetBoolOrNull(
+                    nameof(PublisherOptions.IgnoreConfiguredPublishingIntervals)),
+                ApiKeyOverride = GetStringOrDefault(nameof(PublisherOptions.ApiKeyOverride)),
+                DefaultDataSetRouting = GetEnumOrNull<DataSetRoutingMode>(
+                    nameof(PublisherOptions.DefaultDataSetRouting)),
+                SchemaOptions = schemaOptions,
+                DisableResourceMonitoring = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableResourceMonitoring)),
+                UnsecureHttpServerPort = GetIntOrNull(
+                    nameof(PublisherOptions.UnsecureHttpServerPort)),
+                HttpServerPort = GetIntOrNull(nameof(PublisherOptions.HttpServerPort)),
+                EnableMcpServer = GetBoolOrNull(nameof(PublisherOptions.EnableMcpServer)),
+                IsAzureIoTOperationsConnector = GetBoolOrNull(
+                    nameof(PublisherOptions.IsAzureIoTOperationsConnector)),
+                AioDiscoveredDeviceEndpointType = GetStringOrDefault(
+                    nameof(PublisherOptions.AioDiscoveredDeviceEndpointType)),
+                AioDiscoveredDeviceEndpointTypeVersion = GetStringOrDefault(
+                    nameof(PublisherOptions.AioDiscoveredDeviceEndpointTypeVersion)),
+                AioNetworkDiscoveryMode = GetEnumOrNull<DiscoveryMode>(
+                    nameof(PublisherOptions.AioNetworkDiscoveryMode)),
+                AioNetworkDiscoveryInterval = GetDurationOrNull(
+                    nameof(PublisherOptions.AioNetworkDiscoveryInterval))
+            };
+            if (topicTemplates != null)
+            {
+                options.TopicTemplates.Root = topicTemplates.Root;
+                options.TopicTemplates.Method = topicTemplates.Method;
+                options.TopicTemplates.Events = topicTemplates.Events;
+                options.TopicTemplates.Diagnostics = topicTemplates.Diagnostics;
+                options.TopicTemplates.Telemetry = topicTemplates.Telemetry;
+                options.TopicTemplates.DataSetMetaData = topicTemplates.DataSetMetaData;
+                options.TopicTemplates.Schema = topicTemplates.Schema;
+            }
+            foreach (var transport in GetTransports())
+            {
+                options.AllowedEventAndDiagnosticsTransports.Add(transport);
+            }
+            if (discovery != null)
+            {
+                options.AioNetworkDiscovery.AddressRangesToScan = discovery.AddressRangesToScan;
+                options.AioNetworkDiscovery.NetworkProbeTimeout = discovery.NetworkProbeTimeout;
+                options.AioNetworkDiscovery.MaxNetworkProbes = discovery.MaxNetworkProbes;
+                options.AioNetworkDiscovery.PortRangesToScan = discovery.PortRangesToScan;
+                options.AioNetworkDiscovery.PortProbeTimeout = discovery.PortProbeTimeout;
+                options.AioNetworkDiscovery.MaxPortProbes = discovery.MaxPortProbes;
+                options.AioNetworkDiscovery.MinPortProbesPercent = discovery.MinPortProbesPercent;
+                options.AioNetworkDiscovery.IdleTimeBetweenScans = discovery.IdleTimeBetweenScans;
+                options.AioNetworkDiscovery.DiscoveryUrls = discovery.DiscoveryUrls;
+                options.AioNetworkDiscovery.Locales = discovery.Locales;
+            }
+            return options;
+        }
+
+        /// <summary>
+        /// The proprietary sample messaging modes were removed in 3.0 because
+        /// they have no OPC UA PubSub representation and cannot be produced by
+        /// the standard PubSub runtime. Reject them explicitly instead of
+        /// silently publishing a different message format.
+        /// </summary>
+        /// <param name="configuredMode"></param>
+        /// <exception cref="ConfigurationErrorsException"></exception>
+        private static void ThrowIfRemovedMessagingMode(string? configuredMode)
+        {
+            if (string.IsNullOrWhiteSpace(configuredMode))
+            {
+                return;
+            }
+            var replacement = configuredMode.Trim() switch
+            {
+                var mode when StringComparer.OrdinalIgnoreCase.Equals(mode, "Samples")
+                    => nameof(MessagingMode.PubSub),
+                var mode when StringComparer.OrdinalIgnoreCase.Equals(mode, "FullSamples")
+                    => nameof(MessagingMode.FullNetworkMessages),
+                _ => null
+            };
+            if (replacement is null)
+            {
+                return;
+            }
+            throw new ConfigurationErrorsException(
+                $"The messaging mode '{configuredMode.Trim()}' was removed in OPC Publisher 3.0. " +
+                $"It emitted a proprietary message format that the OPC UA PubSub runtime " +
+                $"cannot produce. Configure '{replacement}' instead, or set an explicit " +
+                $"messaging profile.");
+        }
+
+        private TEnum? GetEnumOrNull<TEnum>(string key) where TEnum : struct, Enum
+        {
+            return Enum.TryParse<TEnum>(GetStringOrDefault(key), true, out var value)
+                ? value : null;
+        }
+
+        private uint? GetUIntOrNull(string key)
+        {
+            return uint.TryParse(GetStringOrDefault(key), NumberStyles.Integer,
+                CultureInfo.InvariantCulture, out var value) ? value : null;
+        }
+
+        private IEnumerable<WriterGroupTransport> GetTransports()
+        {
+            foreach (var value in Configuration.GetSection(
+                nameof(PublisherOptions.AllowedEventAndDiagnosticsTransports)).GetChildren())
+            {
+                if (Enum.TryParse<WriterGroupTransport>(value.Value, true, out var transport))
+                {
+                    yield return transport;
+                }
+            }
+        }
+
         /// <summary>
         /// Running as root
         /// </summary>
@@ -501,7 +715,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .Append(AppContext.GetData("RUNTIME_IDENTIFIER") as string
                     ?? RuntimeInformation.ProcessArchitecture.ToString())
                 .Append("/OPC Stack ")
-                .Append(typeof(SessionChannel).Assembly.GetReleaseVersion().ToString())
+                .Append(typeof(ITransportChannel).Assembly.GetReleaseVersion().ToString())
                 .Append(')')
                 .ToString();
 

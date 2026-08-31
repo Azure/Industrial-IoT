@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Query type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<QueryType>))]
     public enum QueryType
     {
         /// <summary>

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
+    [JsonConverter(typeof(JsonStringEnumConverter<NetworkMessageContentFlags>))]
     public enum NetworkMessageContentFlags
     {
         /// <summary>
@@ -115,12 +116,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Use compatibility mode with 2.8 (publisher extension)
         /// </summary>
         [EnumMember(Value = "UseCompatibilityMode")]
-        UseCompatibilityMode = 0x2000000,
-
-        /// <summary>
-        /// Monitored item message (publisher extension)
-        /// </summary>
-        [EnumMember(Value = "MonitoredItemMessage")]
-        MonitoredItemMessage = 0x8000000,
+        UseCompatibilityMode = 0x2000000
     }
 }

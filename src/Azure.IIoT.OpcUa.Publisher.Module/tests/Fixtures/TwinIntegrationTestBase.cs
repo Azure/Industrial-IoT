@@ -7,8 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     using System;
     using System.Threading;
+    using Xunit;
     using Xunit.Abstractions;
 
+    // Fixture-backed server contracts remain provisional until
+    // quickstarts-consume verifies local and upstream fixture equivalence.
+    [Trait("Category", "ServerIntegration")]
+    [Trait("Compatibility", "ProvisionalFixture")]
     public abstract class TwinIntegrationTestBase : IDisposable
     {
         protected CancellationToken Ct => _cts.Token;

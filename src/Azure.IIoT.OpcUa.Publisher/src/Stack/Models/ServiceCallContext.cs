@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using System;
     using System.Diagnostics;
     using System.Threading;
@@ -57,17 +56,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// </summary>
         /// <param name="session"></param>
         /// <param name="serviceCallTimeout"></param>
-        /// <param name="client"></param>
+        /// <param name="addRef"></param>
+        /// <param name="release"></param>
         /// <param name="sessionLock"></param>
         /// <param name="ct"></param>
         internal ServiceCallContext(IOpcUaSession session,
-            TimeSpan serviceCallTimeout, OpcUaClient client,
+            TimeSpan serviceCallTimeout, Action addRef, Action release,
             IDisposable sessionLock, CancellationToken ct = default)
             : this(session, serviceCallTimeout, ct)
         {
-            client.AddRef();
+            addRef();
 
-            _client = client;
+            _release = release;
             _sessionLock = sessionLock;
             // TODO: we could timeout and dispose to catch leaks
         }
@@ -75,16 +75,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (_client != null)
+            if (_release != null)
             {
                 Debug.Assert(_sessionLock != null);
                 _sessionLock.Dispose();
-                _client.Release();
-                _client = null;
+                _release();
+                _release = null;
             }
         }
 
-        private OpcUaClient? _client;
+        private Action? _release;
         private readonly IDisposable? _sessionLock;
     }
 }

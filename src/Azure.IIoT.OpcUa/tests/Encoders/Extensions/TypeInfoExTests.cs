@@ -47,8 +47,8 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void ScalarExtensionObjectTest1()
         {
-            var variant = TypeInfo.Scalars.ExtensionObject.CreateVariant(new ExtensionObject("s=test"));
-            Assert.Equal(new ExtensionObject("s=test"), variant.Value);
+            var variant = TypeInfo.Scalars.ExtensionObject.CreateVariant(new ExtensionObject((ExpandedNodeId)"s=test"));
+            Assert.Equal(new ExtensionObject((ExpandedNodeId)"s=test"), variant.Value);
         }
 
         [Fact]

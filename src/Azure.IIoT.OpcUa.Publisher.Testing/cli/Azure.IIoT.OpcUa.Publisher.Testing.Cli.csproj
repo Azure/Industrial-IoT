@@ -27,5 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Quickstarts.Servers"
+                      Aliases="Quickstarts" />
   </ItemGroup>
 </Project>

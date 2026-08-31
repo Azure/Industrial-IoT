@@ -16,7 +16,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
     /// <param name="NodeId">Identity of the node the value belongs to</param>
     /// <param name="Value">The counter value, which doubles as its sequence</param>
     /// <param name="SourceTimestamp">Source timestamp as reported by the server</param>
-    /// <param name="IsHeartbeat">Whether the message was flagged a heartbeat</param>
+    /// <param name="IsHeartbeat">
+/// Whether the message was flagged as a heartbeat on the wire. When this is
+/// <c>false</c>, <see cref="TelemetryQualityValidator"/> may still treat the
+/// sample as a heartbeat by structural inference: a sample that repeats both
+/// the value and the <see cref="SourceTimestamp"/> of its predecessor is
+/// structurally indistinguishable from a <c>WatchdogLKV</c> heartbeat.
+/// <para>
+/// Note: <c>HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps</c> advances
+/// the source timestamp on each heartbeat, so it repeats the value but not
+/// the timestamp. Such heartbeats cannot be detected by structural inference
+/// and will be counted as <c>UnflaggedRepeats</c> when this flag is absent.
+/// Only the wire indicator reliably identifies that behaviour.
+/// </para>
+/// Whether the sample originates from a <c>ua-keyframe</c> data set
+/// message. Key-frames republish all current field values regardless of
+/// whether they changed since the last publish cycle, so a repeated
+/// value inside a key-frame is a snapshot artefact, not a heartbeat.
+/// Structural heartbeat inference is suppressed for key-frame samples
+/// to avoid misclassifying those snapshots as WatchdogLKV resends.
+/// </param>
     /// <param name="MessageTimestamp">
     /// Time at which the notification was produced by the publisher. A
     /// heartbeat repeats the source timestamp of the value it resends, so
@@ -27,7 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
     /// </param>
     public readonly record struct TelemetrySample(string NodeId, long Value,
         DateTime? SourceTimestamp, bool IsHeartbeat,
-        DateTime? MessageTimestamp = null, uint? SequenceNumber = null);
+        DateTime? MessageTimestamp = null, uint? SequenceNumber = null,
+        bool IsKeyFrame = false);
 
     /// <summary>
     /// <para>

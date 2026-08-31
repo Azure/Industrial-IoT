@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Application type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<ApplicationType>))]
     public enum ApplicationType
     {
         /// <summary>

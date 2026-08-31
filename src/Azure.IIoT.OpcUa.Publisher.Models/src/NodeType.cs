@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// The node type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<NodeType>))]
     public enum NodeType
     {
         /// <summary>

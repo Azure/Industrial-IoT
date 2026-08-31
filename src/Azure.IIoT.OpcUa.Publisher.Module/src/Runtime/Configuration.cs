@@ -1,48 +1,46 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
-    using Azure.Iot.Operations.Protocol;
-    using Furly.Azure.EventHubs;
-    using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Operations.Runtime;
-    using Furly.Extensions.AspNetCore.OpenApi;
-    using Furly.Extensions.Configuration;
-    using Furly.Extensions.Dapr;
-    using Furly.Extensions.Logging;
-    using Furly.Extensions.Messaging.Runtime;
-    using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Rpc.Runtime;
-    using Furly.Tunnel.Router.Services;
-    using k8s;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
+    using Azure.IIoT.OpcUa.Core.Configuration;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
+    using Azure.IIoT.OpcUa.Core.Logging;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
+    using Azure.IIoT.OpcUa.Core.Rpc.Servers;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
-    using Microsoft.OpenApi;
     using OpenTelemetry;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Trace;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Runtime.Serialization;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -53,55 +51,104 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Add all publisher dependencies minus connectivity components.
         /// </summary>
-        /// <param name="builder"></param>
-        public static void AddPublisherServices(this ContainerBuilder builder)
+        /// <param name="services"></param>
+        public static void AddPublisherServices(this IServiceCollection services)
         {
-            builder.AddDefaultJsonSerializer();
-            builder.AddNewtonsoftJsonSerializer();
-            builder.AddMessagePackSerializer();
-            builder.AddPublisherCore();
+            services.AddPublisherCore();
 
-            builder.RegisterType<HealthCheckRegistrar>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CommandLine>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterType<LoggingLevel>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConsoleLogging<ConsoleFormatterOptions>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConsoleLogging<SimpleConsoleFormatterOptions>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConsoleLogging<JsonConsoleFormatterOptions>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<Syslog>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterType<Kestrel>()
-                .AsImplementedInterfaces();
+            services.AddSingleton<HealthCheckRegistrar>();
+            services.AddSingleton<IOptions<HealthCheckServiceOptions>>(
+                static provider => provider.GetRequiredService<HealthCheckRegistrar>());
+            services.AddSingleton<CommandLine>();
+            services.AddSingleton<IDictionary<string, string?>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<ICollection<KeyValuePair<string, string?>>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IEnumerable<KeyValuePair<string, string?>>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IEnumerable>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IDictionary>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<ICollection>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IReadOnlyDictionary<string, string?>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IReadOnlyCollection<KeyValuePair<string, string?>>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<ISerializable>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IDeserializationCallback>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddTransient<LoggingLevel>();
+            services.AddTransient<IConfigureOptions<LoggerFilterOptions>>(
+                static provider => provider.GetRequiredService<LoggingLevel>());
+            services.AddTransient<IConfigureNamedOptions<LoggerFilterOptions>>(
+                static provider => provider.GetRequiredService<LoggingLevel>());
+            services.AddTransient<ConsoleLogging<ConsoleFormatterOptions>>();
+            services.AddTransient<IPostConfigureOptions<ConsoleLoggerOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<ConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureOptions<ConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<ConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureNamedOptions<ConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<ConsoleFormatterOptions>>());
+            services.AddTransient<ConsoleLogging<SimpleConsoleFormatterOptions>>();
+            services.AddTransient<IPostConfigureOptions<ConsoleLoggerOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<SimpleConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureOptions<SimpleConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<SimpleConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureNamedOptions<SimpleConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<SimpleConsoleFormatterOptions>>());
+            services.AddTransient<ConsoleLogging<JsonConsoleFormatterOptions>>();
+            services.AddTransient<IPostConfigureOptions<ConsoleLoggerOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<JsonConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureOptions<JsonConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<JsonConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureNamedOptions<JsonConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<JsonConsoleFormatterOptions>>());
+            services.AddSingleton<Syslog>();
+            services.AddTransient<Kestrel>();
+            services.AddTransient<IConfigureOptions<KestrelServerOptions>>(
+                static provider => provider.GetRequiredService<Kestrel>());
+            services.AddTransient<IConfigureNamedOptions<KestrelServerOptions>>(
+                static provider => provider.GetRequiredService<Kestrel>());
 
             // Register and configure controllers
-            builder.RegisterType<MethodRouter>()
-                .AsImplementedInterfaces().SingleInstance()
-                .PropertiesAutowired(
-                    PropertyWiringOptions.AllowCircularDependencies);
-            builder.RegisterType<Router>()
-                .AsImplementedInterfaces();
+            CoreServiceCollectionEx.AddMethodRouter(services);
+            services.AddTransient<Router>();
+            services.AddTransient<IPostConfigureOptions<RouterOptions>>(
+                static provider => provider.GetRequiredService<Router>());
 
-            builder.RegisterType<PublisherController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConfigurationController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<WriterController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<GeneralController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<CertificatesController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiagnosticsController>()
-                .AsImplementedInterfaces();
+            services.AddTransient<PublisherController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<PublisherController>());
+            services.AddTransient<ConfigurationController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<ConfigurationController>());
+            services.AddTransient<WriterController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<WriterController>());
+            services.AddTransient<GeneralController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<GeneralController>());
+            services.AddTransient<HistoryController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<HistoryController>());
+            services.AddTransient<DiscoveryController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<DiscoveryController>());
+            services.AddTransient<CertificatesController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<CertificatesController>());
+            services.AddTransient<DiagnosticsController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<DiagnosticsController>());
+
+            // FileSystemController is intentionally NOT forwarded as an
+            // IMethodController (its file up/download endpoints are HTTP only and
+            // were never dispatched over the direct method transport). Register
+            // the concrete type so the minimal API endpoints can resolve it.
+            services.AddTransient<FileSystemController>();
         }
 
         /// <summary>
@@ -109,6 +156,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "PublisherConfig.ToOptions() binds options from configuration " +
+            "via reflection; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "PublisherConfig.ToOptions() binds options from configuration " +
+            "via reflection; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
         public static void AddResourceMonitoring(this IServiceCollection services,
             IConfiguration configuration)
         {
@@ -117,34 +172,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 services.AddResourceMonitoring();
             }
+
         }
 
         /// <summary>
         /// Add mqtt client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddMqttClient(this ContainerBuilder builder,
+        public static void AddMqttClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var mqttOptions = new MqttOptions();
             new MqttBroker(configuration).Configure(mqttOptions);
             if (mqttOptions.HostName != null)
             {
-                builder.AddMqttClient();
-                builder.RegisterType<MqttBroker>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<SchemaTopicBuilder>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddMqttClient(services);
+                services.AddTransient<MqttBroker>();
+                services.AddTransient<IConfigureOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<MqttBroker>());
+                services.AddTransient<IConfigureNamedOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<MqttBroker>());
+                services.AddTransient<SchemaTopicBuilder>();
+                services.AddTransient<IConfigureOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<SchemaTopicBuilder>());
+                services.AddTransient<IConfigureNamedOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<SchemaTopicBuilder>());
             }
         }
 
         /// <summary>
         /// Add IoT edge services
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddIoTEdgeServices(this ContainerBuilder builder,
+        public static void AddIoTEdgeServices(this IServiceCollection services,
             IConfiguration configuration)
         {
             // Validate edge configuration
@@ -152,46 +214,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new IoTEdge(configuration).Configure(iotEdgeOptions);
             if (iotEdgeOptions.EdgeHubConnectionString != null)
             {
-                builder.AddIoTEdgeServices();
-                builder.RegisterType<IoTEdge>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddIoTEdgeServices(services);
+                services.AddTransient<IoTEdge>();
+                services.AddTransient<IConfigureOptions<IoTEdgeClientOptions>>(
+                    static provider => provider.GetRequiredService<IoTEdge>());
+                services.AddTransient<IConfigureNamedOptions<IoTEdgeClientOptions>>(
+                    static provider => provider.GetRequiredService<IoTEdge>());
             }
         }
 
         /// <summary>
         /// Add IoT operations services
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddIoTOperationsServices(this ContainerBuilder builder,
+        public static void AddIoTOperationsServices(this IServiceCollection services,
             IConfiguration configuration)
         {
             var publisherOptions = new PublisherOptions();
             new Aio(configuration).Configure(publisherOptions);
             if (publisherOptions.IsAzureIoTOperationsConnector.HasValue)
             {
-                // builder.AddAzureIoTOperations();
-                builder.AddAzureIoTOperationsCore();
-                builder.AddAdrClient();
-                builder.AddTelemetryPublisher();
-                builder.AddSchemaRegistry();
-                // builder.AddLeaderElection();
-                // builder.AddStateStore();
+                // TODO(Phase 6): IoTHubby does not cover AIO/ADR yet. Register
+                // stubs that preserve the AssetDeviceIntegration DI shape.
+                services.AddSingleton<IAioAdrClient, AioAdrStubClient>();
+                services.AddSingleton<IAioSrClient, AioSrStubClient>();
 
                 if (publisherOptions.UseFileChangePolling == true)
                 {
-                    builder.Configure<AioOptions>(options =>
+                    services.Configure<AioOptions>(options =>
                         options.FileSystemPollingInterval = TimeSpan.FromSeconds(5));
                 }
 
-                builder.RegisterType<Aio>().AsImplementedInterfaces();
+                services.AddTransient<Aio>();
+                services.AddTransient<IConfigureOptions<PublisherOptions>>(
+                    static provider => provider.GetRequiredService<Aio>());
+                services.AddTransient<IConfigureNamedOptions<PublisherOptions>>(
+                    static provider => provider.GetRequiredService<Aio>());
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
-                    builder.RegisterInstance(new HybridLogicalClock(
-                        DateTime.UtcNow, 0, publisherOptions.PublisherId))
-                        .AsSelf().SingleInstance();
-                    builder.RegisterType<AssetDeviceIntegration>()
-                        .AsSelf().AsImplementedInterfaces().SingleInstance();
+                    services.AddSingleton<AssetDeviceIntegration>();
+                    services.AddSingleton<IAioSrCallbacks>(
+                        static provider => provider.GetRequiredService<AssetDeviceIntegration>());
                 }
             }
         }
@@ -199,9 +263,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Add Event Hubs client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddEventHubsClient(this ContainerBuilder builder,
+        public static void AddEventHubsClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             // Validate edge configuration
@@ -209,103 +273,130 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new EventHubs(configuration).Configure(eventHubsOptions);
             if (eventHubsOptions.ConnectionString != null)
             {
-                builder.AddHubEventClient();
-                builder.RegisterType<EventHubs>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddHubEventClient(services);
+                services.AddTransient<EventHubs>();
+                services.AddTransient<IConfigureOptions<EventHubsClientOptions>>(
+                    static provider => provider.GetRequiredService<EventHubs>());
+                services.AddTransient<IConfigureNamedOptions<EventHubsClientOptions>>(
+                    static provider => provider.GetRequiredService<EventHubs>());
             }
         }
 
         /// <summary>
         /// Add file system client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddFileSystemEventClient(this ContainerBuilder builder,
+        public static void AddFileSystemEventClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var fsOptions = new FileSystemEventClientOptions();
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.OutputFolder != null)
             {
-                builder.AddFileSystemEventClient();
-                builder.RegisterType<FileSystem>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<AvroWriter>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<ConsoleWriter>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddFileSystemEventClient(services);
+                services.AddTransient<FileSystem>();
+                services.AddTransient<IConfigureOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<ConsoleWriter>();
+                services.AddTransient<IConfigureOptions<ConsoleWriterOptions>>(
+                    static provider => provider.GetRequiredService<ConsoleWriter>());
+                services.AddTransient<IConfigureNamedOptions<ConsoleWriterOptions>>(
+                    static provider => provider.GetRequiredService<ConsoleWriter>());
             }
         }
 
         /// <summary>
         /// Add file system rpc server
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddFileSystemRpcServer(this ContainerBuilder builder,
+        public static void AddFileSystemRpcServer(this IServiceCollection services,
             IConfiguration configuration)
         {
             var fsOptions = new FileSystemRpcServerOptions();
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.RequestFilePath != null)
             {
-                builder.AddFileSystemRpcServer();
-                builder.RegisterType<FileSystem>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddFileSystemRpcServer(services);
+                services.AddTransient<FileSystem>();
+                services.AddTransient<IConfigureOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
             }
         }
 
         /// <summary>
         /// Add http event client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddHttpEventClient(this ContainerBuilder builder,
+        public static void AddHttpEventClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var httpOptions = new HttpEventClientOptions();
             new Http(configuration).Configure(httpOptions);
             if (httpOptions.HostName != null)
             {
-                builder.AddHttpEventClient();
-                builder.RegisterType<Http>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddHttpEventClient(services);
+                services.AddTransient<Http>();
+                services.AddTransient<IConfigureOptions<HttpEventClientOptions>>(
+                    static provider => provider.GetRequiredService<Http>());
+                services.AddTransient<IConfigureNamedOptions<HttpEventClientOptions>>(
+                    static provider => provider.GetRequiredService<Http>());
             }
         }
 
         /// <summary>
         /// Add dapr client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddDaprPubSubClient(this ContainerBuilder builder,
+        public static void AddDaprPubSubClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
             if (!string.IsNullOrWhiteSpace(daprOptions.PubSubComponent))
             {
-                builder.AddDaprPubSubClient();
-                builder.RegisterType<Dapr>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddDaprPubSubClient(services);
+                services.AddTransient<Dapr>();
+                services.AddTransient<IConfigureOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
+                services.AddTransient<IConfigureNamedOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
             }
         }
 
         /// <summary>
         /// Add dapr client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddDaprStateStoreClient(this ContainerBuilder builder,
+        public static void AddDaprStateStoreClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
             if (!string.IsNullOrWhiteSpace(daprOptions.StateStoreName))
             {
-                builder.AddDaprStateStoreClient();
-                builder.RegisterType<Dapr>()
-                    .AsImplementedInterfaces();
+                CoreServiceCollectionEx.AddDaprStateStoreClient(services);
+                services.AddTransient<Dapr>();
+                services.AddTransient<IConfigureOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
+                services.AddTransient<IConfigureNamedOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
             }
         }
 
@@ -321,32 +412,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 app.UseOpenTelemetryPrometheusScrapingEndpoint();
             }
             return app;
-        }
-
-        /// <summary>
-        /// Add open api
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddOpenApi(this IServiceCollection services)
-        {
-            return services
-                .AddSingleton<IConfigureOptions<OpenApiOptions>, OpenApi>()
-                .AddSingleton<IConfigureNamedOptions<OpenApiOptions>, OpenApi>()
-                .AddSwagger(Constants.EntityTypePublisher, string.Empty);
-        }
-
-        /// <summary>
-        /// Use open api
-        /// </summary>
-        /// <param name="builder"></param>
-        public static IApplicationBuilder UseOpenApi(this IApplicationBuilder builder)
-        {
-            var options = builder.ApplicationServices.GetService<IOptions<PublisherOptions>>();
-            if (options?.Value.DisableOpenApiEndpoint != true)
-            {
-                return builder.UseSwagger();
-            }
-            return builder;
         }
 
         /// <summary>
@@ -491,8 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IConfigurationBuilder builder)
         {
             var connectorConfigMountPath = Environment.GetEnvironmentVariable(
-                Azure.Iot.Operations.Connector.ConnectorConfigurations.
-                    ConnectorFileMountSettings.ConnectorConfigMountPathEnvVar);
+                kConnectorConfigMountPathEnvironmentVariable);
             if (string.IsNullOrEmpty(connectorConfigMountPath))
             {
                 return builder;
@@ -500,14 +564,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var additionalConfiguration = Path.Combine(connectorConfigMountPath,
                 "ADDITIONAL_CONNECTOR_CONFIGURATION");
             var diagnostics = Path.Combine(connectorConfigMountPath,
-                 Azure.Iot.Operations.Connector.ConnectorConfigurations.
-                    ConnectorFileMountSettings.ConnectorDiagnosticsConfigFileName);
+                kConnectorDiagnosticsConfigFileName);
             return builder
                 .AddJsonFile(diagnostics, optional: true,
                     reloadOnChange: true)
                 .AddJsonFile(additionalConfiguration, optional: true,
                     reloadOnChange: true);
         }
+
+        private const string kConnectorConfigMountPathEnvironmentVariable =
+            "CONNECTOR_CONFIGURATION_MOUNT_PATH";
+        private const string kConnectorDiagnosticsConfigFileName = "DIAGNOSTICS";
 
         /// <summary>
         /// Add obs configuration
@@ -679,17 +746,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, KestrelServerOptions options)
             {
-                if (_options.Value.UnsecureHttpServerPort != null)
+                var (unsecurePort, securePort) = GetListenPorts(_options.Value);
+
+                if (unsecurePort != null)
                 {
-                    options.ListenAnyIP(_options.Value.UnsecureHttpServerPort.Value);
+                    options.ListenAnyIP(unsecurePort.Value);
                 }
 
-                if (_options.Value.HttpServerPort != null)
+                if (securePort != null)
                 {
-                    options.Listen(IPAddress.Any, _options.Value.HttpServerPort.Value,
+                    options.Listen(IPAddress.Any, securePort.Value,
                         listenOptions => listenOptions.UseHttps(httpsOptions => httpsOptions
                             .ServerCertificateSelector = (_, _) => _certificates.Certificate));
                 }
+            }
+
+            /// <summary>
+            /// Resolve the ports to listen on. The MCP tool server is mapped onto
+            /// these listeners rather than opening one of its own, so enabling it
+            /// has to guarantee that at least one exists: when the configuration
+            /// left both off, the default https port is used.
+            /// </summary>
+            /// <param name="options"></param>
+            internal static (int? UnsecurePort, int? SecurePort) GetListenPorts(
+                PublisherOptions options)
+            {
+                var securePort = options.HttpServerPort;
+                if (options.EnableMcpServer == true &&
+                    options.UnsecureHttpServerPort == null && securePort == null)
+                {
+                    securePort = PublisherConfig.HttpServerPortDefault;
+                }
+                return (options.UnsecureHttpServerPort, securePort);
             }
 
             private readonly IOptions<PublisherOptions> _options;
@@ -1038,32 +1126,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Open api configuration
+        /// Open api configuration keys. The REST surface now serves its OpenAPI
+        /// document through the built-in <c>Microsoft.AspNetCore.OpenApi</c>
+        /// generator (see <c>Startup</c>), which always emits an OpenAPI 3.x
+        /// document. The legacy <c>useopenapiv3</c> flag is still accepted for
+        /// backwards command line compatibility but no longer toggles the Swagger
+        /// 2.0 document that the removed Swashbuckle pipeline used to produce.
         /// </summary>
-        internal sealed class OpenApi : ConfigureOptionBase<OpenApiOptions>
+        internal static class OpenApi
         {
             public const string UseOpenApiV3Key = "UseOpenApiV3";
-
-            /// <inheritdoc/>
-            public override void Configure(string? name, OpenApiOptions options)
-            {
-                options.SchemaVersion = GetBoolOrDefault(UseOpenApiV3Key) ? 3 : 2;
-                options.ProjectUri = new Uri("https://www.github.com/Azure/Industrial-IoT");
-                options.License = new OpenApiLicense
-                {
-                    Name = "MIT LICENSE",
-                    Url = new Uri("https://opensource.org/licenses/MIT")
-                };
-            }
-
-            /// <summary>
-            /// Create configuration
-            /// </summary>
-            /// <param name="configuration"></param>
-            public OpenApi(IConfiguration configuration)
-                : base(configuration)
-            {
-            }
         }
 
         /// <summary>
@@ -1212,7 +1284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     if (string.IsNullOrEmpty(options.HostName))
                     {
-                        options.ClientId = GetStringOrDefault(HostNameKey);
+                        options.HostName = GetStringOrDefault(HostNameKey);
                     }
                     if (string.IsNullOrEmpty(options.UserName))
                     {
@@ -1246,28 +1318,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public MqttBroker(IConfiguration configuration)
-                : base(configuration)
-            {
-            }
-        }
-
-        /// <summary>
-        /// Avro file writer configuration
-        /// </summary>
-        internal sealed class AvroWriter : ConfigureOptionBase<AvroFileWriterOptions>
-        {
-            public const string DisableKey = "DisableAvroFileWriter";
-
-            public override void Configure(string? name, AvroFileWriterOptions options)
-            {
-                options.Disabled = GetBoolOrDefault(DisableKey);
-            }
-
-            /// <summary>
-            /// Transport configuration
-            /// </summary>
-            /// <param name="configuration"></param>
-            public AvroWriter(IConfiguration configuration)
                 : base(configuration)
             {
             }
@@ -1357,16 +1407,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     options.EdgeHubConnectionString = string.Empty;
                 }
-                if (options.Transport == TransportOption.None)
-                {
-                    if (Enum.TryParse<TransportOption>(GetStringOrDefault(HubTransport),
-                            out var transport) ||
-                        Enum.TryParse(GetStringOrDefault(UpstreamProtocol),
-                            out transport))
-                    {
-                        options.Transport = transport;
-                    }
-                }
+                // IoTHubby/IoTHubby.Edge is MQTT-only. Legacy transport selectors
+                // (HubTransport/UpstreamProtocol) are accepted but ignored here.
                 options.Product = $"OpcPublisher_{GetType().Assembly.GetReleaseVersion()}";
             }
 
@@ -1415,7 +1457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, PublisherOptions options)
             {
-                if (!KubernetesClientConfiguration.IsInCluster())
+                if (!KubernetesEnvironment.IsInCluster())
                 {
                     return;
                 }
@@ -1555,4 +1597,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             return parts.ToDictionary(kvp => kvp[0], (kvp) => kvp[1], StringComparer.OrdinalIgnoreCase);
         }
     }
+
+    /// <summary>
+    /// Placeholder AIO options used while the Legacy AIO client is stubbed.
+    /// </summary>
+    internal sealed class AioOptions
+    {
+        /// <summary>
+        /// File system polling interval.
+        /// </summary>
+        public TimeSpan FileSystemPollingInterval { get; set; }
+    }
+
 }

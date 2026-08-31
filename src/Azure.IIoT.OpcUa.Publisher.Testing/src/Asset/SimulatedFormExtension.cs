@@ -25,8 +25,8 @@ namespace Asset
             {
                 try
                 {
-                    var value = field.GetValue(typeof(DataTypeIds)) as NodeId;
-                    if (value != null && field.Name == form.PayloadType)
+                    if (field.GetValue(typeof(DataTypeIds)) is NodeId value &&
+                        field.Name == form.PayloadType)
                     {
                         return value;
                     }

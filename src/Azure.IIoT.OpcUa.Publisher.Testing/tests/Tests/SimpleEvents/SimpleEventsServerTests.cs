@@ -7,10 +7,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using FluentAssertions;
     using SimpleEvents;
     using System;
     using System.Collections.Generic;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.EventFilter);
-            result.EventFilter.Should().BeEquivalentTo(new EventFilterModel
+            AssertEventFilter(result.EventFilter, new EventFilterModel
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
@@ -140,42 +140,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.EventFilter);
-            result.EventFilter.Should().BeEquivalentTo(new EventFilterModel
+            AssertEventFilter(result.EventFilter, new EventFilterModel
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventId.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventType.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceName.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Time.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReceiveTime.Value"
@@ -187,13 +187,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         DisplayName = "/LocalTime.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Message.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=2130",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
@@ -258,6 +258,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
                 }
             });
+        }
+
+        private static void AssertEventFilter(EventFilterModel actual,
+            EventFilterModel expected)
+        {
+            Assert.Equal(expected.SelectClauses!.Count, actual.SelectClauses!.Count);
+            for (var index = 0; index < expected.SelectClauses.Count; index++)
+            {
+                var expectedClause = expected.SelectClauses[index];
+                var actualClause = actual.SelectClauses[index];
+                Assert.Equal(expectedClause.TypeDefinitionId, actualClause.TypeDefinitionId);
+                Assert.Equal(expectedClause.BrowsePath, actualClause.BrowsePath);
+                Assert.Equal(expectedClause.AttributeId, actualClause.AttributeId);
+                Assert.Equal(expectedClause.DisplayName, actualClause.DisplayName);
+            }
+
+            if (expected.WhereClause is null)
+            {
+                Assert.Null(actual.WhereClause);
+                return;
+            }
+            var expectedElements = expected.WhereClause.Elements!;
+            var actualElements = Assert.IsType<ContentFilterModel>(actual.WhereClause).Elements!;
+            Assert.Equal(expectedElements.Count, actualElements.Count);
+            for (var index = 0; index < expectedElements.Count; index++)
+            {
+                var expectedElement = expectedElements[index];
+                var actualElement = actualElements[index];
+                Assert.Equal(expectedElement.FilterOperator, actualElement.FilterOperator);
+                Assert.Equal(expectedElement.FilterOperands!.Count,
+                    actualElement.FilterOperands!.Count);
+                for (var operandIndex = 0; operandIndex < expectedElement.FilterOperands.Count;
+                    operandIndex++)
+                {
+                    var expectedOperand = expectedElement.FilterOperands[operandIndex];
+                    var actualOperand = actualElement.FilterOperands[operandIndex];
+                    Assert.Equal(expectedOperand.Index, actualOperand.Index);
+                    Assert.Equal(expectedOperand.NodeId, actualOperand.NodeId);
+                    Assert.Equal(expectedOperand.BrowsePath, actualOperand.BrowsePath);
+                    Assert.Equal(expectedOperand.AttributeId, actualOperand.AttributeId);
+                    Assert.Equal(expectedOperand.DataType, actualOperand.DataType);
+                    Assert.True(JsonNode.DeepEquals(expectedOperand.Value, actualOperand.Value),
+                        $"{expectedOperand.Value} != {actualOperand.Value}");
+                }
+            }
         }
 
         private readonly T _connection;

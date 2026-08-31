@@ -5,14 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using SerializerException = global::Azure.IIoT.OpcUa.Core.Exceptions.SerializerException;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Autofac;
-    using Furly;
-    using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -39,18 +39,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="publisherHost"></param>
         /// <param name="logger"></param>
         /// <param name="publishedNodesProvider"></param>
-        /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
         /// <param name="timeProvider"></param>
         public PublishedNodesJsonServices(PublishedNodesConverter publishedNodesJobConverter,
             IPublisher publisherHost, ILogger<PublishedNodesJsonServices> logger,
-            IStorageProvider publishedNodesProvider, IJsonSerializer jsonSerializer,
+            IStorageProvider publishedNodesProvider,
             IDiagnosticCollector? diagnostics = null, TimeProvider? timeProvider = null)
         {
             _publishedNodesJobConverter = publishedNodesJobConverter;
             _logger = logger;
             _publishedNodesProvider = publishedNodesProvider;
-            _jsonSerializer = jsonSerializer;
             _publisherHost = publisherHost;
             _timeProvider = timeProvider ?? TimeProvider.System;
             _diagnostics = diagnostics; // Optional
@@ -558,7 +556,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (nodesToRemoveSet.Count != 0)
                 {
                     request.OpcNodes = [.. nodesToRemoveSet];
-                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
+                    var entriesNotFoundJson = Json.SerializeToString(request,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>());
                     throw new ResourceNotFoundException($"Nodes not found: \n{entriesNotFoundJson}");
                 }
 
@@ -890,8 +889,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
-                var updatedContent = _jsonSerializer.SerializeToString(
-                    currentNodes, SerializeOption.Indented) ?? string.Empty;
+                var updatedContent = Json.SerializeToString(currentNodes,
+                    Json.GetTypeInfo<IEnumerable<PublishedNodesEntryModel>>(),
+                    SerializeOption.Indented) ?? string.Empty;
 
                 _publishedNodesProvider.WriteContent(updatedContent, true);
                 // Update _lastKnownFileHash
@@ -920,7 +920,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public IAwaiter<PublishedNodesJsonServices> GetAwaiter()
         {
-            return (_started?.Task ?? Task.CompletedTask).AsAwaiter(this);
+            return Azure.IIoT.OpcUa.Core.AwaitableExtensions.AsAwaiter(
+                _started?.Task ?? Task.CompletedTask, this);
         }
 
         /// <inheritdoc/>
@@ -1193,7 +1194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 found = entry;
             }
             found.MessageEncoding = MessageEncoding.Json;
-            found.MessagingMode = MessagingMode.FullSamples;
+            found.MessagingMode = MessagingMode.FullNetworkMessages;
             found.OpcNodes ??= [];
             var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
             if (node == null)
@@ -1273,7 +1274,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TimeProvider _timeProvider;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly IDiagnosticCollector? _diagnostics;
         private readonly IPublisher _publisherHost;
         private string _lastKnownFileHash = string.Empty;

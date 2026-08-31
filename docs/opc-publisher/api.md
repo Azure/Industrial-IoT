@@ -957,6 +957,131 @@ Get diagnostics for all active clients including server and client session diagn
 * `application/x-msgpack`
 
 
+<a name="getallwritergroupstates"></a>
+#### GetAllWriterGroupStates
+```
+GET /v2/diagnostics/writergroups
+```
+
+
+##### Description
+Get the state of all writer groups currently configured in the publisher, including the state of each of their dataset writers.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|< [WriterGroupStateDiagnosticModel](definitions.md#writergroupstatediagnosticmodel) > array|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getwritergroupstate"></a>
+#### GetWriterGroupState
+```
+GET /v2/diagnostics/writergroups/{dataSetWriterGroup}
+```
+
+
+##### Description
+Get the state of a single writer group and the state of each of its dataset writers.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group identifier.|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|[WriterGroupStateDiagnosticModel](definitions.md#writergroupstatediagnosticmodel)|
+|**400**|The passed in information is invalid.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The item was not found.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="sendwritergroupkeyframe"></a>
+#### SendWriterGroupKeyFrame
+```
+POST /v2/diagnostics/writergroups/{dataSetWriterGroup}/keyframe
+```
+
+
+##### Description
+Request that every dataset writer in the writer group emits a key frame message on its next publish.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group identifier.|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|No Content|
+|**404**|The item was not found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="senddatasetwriterkeyframe"></a>
+#### SendDataSetWriterKeyFrame
+```
+POST /v2/diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe
+```
+
+
+##### Description
+Request that a single dataset writer emits a key frame message on its next publish.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group identifier.|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The dataset writer identifier.|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|No Content|
+|**404**|The item was not found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
 <a name="resetallconnections"></a>
 #### ResetAllConnections
 ```

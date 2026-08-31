@@ -36,7 +36,7 @@ namespace SimpleEvents
     public class SimpleEventsServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

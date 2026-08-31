@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;

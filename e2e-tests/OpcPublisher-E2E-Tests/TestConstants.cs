@@ -356,7 +356,13 @@ namespace OpcPublisherAEE2ETests
             /// <summary>
             /// The trait value for PublisherMode = standalone
             /// </summary>
-            public const string PublisherModeStandaloneTraitValue = "standaloneX";
+            //
+            // Kept as "standalone" so it matches the PublisherMode filter the
+            // e2e-standalone workflow passes. Main still carries the dormant
+            // "standaloneX" spelling from 2022, under which the basic
+            // standalone job silently discovers no tests.
+            //
+            public const string PublisherModeStandaloneTraitValue = "standalone";
 
             /// <summary>
             /// <para>

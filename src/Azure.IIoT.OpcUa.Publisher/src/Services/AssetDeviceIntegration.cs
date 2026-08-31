@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
-    using Furly.Azure.IoT.Operations.Services;
-    using Furly.Extensions.Serializers;
+    using IEventSchema = Azure.IIoT.OpcUa.Core.Messaging.IEventSchema;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Nito.AsyncEx;
@@ -31,8 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
-    using System.Text.Json;
-    using System.Text.Json.Serialization;
+    using System.Text.Json.Nodes;
+    using System.Text.Json.Serialization.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Channels;
@@ -64,13 +64,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="configurationServices"></param>
         /// <param name="connections"></param>
         /// <param name="discovery"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IAioSrClient schemaRegistry,
             IPublishedNodesServices publishedNodes, IConfigurationServices configurationServices,
             IConnectionServices<ConnectionModel> connections, IDiscoveryServices discovery,
-            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            IOptions<PublisherOptions> options,
             ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
@@ -78,7 +77,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _configurationServices = configurationServices;
             _connections = connections;
             _discovery = discovery;
-            _serializer = serializer;
             _options = options;
             _logger = logger;
             _cts = new CancellationTokenSource();
@@ -157,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async ValueTask OnSchemaRegisteredAsync(
-            Furly.Extensions.Messaging.IEventSchema schema, Schema registration,
+            IEventSchema schema, Schema registration,
             CancellationToken ct)
         {
             if (registration.Name == null ||
@@ -583,7 +581,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (_logger.IsDebugLogConfigurationEnabled())
                             {
                                 _logger.NewConfigurationApplied(
-                                    _serializer.SerializeToString(entries, SerializeOption.Indented));
+                                    Json.SerializeToString(entries,
+                                        Json.GetTypeInfo<List<PublishedNodesEntryModel>>(),
+                                        SerializeOption.Indented));
                             }
                             _logger.AssetsAndDevicesUpdated(assets.Count, devices.Count);
                         }
@@ -677,7 +677,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (_logger.IsDebugLogConfigurationEnabled())
                         {
                             _logger.DroppingResultWithoutRequiredInformation(
-                                _serializer.SerializeToString(found.Result));
+                                Json.SerializeToString(found.Result,
+                                    Json.GetTypeInfo<PublishedNodesEntryModel>()));
                         }
                         else
                         {
@@ -784,7 +785,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Configuration = new DestinationConfiguration
                             {
                                 Qos = _options.Value.DefaultQualityOfService
-                                    == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                    == Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                 Topic = CreateTopic(),
                                 Retain = _options.Value.DefaultMessageRetention
                                     == true ? Retain.Keep : Retain.Never,
@@ -820,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 Configuration = new DestinationConfiguration
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
-                                        == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                        == Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                     Topic = CreateTopic(),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
@@ -851,7 +852,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Configuration = new DestinationConfiguration
                                     {
                                         Qos = _options.Value.DefaultQualityOfService
-                                            == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                            == Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                         Topic = CreateTopic(n.DisplayName),
                                         Retain = _options.Value.DefaultMessageRetention
                                             == true ? Retain.Keep : Retain.Never,
@@ -888,7 +889,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_logger.IsDebugLogConfigurationEnabled())
                 {
                     _logger.ReportingNewDiscoveredAsset(uniqueAssetName, assetId, assetTypeRef,
-                        JsonSerializer.Serialize(dAsset, kDebugSerializerOptions));
+                        Json.SerializeToString(dAsset,
+                            Json.GetTypeInfo<DiscoveredAsset>(),
+                            SerializeOption.Indented));
                 }
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
@@ -1017,7 +1020,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationType),
                     desc.Server.ApplicationType.ToString());
-                if (desc.Server.ApplicationName?.Text != null)
+                if (desc.Server.ApplicationName.Text != null)
                 {
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationName),
                         desc.Server.ApplicationName.Text);
@@ -1037,7 +1040,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryProfileUri),
                         desc.Server.DiscoveryProfileUri);
                 }
-                if (desc.Server.DiscoveryUrls?.Count > 0)
+                if (desc.Server.DiscoveryUrls.Count > 0)
                 {
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryUrls),
                         string.Join(',', desc.Server.DiscoveryUrls));
@@ -1104,6 +1107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Deserialize existing configuration
                         var errors = new ValidationErrors(this);
                         var epModelExisting = Deserialize(existing.Value.Value.AdditionalConfiguration,
+                            Json.GetTypeInfo<DeviceEndpointConfiguration>(),
                             () => new DeviceEndpointConfiguration(), errors, resource!);
                         if (epModelExisting != null)
                         {
@@ -1124,7 +1128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     continue;
 #endif
                 }
-                var additionalConfiguration = _serializer.SerializeToString(epModel);
+                var additionalConfiguration = Json.SerializeToString(epModel,
+                    Json.GetTypeInfo<DeviceEndpointConfiguration>());
                 if (additionalConfiguration.Length > 512)
                 {
                     _logger.EndpointConfigurationTooLong(uniqueName, deviceName,
@@ -1151,7 +1156,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_logger.IsDebugLogConfigurationEnabled())
             {
                 _logger.ReportingNewDiscoveredDevice(deviceName, endpointType,
-                    JsonSerializer.Serialize(dDevice, kDebugSerializerOptions));
+                    Json.SerializeToString(dDevice,
+                        Json.GetTypeInfo<DiscoveredDevice>(),
+                        SerializeOption.Indented));
             }
             await _client.ReportDiscoveredDeviceAsync(deviceName, dDevice,
                 endpointType, cancellationToken: ct).ConfigureAwait(false);
@@ -1227,6 +1234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var deviceEndpointResource = new DeviceEndpointResource(deviceResource.DeviceName,
                     deviceResource.Device, deviceRef.EndpointName);
                 var endpointConfiguration = Deserialize(endpoint.AdditionalConfiguration,
+                    Json.GetTypeInfo<DeviceEndpointConfiguration>(),
                     () => new DeviceEndpointConfiguration(), errors, deviceEndpointResource);
                 if (endpointConfiguration == null)
                 {
@@ -1266,6 +1274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (asset.Asset.Datasets != null)
                 {
                     var dataSetAdditionalConfiguration = Deserialize(asset.Asset.DefaultDatasetsConfiguration,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>(),
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
                     if (dataSetAdditionalConfiguration != null)
@@ -1282,6 +1291,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (asset.Asset.EventGroups != null)
                 {
                     var eventAdditionalConfiguration = Deserialize(asset.Asset.DefaultEventsConfiguration,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>(),
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
                     if (eventAdditionalConfiguration != null)
@@ -1299,6 +1309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (asset.Asset.ManagementGroups != null)
                 {
                     var managementGroupConfiguration = Deserialize(asset.Asset.DefaultManagementGroupsConfiguration,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>(),
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
                     if (managementGroupConfiguration != null)
@@ -1334,15 +1345,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="asset"></param>
         /// <param name="device"></param>
         /// <returns></returns>
-        internal static Dictionary<string, VariantValue>? CollectAssetAndDeviceProperties(
+        internal static Dictionary<string, JsonNode?>? CollectAssetAndDeviceProperties(
             AssetResource asset, DeviceResource device)
         {
-            var fields = new Dictionary<string, VariantValue>();
-            static void Add(Dictionary<string, VariantValue> fields, string key, VariantValue? value)
+            var fields = new Dictionary<string, JsonNode?>();
+            static void Add(Dictionary<string, JsonNode?> fields, string key, string? value)
             {
-                if (!VariantValue.IsNullOrNullValue(value))
+                if (!string.IsNullOrEmpty(value))
                 {
-                    fields.AddOrUpdate(key, value);
+                    fields.AddOrUpdate(key, JsonValue.Create(value));
                 }
             }
 
@@ -1358,7 +1369,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Add(fields, nameof(Device.Manufacturer), device.Device.Manufacturer);
             Add(fields, nameof(Device.OperatingSystem), device.Device.OperatingSystem);
             Add(fields, nameof(Device.OperatingSystemVersion), device.Device.OperatingSystemVersion);
-            Add(fields, nameof(Device.Version), device.Device.Version);
+            if (device.Device.Version.HasValue)
+            {
+                fields.AddOrUpdate(nameof(Device.Version),
+                    JsonValue.Create(device.Device.Version.Value));
+            }
 
             if (asset.Asset.Attributes != null)
             {
@@ -1376,7 +1391,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Add(fields, nameof(Asset.ProductCode), asset.Asset.ProductCode);
             Add(fields, nameof(Asset.SerialNumber), asset.Asset.SerialNumber);
             Add(fields, nameof(Asset.SoftwareRevision), asset.Asset.SoftwareRevision);
-            Add(fields, nameof(Asset.Version), asset.Asset.Version);
+            if (asset.Asset.Version.HasValue)
+            {
+                fields.AddOrUpdate(nameof(Asset.Version),
+                    JsonValue.Create(asset.Asset.Version.Value));
+            }
             Add(fields, nameof(Asset.DocumentationUri), asset.Asset.DocumentationUri);
             Add(fields, nameof(Asset.Description), asset.Asset.Description);
 
@@ -1460,6 +1479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Map dataset configuration on top of entry
             var additionalConfiguration = Deserialize(resource.DataSet.DatasetConfiguration,
+                Json.GetTypeInfo<DataSetConfiguration>(),
                 () => new DataSetConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
@@ -1473,8 +1493,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var datapoint in resource.DataSet.DataPoints)
             {
                 var nodeFromAdditionalConfiguration = Deserialize(
-                    datapoint.DataPointConfiguration, () => new DataSetDataPointConfiguration(),
-                    errors, resource);
+                    datapoint.DataPointConfiguration,
+                    Json.GetTypeInfo<DataSetDataPointConfiguration>(),
+                    () => new DataSetDataPointConfiguration(), errors, resource);
                 if (nodeFromAdditionalConfiguration == null)
                 {
                     continue;
@@ -1539,6 +1560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Map dataset configuration on top of entry
             var additionalConfiguration = Deserialize(resource.EventGroup.EventGroupConfiguration,
+                Json.GetTypeInfo<EventGroupConfiguration>(),
                 () => new EventGroupConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
@@ -1554,6 +1576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     resource.Asset, resource.EventGroup, @event);
                 // Map event configuration on top of entry
                 var eventConfiguration = Deserialize(@event.EventConfiguration,
+                    Json.GetTypeInfo<EventConfiguration>(),
                     () => new EventConfiguration(), errors, eventResource);
                 if (eventConfiguration == null)
                 {
@@ -1626,6 +1649,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Map event configuration on top of entry
             var additionalConfiguration = Deserialize(
                 resource.ManagementGroup.ManagementGroupConfiguration,
+                Json.GetTypeInfo<ManagementGroupConfiguration>(),
                 () => new ManagementGroupConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
@@ -1906,8 +1930,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         WriterGroupTransport = WriterGroupTransport.AioMqtt,
                         QualityOfService = configuration.Qos switch
                         {
-                            QoS.Qos0 => Furly.Extensions.Messaging.QoS.AtMostOnce,
-                            QoS.Qos1 => Furly.Extensions.Messaging.QoS.AtLeastOnce,
+                            QoS.Qos0 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce,
+                            QoS.Qos1 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtLeastOnce,
                             _ => null
                         },
                         MessageRetention = configuration.Retain switch
@@ -1993,8 +2017,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         WriterGroupTransport = WriterGroupTransport.AioMqtt,
                         QualityOfService = configuration.Qos switch
                         {
-                            QoS.Qos0 => Furly.Extensions.Messaging.QoS.AtMostOnce,
-                            QoS.Qos1 => Furly.Extensions.Messaging.QoS.AtLeastOnce,
+                            QoS.Qos0 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce,
+                            QoS.Qos1 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtLeastOnce,
                             _ => null
                         },
                         MessageRetention = configuration.Retain switch
@@ -2163,6 +2187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 continue;
                             }
                             var endpointConfiguration = Deserialize(endpoint.Value.AdditionalConfiguration,
+                                Json.GetTypeInfo<DeviceEndpointConfiguration>(),
                                 () => new DeviceEndpointConfiguration(), errors, deviceEndpointResource);
                             if (endpointConfiguration == null)
                             {
@@ -2299,7 +2324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (!string.IsNullOrEmpty(extra))
             {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
+                builder = builder.Append('/').Append(Azure.IIoT.OpcUa.Core.Messaging.TopicFilter.Escape(extra));
             }
             if (builder.Length > 128) // Topic length limit in adr is 128
             {
@@ -2360,11 +2385,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="configuration"></param>
+        /// <param name="typeInfo"></param>
         /// <param name="createDefault"></param>
         /// <param name="errors"></param>
         /// <param name="resource"></param>
         /// <returns></returns>
-        private T? Deserialize<T>(string? configuration, Func<T> createDefault,
+        private T? Deserialize<T>(string? configuration, JsonTypeInfo<T> typeInfo,
+            Func<T> createDefault,
             ValidationErrors errors, Resource resource)
         {
             try
@@ -2372,7 +2399,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 T? result = default;
                 if (configuration != null)
                 {
-                    result = _serializer.Deserialize<T>(configuration);
+                    result = Json.Deserialize(configuration, typeInfo);
                 }
                 return result ??= createDefault();
             }
@@ -2403,7 +2430,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             byte[] compressed;
             using (var input = new MemoryStream(
-                _serializer.SerializeToMemory(methodMetadata).ToArray()))
+                Json.SerializeToMemory(methodMetadata,
+                    Json.GetTypeInfo<MethodMetadataModel>()).ToArray()))
             using (var result = new MemoryStream())
             {
                 using (var gs = new GZipStream(result, CompressionMode.Compress))
@@ -2412,7 +2440,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 compressed = result.ToArray();
             }
-            var json = JsonSerializer.Serialize(new ActionConfiguration { CompiledMetadata = compressed });
+            var json = Json.SerializeToString(new ActionConfiguration
+            {
+                CompiledMetadata = compressed
+            }, Json.GetTypeInfo<ActionConfiguration>());
             if (Encoding.UTF8.GetByteCount(json) > 512) // 512 is max size but we are leaving some room here
             {
                 if (compressionLevel > 2)
@@ -2458,6 +2489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var actionConfiguration = Deserialize(actionConfigurationJson,
+                    Json.GetTypeInfo<ActionConfiguration>(),
                     () => new ActionConfiguration { CompiledMetadata = [] }, errors, resource);
                 if (actionConfiguration?.CompiledMetadata == null ||
                     actionConfiguration.CompiledMetadata.Length == 0)
@@ -2474,7 +2506,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     decompressed = output.ToArray();
                 }
-                return _serializer.Deserialize<MethodMetadataModel>(decompressed)
+                return Json.Deserialize(decompressed,
+                    Json.GetTypeInfo<MethodMetadataModel>())
                     ?? new MethodMetadataModel();
             }
             catch (Exception ex)
@@ -2986,13 +3019,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kInvalidEndpointUrl = "500.7";
 
         private static readonly TimeSpan kDefaultDeviceDiscoveryRefresh = TimeSpan.FromHours(6);
-        private static readonly JsonSerializerOptions kDebugSerializerOptions = new()
-        {
-            WriteIndented = true,
-            Converters = { new JsonStringEnumConverter() },
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
         private const string kAssetIdAttribute = "AssetId";
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
@@ -3005,7 +3031,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IDiscoveryServices _discovery;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
-        private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private readonly CancellationTokenSource _cts;

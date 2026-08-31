@@ -8,6 +8,10 @@ Microsoft [OPC Publisher](docs/opc-publisher/readme.md) allows you to discover a
 
 With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (supporting JSON, JSON+Gzip, and UADP binary encoding) and provides a large subset of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.
 
+Version 3.0 publishes telemetry through the native OPC UA PubSub runtime of the [UA-.NETStandard](https://github.com/OPCFoundation/UA-.NETStandard) 2.0 stack rather than a custom encoder. If you are upgrading, read the [2.9 to 3.0 migration guide](docs/opc-publisher/migration-2.9-to-3.0.md) first: the `Samples` and `FullSamples` messaging modes and Avro encoding are gone, and a deployment configured for either will not start.
+
+OPC Publisher can also expose an [MCP tool server](docs/opc-publisher/mcp.md) with `--mcp`, so an AI agent can browse, read and write through the same authenticated endpoint as the rest of the API. Read the security section of that document before enabling it.
+
 Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for OPC Publisher and the other tools included in this repository.
 
 ## Get started
@@ -19,31 +23,25 @@ Microsoft provides pre-built Docker containers in the Microsoft Container Regist
 
 ## Get support
 
-Please report any security related issues by following our [security process](./SECURITY.md).
-
-If you are an Azure customer, please create an Azure Support Request. More information can be found [here](https://azure.microsoft.com/support/create-ticket/). (Azure Support SLA applies).
-
-Otherwise, please report bugs, feature requests, or suggestions as [GitHub issues](https://github.com/Azure/Industrial-IoT/issues) (No SLA available).
+Please report any security related issues by following our [security process](./SECURITY.md). Otherwise, please report bugs, feature requests, or suggestions as [GitHub issues](https://github.com/Azure/Industrial-IoT/issues).
 
 ### Supported releases and support policy
 
-Our releases are tagged following semantic versioning (“semver”) conventions. Minor and patch releases do not break backwards compatibility. Releases not shown in the table (e.g., 2.4.x, 2.5.x, 2.6.x, or 2.7.x) are out of support already.
+Our releases are tagged following semantic versioning (“semver”) conventions. Minor and patch releases do not break backwards compatibility. Releases not shown in the table (e.g., 2.4.x, 2.5.x, 2.6.x, 2.7.x) are out of support already.
 
 | Release (tag)      | Last release (tag) | End of support | Successor (tag)       | Update instructions |
 |--------------------|--------------------|----------------|-----------------------|---------------------|
-| Industrial IoT 2.8 | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6) | 7/15/2023  | OPC Publisher 2.9 | [Migration Path](docs/opc-publisher/migrationpath.md) |
 | OPC Publisher 2.8  | [2.8.7](https://github.com/Azure/Industrial-IoT/tree/release/2.8.7) | 12/15/2023 | OPC Publisher 2.9 | N/A |
-| OPC Publisher 2.9  | [2.9.18](https://github.com/Azure/Industrial-IoT/tree/release/2.9.18) | 11/10/2026 | TBA               | [Migration Path](docs/opc-publisher/migrationpath.md) |
+| OPC Publisher 2.9  | [2.9.18](https://github.com/Azure/Industrial-IoT/tree/release/2.9.18) | 11/10/2026 | OPC Publisher 3.0 | [Migration Path](docs/opc-publisher/migrationpath.md), [2.9 to 3.0](docs/opc-publisher/migration-2.9-to-3.0.md) |
+| OPC Publisher 3.0  | [3.0.0](https://github.com/Azure/Industrial-IoT/tree/release/3.0.0) | 11/10/2026 | TBA | [Migration Path](docs/opc-publisher/migrationpath.md), [2.9 to 3.0](docs/opc-publisher/migration-2.9-to-3.0.md) |
 
-We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases, preview and experimental features are only supported through GitHub issues.
+We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string.
 
 If you are using a container image with a major.minor version tag that is supported per above table, but a patch version lower than the latest patch version, you need to update your images to the latest version to ensure secure operation and take advantage of the latest fixes. If you unexpectedly encounter bugs and require help, please ensure you are running the latest patch release as we might already have addressed the issue you are seeing. If you are not, please update first and try to reproduce the issue on the latest patch version.
 
 Security-critical updates are made to the last patch version of the major.minor release containing the vulnerability. Bug fixes that are not security related are made only to the main branch and to the last supported release. The version the fix will be in can be found in the version.json file of the respective branch.
 
-Our [official Microsoft support](https://azure.microsoft.com/support/create-ticket/) and any related SLA only covers officially released docker containers obtained from MCR (Microsoft Container Registry) and deployed to Azure in Azure App Services (Web API container) or IoT Edge (OPC Publisher module container) using the documentation and deployment scripts provided as part of the latest release. Experimental and Preview features are excluded. Also, all Azure services deployed, the installed IoT Edge runtime, as well as Operating System and other middleware and combinations thereof must be officially supported as per their published support policy and SLA.
-
-In all other cases, support is provided on a best effort basis through [GitHub issues](https://github.com/Azure/Industrial-IoT/issues). We aim to release patch releases on a regular cadence (approximately every 1-2 months), so if you are blocked, and you can suggest or contribute fixes, the chances of getting it into the next patch release are high.
+Support is provided on a best effort basis through [GitHub issues](https://github.com/Azure/Industrial-IoT/issues). We aim to release patch releases on a regular cadence (approximately every month), so if you are blocked, and you can suggest or contribute fixes, the chances of getting it into the next patch release are high.
 
 ## Contribute
 

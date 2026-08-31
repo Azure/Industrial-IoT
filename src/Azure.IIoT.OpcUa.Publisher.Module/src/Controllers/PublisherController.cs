@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation. All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Furly.Tunnel.Router;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using System;
     using System.Threading.Tasks;
 
@@ -24,12 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="process"></param>
         /// <param name="apikey"></param>
         /// <param name="certificate"></param>
+        /// <param name="timeProvider"></param>
         public PublisherController(IProcessControl process, IApiKeyProvider apikey,
-            ISslCertProvider certificate)
+            ISslCertProvider certificate, TimeProvider? timeProvider = null)
         {
             _apikey = apikey;
             _certificate = certificate;
             _process = process;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <summary>
@@ -61,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             if (!_process.Shutdown(failFast))
             {
                 // Should be gone now
-                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(10), _timeProvider)
+                    .ConfigureAwait(false);
                 throw new NotSupportedException("Failed to invoke shutdown");
             }
         }
@@ -78,5 +81,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         private readonly IApiKeyProvider _apikey;
         private readonly ISslCertProvider _certificate;
         private readonly IProcessControl _process;
+        private readonly TimeProvider _timeProvider;
     }
 }

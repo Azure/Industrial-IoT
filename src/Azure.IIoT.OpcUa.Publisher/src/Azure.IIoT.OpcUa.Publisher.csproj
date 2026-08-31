@@ -9,13 +9,15 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.ResourceMonitoring" />
     <PackageReference Include="Nito.AsyncEx" />
-    <PackageReference Include="Furly.Azure.IoT.Edge" />
-    <PackageReference Include="Furly.Azure.IoT.Operations" />
+    <PackageReference Include="Azure.Iot.Operations.Connector" />
+    <PackageReference Include="Azure.Iot.Operations.Services" />
     <PackageReference Include="Irony" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.PubSub" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>

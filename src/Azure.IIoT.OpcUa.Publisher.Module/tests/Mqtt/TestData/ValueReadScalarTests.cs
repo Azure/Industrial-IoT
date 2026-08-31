@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
-    using Autofac;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
@@ -29,14 +28,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         {
             return new ReadScalarValueTests<ConnectionModel>(
                 _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
-                _server.GetConnection(), (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel
+                _server.GetConnection(), (ep, n) => _server.Client.ReadValueAsync(new ConnectionModel
                 {
                     Endpoint = new EndpointModel
                     {
                         Url = ep.Endpoint.Url,
                         Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     }
-                }, n, s));
+                }, n));
         }
 
         private readonly TestDataServer _server;

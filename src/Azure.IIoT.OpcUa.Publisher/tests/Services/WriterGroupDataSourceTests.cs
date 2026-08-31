@@ -11,9 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Furly.Exceptions;
-    using Furly.Extensions.Serializers.Newtonsoft;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -42,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _options.Value.DisableDataSetMetaData = true;
 
             _converter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _serializer, _options);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _options);
         }
 
         [Fact]
@@ -77,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group1,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
 
             // Act / Assert - initial configuration uses the configured name.
             await sut.StartAsync(default);
@@ -116,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var sinkMock = new Mock<IMessageSink>();
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Act - report an error for the configured node as the server would
@@ -204,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var sinkMock = new Mock<IMessageSink>();
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Report a handful of value changes for the server-a subscription only.
@@ -250,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Act - request a key frame for the whole group.
@@ -272,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Discover the identifier of one of the writers via the state.
@@ -298,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Act / Assert - an unknown writer id is reported as not found and no
@@ -449,7 +448,404 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return Assert.Single(_converter.ToWriterGroups(entries));
         }
 
-        private readonly NewtonsoftJsonSerializer _serializer = new();
+        [Fact]
+        public async Task UpdateAsyncWithEmptyWriterGroupRemovesAllSubscriptionsAsync()
+        {
+            // Arrange – start with one writer, then update to an empty group.
+            var group = ToSingleWriterGroup("writer-to-remove", "telemetry/q");
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber _,
+                    CancellationToken _) =>
+                    new ValueTask<ISubscription>(subscriptionMock.Object));
+
+            var sinkMock = new Mock<IMessageSink>();
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            var emptyGroup = group with { DataSetWriters = [] };
+
+            // Act – update to an empty writer group.
+            await sut.UpdateAsync(emptyGroup, default);
+
+            // Assert – state should reflect no writers remaining.
+            var state = await sut.GetStateAsync(default);
+            Assert.Empty(state.DataSetWriters);
+        }
+
+        [Fact]
+        public async Task UpdateAsyncWithDuplicateWritersThrowsArgumentExceptionAsync()
+        {
+            // Arrange – construct a group with two identical writers (same id + same settings).
+            var group = ToSingleWriterGroup("dup", "telemetry/dup");
+            var writer = group.DataSetWriters![0];
+            var duplicateGroup = group with
+            {
+                DataSetWriters = [writer, writer]
+            };
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber _,
+                    CancellationToken _) =>
+                    new ValueTask<ISubscription>(subscriptionMock.Object));
+
+            var sinkMock = new Mock<IMessageSink>();
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act / Assert – updating to a group with duplicate writers throws.
+            await Assert.ThrowsAsync<ArgumentException>(
+                () => sut.UpdateAsync(duplicateGroup, default).AsTask());
+        }
+
+        [Fact]
+        public async Task OnSubscriptionCyclicReadCompletedForwardsNotificationToSinkAsync()
+        {
+            var group = ToSingleWriterGroup("cyclic-writer", "telemetry/cyclic");
+            var subscribers = new List<ISubscriber>();
+            var captured = new List<OpcUaSubscriptionNotification>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+            sinkMock.Setup(s => s.OnMessage(It.IsAny<OpcUaSubscriptionNotification>()))
+                .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            using var notification = new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow);
+
+            // Act
+            Assert.Single(subscribers).OnSubscriptionCyclicReadCompleted(notification);
+
+            // Assert – notification forwarded to sink.
+            Assert.Single(captured);
+        }
+
+        [Fact]
+        public async Task OnSubscriptionEventReceivedForwardsNotificationToSinkAsync()
+        {
+            var group = ToSingleWriterGroup("event-writer", "telemetry/events");
+            var subscribers = new List<ISubscriber>();
+            var captured = new List<OpcUaSubscriptionNotification>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+            sinkMock.Setup(s => s.OnMessage(It.IsAny<OpcUaSubscriptionNotification>()))
+                .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            using var notification = new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow);
+
+            // Act
+            Assert.Single(subscribers).OnSubscriptionEventReceived(notification);
+
+            // Assert – notification forwarded to sink.
+            Assert.Single(captured);
+        }
+
+        [Fact]
+        public async Task OnSubscriptionCyclicReadDiagnosticsChangeUpdatesCountersAsync()
+        {
+            var group = ToSingleWriterGroup("cyclic-diag", "telemetry/cd");
+            var subscribers = new List<ISubscriber>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act – report sampled values.
+            Assert.Single(subscribers).OnSubscriptionCyclicReadDiagnosticsChange(7, 2);
+
+            // Assert via observable metrics.
+            var measurements = CollectMeasurements();
+            Assert.True(measurements.ContainsKey("iiot_edge_publisher_sampledvalues"));
+            var sampled = measurements["iiot_edge_publisher_sampledvalues"][0].Value;
+            Assert.Equal(7.0, sampled);
+            Assert.True(measurements.ContainsKey("iiot_edge_publisher_cyclicreads"));
+            var cyclic = measurements["iiot_edge_publisher_cyclicreads"][0].Value;
+            Assert.Equal(1.0, cyclic);
+        }
+
+        [Fact]
+        public async Task OnSubscriptionEventDiagnosticsChangeUpdatesCountersAsync()
+        {
+            var group = ToSingleWriterGroup("event-diag", "telemetry/ed");
+            var subscribers = new List<ISubscriber>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act – report live events.
+            Assert.Single(subscribers).OnSubscriptionEventDiagnosticsChange(true, 5, 1, 2);
+
+            // Assert via observable metrics.
+            var measurements = CollectMeasurements();
+            Assert.True(measurements.ContainsKey("iiot_edge_publisher_events"));
+            var events = measurements["iiot_edge_publisher_events"][0].Value;
+            Assert.Equal(1.0, events);
+            Assert.True(measurements.ContainsKey("iiot_edge_publisher_event_notifications"));
+            var notifications = measurements["iiot_edge_publisher_event_notifications"][0].Value;
+            Assert.Equal(5.0, notifications);
+        }
+
+        [Fact]
+        public async Task OnSubscriptionKeepAliveWithKeepAlivesEnabledForwardsToSinkAsync()
+        {
+            var group = ToSingleWriterGroup("keepalive-writer", "telemetry/ka");
+            var subscribers = new List<ISubscriber>();
+            var captured = new List<OpcUaSubscriptionNotification>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+            sinkMock.Setup(s => s.OnMessage(It.IsAny<OpcUaSubscriptionNotification>()))
+                .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
+
+            // Enable keep alives so OnSubscriptionKeepAlive forwards to the sink.
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.DisableDataSetMetaData = true;
+            options.Value.EnableDataSetKeepAlives = true;
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            using var notification = new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow);
+
+            // Act
+            Assert.Single(subscribers).OnSubscriptionKeepAlive(notification);
+
+            // Assert – keep-alive message forwarded to sink.
+            Assert.Single(captured);
+        }
+
+        [Fact]
+        public async Task OnSubscriptionEventDiagnosticsChangeWithNonLiveDataOnlyUpdatesModelChangesAsync()
+        {
+            // When liveData=false, only overflow and model changes should be updated,
+            // event/notification counters stay at 0.
+            var group = ToSingleWriterGroup("non-live-events", "telemetry/nle");
+            var subscribers = new List<ISubscriber>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act – liveData=false means events/notifications are NOT incremented.
+            Assert.Single(subscribers).OnSubscriptionEventDiagnosticsChange(false, 3, 0, 4);
+
+            var measurements = CollectMeasurements();
+            // Events counter should remain 0 since liveData=false.
+            if (measurements.TryGetValue("iiot_edge_publisher_events", out var evts))
+            {
+                Assert.All(evts, m => Assert.Equal(0.0, m.Value));
+            }
+            // Model changes should have been updated (but it's in the group diagnostics, not a metric).
+        }
+
+        [Fact]
+        public async Task UpdateAsyncRenamesWriterAndCallsNotifyMonitoredItemsChangedAsync()
+        {
+            // Arrange – start with "original", update to same key but DataSetWriterName="updated".
+            // DataSetWriter.Equals ignores DataSetWriterName, so the subscription is updated
+            // in place.  Because SubscriptionSettings and Connection are unchanged the else
+            // branch fires and NotifyMonitoredItemsChanged is called instead of recreating
+            // the subscription.
+            var group1 = ToSingleWriterGroup("original", "telemetry/q");
+            var originalWriter = group1.DataSetWriters![0];
+            var renamedWriter = originalWriter with { DataSetWriterName = "updated" };
+            var group2 = group1 with { DataSetWriters = [renamedWriter] };
+
+            var subscribers = new List<ISubscriber>();
+            var captured = new List<OpcUaSubscriptionNotification>();
+
+            var subscriptionMock = new Mock<ISubscription>();
+            subscriptionMock.Setup(s => s.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb, CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+            sinkMock
+                .Setup(s => s.OnMessage(It.IsAny<OpcUaSubscriptionNotification>()))
+                .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group1,
+                sinkMock.Object, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act – update: same key, different DataSetWriterName.
+            await sut.UpdateAsync(group2, default);
+
+            // Assert – NotifyMonitoredItemsChanged called (else branch; subscription NOT recreated).
+            subscriptionMock.Verify(s => s.NotifyMonitoredItemsChanged(), Times.Once);
+
+            // CreateSubscriptionAsync was called exactly once (for StartAsync only).
+            clientsMock.Verify(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            // Assert – the writer name was updated in subsequent messages.
+            Assert.Equal("updated", EmitAndGetWriterName(subscribers, captured));
+        }
+
+        [Fact]
+        public async Task DisposeAsyncSendsMetadataAndDataCloseNotificationsAsync()
+        {
+            // Arrange – writer with DataSetMetaData set → SendMetadata=true.
+            // SendCloseNotifications emits two Closed notifications: one metadata, one data.
+            var group = ToSingleWriterGroup("meta-writer", "telemetry/meta");
+            var writer = group.DataSetWriters![0];
+            var writerWithMeta = writer with
+            {
+                DataSet = writer.DataSet! with
+                {
+                    DataSetMetaData = new DataSetMetaDataModel { Name = "TestMeta" }
+                }
+            };
+            var groupWithMeta = group with { DataSetWriters = [writerWithMeta] };
+
+            var subscriptionMock = new Mock<ISubscription>();
+            subscriptionMock.Setup(s => s.DisposeAsync()).Returns(ValueTask.CompletedTask);
+
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber _, CancellationToken _) =>
+                    new ValueTask<ISubscription>(subscriptionMock.Object));
+
+            var captured = new List<OpcUaSubscriptionNotification>();
+            var sinkMock = new Mock<IMessageSink>();
+            sinkMock
+                .Setup(s => s.OnMessage(It.IsAny<OpcUaSubscriptionNotification>()))
+                .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
+
+            // Bypass PostConfigure so DisableDataSetMetaData is definitely false and
+            // stays false — PostConfigure sets it to true by default.
+            var options = Options.Create(new PublisherOptions { DisableDataSetMetaData = false });
+
+            var sut = new WriterGroupDataSource(clientsMock.Object, groupWithMeta,
+                sinkMock.Object, options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act – dispose triggers DataSetWriterSubscription.DisposeAsync → SendCloseNotifications.
+            await sut.DisposeAsync();
+
+            // Assert – exactly two Closed notifications: one for metadata, one for data.
+            Assert.Equal(2, captured.Count);
+            Assert.All(captured, n => Assert.Equal(MessageType.Closed, n.MessageType));
+        }
+
         private readonly ILoggerFactory _loggerFactory;
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesConverter _converter;

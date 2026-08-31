@@ -15,9 +15,9 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string? AsString(this LocalizedText? value)
+        public static string? AsString(this LocalizedText value)
         {
-            if (value == null || value.Text == null)
+            if (value.Text == null)
             {
                 return null;
             }
@@ -27,6 +27,16 @@ namespace Opc.Ua.Extensions
                 return full + "@" + value.Locale;
             }
             return full;
+        }
+
+        /// <summary>
+        /// Convert localized text to string
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string? AsString(this LocalizedText? value)
+        {
+            return value == null ? null : value.Value.AsString();
         }
 
         /// <summary>

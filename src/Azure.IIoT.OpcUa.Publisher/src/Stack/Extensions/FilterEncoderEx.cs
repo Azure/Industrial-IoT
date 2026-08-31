@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,7 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Azure.IIoT.OpcUa.Encoders;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using System;
+    using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
@@ -25,15 +26,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static EventFilter GetDefaultEventFilter()
         {
             var filter = new EventFilter();
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventId);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventType);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.SourceNode);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.SourceName);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Time);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.ReceiveTime);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.LocalTime);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Message);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Severity);
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.EventId));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.EventType));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.SourceNode));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.SourceName));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.Time));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.ReceiveTime));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.LocalTime));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.Message));
+            filter.AddSelectClause(ObjectTypeIds.BaseEventType, new QualifiedName(BrowseNames.Severity));
             return filter;
         }
 
@@ -60,9 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new EventFilter
             {
-                SelectClauses = new SimpleAttributeOperandCollection(
-                    model.SelectClauses == null ? [] :
-                    model.SelectClauses.Select(c => c.ToStackModel(encoder.Context))),
+                SelectClauses = model.SelectClauses == null ? [] :
+                    model.SelectClauses.Select(c => c.ToStackModel(encoder.Context)).ToArray(),
                 //
                 // Per Part 4 only allow simple attribute operands in where clause
                 // elements of event filters.
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new EventFilterModel
             {
-                SelectClauses = model.SelectClauses?
+                SelectClauses = model.SelectClauses.ToArray()?
                     .Select(c => c.ToServiceModel(encoder.Context, namespaceFormat))
                     .ToList(),
                 WhereClause = encoder.Encode(model.WhereClause, namespaceFormat)
@@ -111,9 +111,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilter
             {
-                Elements = new ContentFilterElementCollection(model.Elements == null ?
+                Elements = model.Elements == null ?
                     [] : model.Elements
-                        .Select(e => encoder.Decode(e, onlySimpleAttributeOperands)))
+                        .Select(e => encoder.Decode(e, onlySimpleAttributeOperands)).ToArray()
             };
         }
 
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilterModel
             {
-                Elements = model.Elements?
+                Elements = model.Elements.ToArray()?
                     .Select(e => encoder.Encode(e, namespaceFormat))
                     .ToList()
             };
@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilterElement
             {
-                FilterOperands = new ExtensionObjectCollection(model.FilterOperands == null ?
+                FilterOperands = new List<ExtensionObject>(model.FilterOperands == null ?
                     [] : model.FilterOperands
                         .Select(e => new ExtensionObject(
                             encoder.Decode(e, onlySimpleAttributeOperands)))),
@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilterElementModel
             {
-                FilterOperands = model.FilterOperands
+                FilterOperands = model.FilterOperands.ToArray()?
                     .Select(e => e.Body)
                     .Cast<FilterOperand>()
                     .Select(o => encoder.Encode(o, namespaceFormat))
@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 // formatted as an OPC UA NodeId string.
                 var variant = encoder.Decode(model.Value, model.DataType);
                 if (model.DataType == null &&
-                    variant.TypeInfo?.BuiltInType == BuiltInType.String &&
+                    variant.TypeInfo.BuiltInType == BuiltInType.String &&
                     variant.Value is string s && LooksLikeNodeId(s))
                 {
                     // Backwards-compatible promotion: a value that follows
@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     // NodeId literal so operators such as OfType keep
                     // working without requiring an explicit data type.
                     var nodeId = s.ToNodeId(encoder.Context);
-                    if (!NodeId.IsNull(nodeId))
+                    if (!NodeIdCompat.IsNull(nodeId))
                     {
                         return new LiteralOperand(new Variant(nodeId));
                     }
@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 TypeDefinitionId = model.NodeId.ToNodeId(encoder.Context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
-                BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
+                BrowsePath = new List<QualifiedName>(model.BrowsePath == null ?
                     [] :
                     model.BrowsePath.Select(n => n.ToQualifiedName(encoder.Context))),
                 IndexRange = model.IndexRange
@@ -302,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     {
                         NodeId = sattr.TypeDefinitionId.AsString(encoder.Context, namespaceFormat),
                         AttributeId = (NodeAttribute)sattr.AttributeId,
-                        BrowsePath = sattr.BrowsePath?
+                        BrowsePath = sattr.BrowsePath.ToArray()?
                             .Select(p => p.AsString(encoder.Context, namespaceFormat))
                             .ToArray(),
                         IndexRange = sattr.IndexRange

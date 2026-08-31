@@ -4,7 +4,10 @@
 
 OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It connects to OPC UA server systems and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in versions < 2.7.x*).
 
-> This documentation applies to version 2.9 or higher.
+> This documentation applies to version 3.0 or higher. Some sections describe
+> behaviour of earlier versions where it differs; those are marked. If you are
+> upgrading from 2.9, start with the
+> [2.9 to 3.0 migration guide](./migration-2.9-to-3.0.md).
 
 Here you find information about
 
@@ -38,7 +41,7 @@ Here you find information about
     - [Simple event filter](#simple-event-filter)
     - [Advanced event filter configuration](#advanced-event-filter-configuration)
     - [Condition handling options](#condition-handling-options)
-- [Publish to a Unified Namespace](#publish-to-a-unified-namespace)
+- [Publish to a topic hierarchy](#publish-to-a-topic-hierarchy)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
 - [Programming against OPC Publisher using the OPC Publisher API](#programming-against-opc-publisher-using-the-opc-publisher-api)
   - [Using IoT Edge Simulation environment](#using-iot-edge-simulation-environment)
@@ -350,6 +353,7 @@ OPC Publisher has several interfaces that can be used to configure it.
 - [Command Line options configuration](./commandline.md)
 - [Configuration via API](./directmethods.md)
 - [Configuration via init file](#configuration-via-init-file)
+- [MCP tool server for AI agents](./mcp.md)
 - [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File
@@ -763,7 +767,17 @@ Because values can only be delivered on publish boundaries, the absence of data 
 
 ##### Heartbeat indicator
 
-> This feature is in preview
+> [!IMPORTANT]
+> **Removed in 3.0.** The `Heartbeat` member is no longer written into data set
+> messages — it is not an OPC UA Part 14 field, and the native PubSub runtime
+> does not emit it. The rest of this section describes 2.x behaviour and is kept
+> for readers still on that version.
+>
+> To detect a heartbeat in 3.0, compare the `SourceTimestamp` of consecutive
+> messages for the same field: a heartbeat repeats the previous value together
+> with its original timestamps, so an unchanged `SourceTimestamp` identifies
+> one. See the
+> [migration guide](./migration-2.9-to-3.0.md#heartbeat-indicator-removed-from-data-set-messages).
 
 A heartbeat re-sends the last known (good) value, including the original `SourceTimestamp` and `ServerTimestamp` of that value. A consumer therefore cannot distinguish a heartbeat from a real value change of the node, which can lead to wrong values being recorded in a historian (see issue [#2441](https://github.com/Azure/Industrial-IoT/issues/2441)).
 
@@ -775,7 +789,7 @@ The indicator is controlled by the `Heartbeat` flag (`0x400000`) of the `DataSet
   "MessagingMode": "FullNetworkMessages",
 ```
 
-The indicator is supported in `Json` encoding, both in [PubSub](./messageformats.md#heartbeat-messages) and in legacy [Samples](./messageformats.md#heartbeat-messages-in-samples-mode) mode. It is not available with `Uadp` or `Avro` encoding.
+In 2.x the indicator was supported in `Json` encoding, both in [PubSub](./messageformats.md#heartbeat-messages) and in legacy [Samples](./messageformats.md#heartbeat-messages-in-samples-mode) mode. It was not available with `Uadp` or `Avro` encoding.
 
 > Alternatively you can use the `PeriodicLKVDropValue` or `PeriodicLKGDropValue` heartbeat behavior described above to only ever emit periodic values and drop the actual value changes, or configure the node twice, once with and once without heartbeat.
 
@@ -1033,15 +1047,13 @@ For the snapshotting behavior, one or both of `UpdateInterval` and `SnapshotInte
 
 Condition snapshots (produced through `SnapshotInterval`/`UpdateInterval`) are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages. Retained conditions delivered through `RefreshRetainedConditionsOnStart` are surfaced once as regular `ua-event` messages (the `RefreshStart`/`RefreshEnd` envelope events are suppressed).
 
-## Publish to a Unified Namespace
-
-> This feature is in preview
+## Publish to a topic hierarchy
 
 OPC Publisher allows you to map values and events obtained from the OPC UA address space to MQTT topics up to the granularity of the subscribed node id (monitored item).
 
 Specify topic templates at the level of `WriterGroup`, `DataSetWriter` or `Node` as part of the [configuration](#configuration-schema) to configure routing that meets your needs. Topic templates can apply not just to MQTT but to any transport supporting topic or queue name based routing, however, the default templates that apply use the MQTT topic format with `/` path delimiter and escape only MQTT topic reserved characters (using `\x<ascii-code>`).
 
-For extra convenience use the automatic routing feature which leverages the OPC UA browse paths inside the address space to automatically create the topic structure. The [browse paths](#browse-paths) from the root folder (`i=84`) is used as it maps well with how clients visualize the address space. To use this feature, configure the `DataSetRouting` option in the configuration or set a default on the [command line](./commandline.md). For example when configuring the `UseBrowseNames` option all Events and data changes are routed to topics that match the browse path of the source node effectively mapping the address space into the MQTT topic structure with limited configuration overhead.
+> **Removed in 3.0: automatic routing from browse paths.** Earlier versions could derive the topic from the OPC UA browse path of the source node (`DataSetRouting` / `--uns`). That topic was built for each notification from a path discovered from the server at run time, and the OPC UA PubSub runtime that 3.0 publishes through has no per-message topic - a writer group publishes to the topic it is configured with. The option is accepted and ignored so an existing configuration still starts. To get a topic hierarchy, write it into the topic template: templates support variables such as the writer group, the writer name and the data set name, which cover the cases browse-path routing was used for without depending on the server's address space layout.
 
 When publishing value changes to topics best choose a [Message format](./messageformats.md) that has limited overhead, e.g., `SingleRawDataSet` or `SingleDataSetMessage`.
 
@@ -1089,7 +1101,7 @@ OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of t
 
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
-All versions of OPC Publisher also support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
+Versions before 3.0 also supported a non-standard, simple JSON telemetry format (typically referred to as "Samples" format, and the default setting in 2.x). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
 
 ``` json
 [
@@ -1437,9 +1449,10 @@ The `om` parameter controls the upper limit of the capacity of the internal mess
     - Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](./messageformats.md).
     - If you are able to decompress messages back to json at the receiver side, use `--me=JsonGzip` or `--me=JsonReversibleGzip` encoding.
     - If you are able to decode binary network messages at the receiver side, choose `--me=Uadp` instead of `--me=Json`, `--me=JsonReversible` or a compressed form of Json
-  - When Samples format (`--mm=Samples`) is required
+  - In versions before 3.0, when Samples format (`--mm=Samples`) was required
     - Don't use FullFeaturedMessage (`--mm=FullSamples` or `--mm=Samples` with `--fm=false`). You can find a sample of full featured telemetry message [here](messageformats.md).
-  - Use batching (`--bs=600`) in combination with batch publishing interval (`--si=20`).
+    - `Samples` and `FullSamples` were **removed in 3.0** and now prevent startup. See the [migration guide](./migration-2.9-to-3.0.md).
+  - Use the batch publishing interval (`--bi`) to control how often the runtime samples. In versions before 3.0 this was combined with a batch size (`--bs=600`); 3.0 emits one message per sample, so `--bs` is accepted and ignored.
   - Increase Monitored Items Queue capacity (e.g., `--mq=10`)
   - Don't use "fetch display name" (`--fd=false`)
 - General recommendations

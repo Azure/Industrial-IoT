@@ -1,26 +1,26 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Asp.Versioning;
-    using Furly;
-    using Furly.Extensions.AspNetCore.OpenApi;
-    using Furly.Extensions.Http;
-    using Furly.Extensions.Serializers;
-    using Furly.Tunnel.Router;
+    using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.Http;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -42,14 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Version("_V1")]
     [Version("")]
     [RouterExceptionFilter]
-    [ControllerExceptionFilter]
-    [ApiVersion("2")]
-    [Route("v{version:apiVersion}/writer")]
-    [ApiController]
-    [Authorize]
-    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    public class WriterController : ControllerBase, IMethodController
+    public class WriterController : IMethodController
     {
         /// <summary>
         /// Create publisher methods controller
@@ -57,15 +50,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="publisher"></param>
         /// <param name="configuration"></param>
         /// <param name="assets"></param>
-        /// <param name="serializer"></param>
         public WriterController(IPublishedNodesServices publisher,
-            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets,
-            IJsonSerializer serializer)
+            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets)
         {
             _publisher = publisher;
             _configuration = configuration;
             _assets = assets;
-            _serializer = serializer;
         }
 
         /// <summary>
@@ -89,12 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The item was created</response>
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to update.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [HttpPut]
         public async Task CreateOrUpdateDataSetWriterEntryAsync(
-            [FromBody][Required] PublishedNodesEntryModel dataSetWriterEntry,
+             PublishedNodesEntryModel dataSetWriterEntry,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterEntry);
@@ -123,11 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">There is no unique item present.</response>
         /// <response code="404">The item was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
             string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
         {
@@ -163,14 +144,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique entry could not be found to add to.</response>
         /// <response code="404">The entry was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpPost("{dataSetWriterGroup}/{dataSetWriterId}/add")]
         public async Task AddOrUpdateNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
-            [FromBody][Required] IReadOnlyList<OpcNodeModel> opcNodes,
-            [FromQuery] string? insertAfterFieldId = null, CancellationToken ct = default)
+             IReadOnlyList<OpcNodeModel> opcNodes,
+             string? insertAfterFieldId = null, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
@@ -205,14 +181,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to update.</response>
         /// <response code="404">An entry was not found to add the node to</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpPut("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task AddOrUpdateNodeAsync(string dataSetWriterGroup, string dataSetWriterId,
-            [FromBody][Required] OpcNodeModel opcNode,
-            [FromQuery] string? insertAfterFieldId = null, CancellationToken ct = default)
+             OpcNodeModel opcNode,
+             string? insertAfterFieldId = null, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
@@ -243,13 +214,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to remove from.</response>
         /// <response code="404">The entry or all items to remove were not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpPost("{dataSetWriterGroup}/{dataSetWriterId}/remove")]
         public async Task RemoveNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
-            [FromBody][Required] IReadOnlyList<string> dataSetFieldIds,
+             IReadOnlyList<string> dataSetFieldIds,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
@@ -280,11 +246,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to remove from.</response>
         /// <response code="404">The entry or item to remove was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}")]
         public async Task RemoveNodeAsync(string dataSetWriterGroup, string dataSetWriterId,
             string dataSetFieldId, CancellationToken ct = default)
         {
@@ -318,11 +279,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to get a node from.</response>
         /// <response code="404">The entry or item was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}")]
         public async Task<OpcNodeModel> GetNodeAsync(
             string dataSetWriterGroup, string dataSetWriterId, string dataSetFieldId,
             CancellationToken ct = default)
@@ -358,26 +314,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to get nodes from.</response>
         /// <response code="404">The entry was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
-        [AutoRestExtension(NextPageLinkName = "lastDataSetFieldId")]
         public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(
             string dataSetWriterGroup, string dataSetWriterId,
-            [FromQuery] string? lastDataSetFieldId = null,
-            [FromQuery] int? pageSize = null, CancellationToken ct = default)
+             string? lastDataSetFieldId = null,
+             int? pageSize = null, HttpRequest? httpRequest = null,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            if (Request != null)
+            if (httpRequest != null)
             {
-                if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
+                if (httpRequest.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
                 {
                     lastDataSetFieldId = value.FirstOrDefault();
                 }
-                if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
+                if (httpRequest.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
                 {
                     pageSize = int.Parse(value.FirstOrDefault()!,
                         CultureInfo.InvariantCulture);
@@ -407,13 +358,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to remove.</response>
         /// <response code="404">The entry to remove was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task RemoveDataSetWriterEntryAsync(string dataSetWriterGroup,
-            string dataSetWriterId, [FromQuery] bool force = false, CancellationToken ct = default)
+            string dataSetWriterId,  bool force = false, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
@@ -444,14 +390,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to update.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("expand")]
         public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandWriterAsync(
-            [FromBody][Required] PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
+             PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -480,14 +420,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to update.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost]
         public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandAndCreateOrUpdateDataSetWriterEntriesAsync(
-            [FromBody][Required] PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
+             PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -518,15 +452,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("assets/create")]
         [Ignore]
         public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAsset2Async(
-            [FromBody][Required] PublishedNodeCreateAssetRequestModel<byte[]> request,
+             PublishedNodeCreateAssetRequestModel<byte[]> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -555,14 +483,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("assets")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "The asset configuration is a genuinely dynamic JsonNode " +
+            "payload serialized via the shared reflection-based JSON serializer; this " +
+            "dynamic fallback is accepted by design and does not affect the AOT-safe " +
+            "typed DTO paths.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "The asset configuration is a genuinely dynamic JsonNode " +
+            "payload serialized via the shared reflection-based JSON serializer; this " +
+            "dynamic fallback is accepted by design and does not affect the AOT-safe " +
+            "typed DTO paths.")]
         public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
-            [FromBody][Required] PublishedNodeCreateAssetRequestModel<VariantValue> request,
+             PublishedNodeCreateAssetRequestModel<JsonNode> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -571,7 +503,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
                 Entry = request.Entry,
                 WaitTime = request.WaitTime,
                 Header = request.Header,
-                Configuration = _serializer.SerializeObjectToMemory(request.Configuration).ToArray()
+                Configuration = Json.SerializeObjectToMemory(request.Configuration).ToArray()
             }, ct).ConfigureAwait(false);
         }
 
@@ -593,14 +525,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("assets/list")]
         public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
-            [FromBody][Required] PublishedNodesEntryRequestModel<RequestHeaderModel> request,
+             PublishedNodesEntryRequestModel<RequestHeaderModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -632,14 +558,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("assets/delete")]
         public async Task<ServiceResultModel> DeleteAssetAsync(
-            [FromBody][Required] PublishedNodeDeleteAssetRequestModel request,
+             PublishedNodeDeleteAssetRequestModel request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -649,6 +569,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         private readonly IPublishedNodesServices _publisher;
         private readonly IConfigurationServices _configuration;
         private readonly IAssetConfiguration<byte[]> _assets;
-        private readonly IJsonSerializer _serializer;
     }
 }

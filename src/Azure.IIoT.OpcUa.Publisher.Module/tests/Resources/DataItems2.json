@@ -6,7 +6,7 @@
         "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [
             {
-                "Id": "http://test.org/UA/Data/#i=11224",
+                "Id": "http://test.org/UA/Data/#i=3307",
                 "OpcSamplingInterval": 100,
                 "OpcPublishingInterval": 100,
                 "DisplayName": "Output2"

@@ -40,11 +40,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=1", target.Target.NodeId);
+            InstanceNodeAssert.IsInstanceNodeOf(target.Target.NodeId,
+                Namespaces.DeterministicAlarmsInstance);
         }
 
-        public async Task BrowseAreaPathVendingMachine2DoorOpenTestAsync(CancellationToken ct = default)
-        {
+        public async Task BrowseAreaPathVendingMachine2DoorOpenTestAsync(CancellationToken ct = default)        {
             var services = _services();
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
@@ -62,7 +62,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=268", target.Target.NodeId);
+            InstanceNodeAssert.IsInstanceNodeOf(target.Target.NodeId,
+                Namespaces.DeterministicAlarmsInstance);
         }
 
         public async Task BrowseAreaPathVendingMachine1TemperatureHighTestAsync(CancellationToken ct = default)
@@ -84,7 +85,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=127", target.Target.NodeId);
+            InstanceNodeAssert.IsInstanceNodeOf(target.Target.NodeId,
+                Namespaces.DeterministicAlarmsInstance);
         }
 
         public async Task BrowseAreaPathVendingMachine2LightOffTestAsync(CancellationToken ct = default)
@@ -106,8 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=394", target.Target.NodeId);
-        }
+            InstanceNodeAssert.IsInstanceNodeOf(target.Target.NodeId,
+                Namespaces.DeterministicAlarmsInstance);        }
 
 #if UNUSED
         public async Task FiresEventSequenceTestWithEdgeFilteringAsync(CancellationToken ct = default)
@@ -242,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             await services.NodeShouldHaveStatesAsync(_connection, lightOff2,
                 "Active", "Enabled").ConfigureAwait(false);
 
-            static bool Filter(Dictionary<string, VariantValue> evt)
+            static bool Filter(Dictionary<string, JsonNode?> evt)
             {
                 return ((string?)evt["/SourceNode"])?.StartsWith(
                     Namespaces.DeterministicAlarmsInstance, StringComparison.OrdinalIgnoreCase) == true;

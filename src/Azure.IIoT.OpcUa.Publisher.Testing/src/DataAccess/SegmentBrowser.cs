@@ -82,50 +82,32 @@ namespace DataAccess
         {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            lock (DataLock)
+            // enumerate pre-defined references.
+            // always call first to ensure any pushed-back references are returned first.
+            var reference = base.Next();
+
+            if (reference != null)
             {
-                // enumerate pre-defined references.
-                // always call first to ensure any pushed-back references are returned first.
-                var reference = base.Next();
+                return reference;
+            }
 
-                if (reference != null)
-                {
-                    return reference;
-                }
+            if (_stage == Stage.Begin)
+            {
+                _segments = system.FindSegments(_source.SegmentPath);
+                _stage = Stage.Segments;
+                _position = 0;
+            }
 
-                if (_stage == Stage.Begin)
-                {
-                    _segments = system.FindSegments(_source.SegmentPath);
-                    _stage = Stage.Segments;
-                    _position = 0;
-                }
+            // don't start browsing huge number of references when only internal references are requested.
+            if (InternalOnly)
+            {
+                return null;
+            }
 
-                // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly)
-                {
-                    return null;
-                }
-
-                // enumerate segments.
-                if (_stage == Stage.Segments)
-                {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false))
-                    {
-                        reference = NextChild();
-
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
-                    }
-
-                    _blocks = system.FindBlocks(_source.SegmentPath);
-                    _stage = Stage.Blocks;
-                    _position = 0;
-                }
-
-                // enumerate blocks.
-                if (_stage == Stage.Blocks && IsRequired(ReferenceTypeIds.Organizes, false))
+            // enumerate segments.
+            if (_stage == Stage.Segments)
+            {
+                if (IsRequired(ReferenceTypeIds.Organizes, false))
                 {
                     reference = NextChild();
 
@@ -133,14 +115,29 @@ namespace DataAccess
                     {
                         return reference;
                     }
-
-                    _stage = Stage.Done;
-                    _position = 0;
                 }
 
-                // all done.
-                return null;
+                _blocks = system.FindBlocks(_source.SegmentPath);
+                _stage = Stage.Blocks;
+                _position = 0;
             }
+
+            // enumerate blocks.
+            if (_stage == Stage.Blocks && IsRequired(ReferenceTypeIds.Organizes, false))
+            {
+                reference = NextChild();
+
+                if (reference != null)
+                {
+                    return reference;
+                }
+
+                _stage = Stage.Done;
+                _position = 0;
+            }
+
+            // all done.
+            return null;
         }
 
         /// <summary>
@@ -150,10 +147,10 @@ namespace DataAccess
         {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            NodeId targetId = null;
+            NodeId targetId = default;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName))
+            if (!(BrowseName).IsNull)
             {
                 // check if match found previously.
                 if (_position == int.MaxValue)

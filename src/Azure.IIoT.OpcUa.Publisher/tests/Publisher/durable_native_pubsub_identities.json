@@ -1,0 +1,24 @@
+{
+  "entries": [
+    {
+      "scope": "data-set-writer",
+      "id": "73f2e2c1bb8ed48840e3d6baa3b3af93c842b54b_0",
+      "value": 102
+    },
+    {
+      "scope": "data-set-writer",
+      "id": "78a15b4de501a712241cc2afdbdd408f523647de_0",
+      "value": 101
+    },
+    {
+      "scope": "writer-group",
+      "id": "39a02ad0f4cfe8c6bfe0b15822d1447af3ab537f",
+      "value": 101
+    },
+    {
+      "scope": "writer-group",
+      "id": "7cd4955d0555d76ba2de0a51a69c727ec7068f47",
+      "value": 102
+    }
+  ]
+}

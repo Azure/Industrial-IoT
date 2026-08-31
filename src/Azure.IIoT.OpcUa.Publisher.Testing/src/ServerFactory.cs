@@ -6,7 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Extensions.Utils;
+    using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
+    using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Server;
@@ -59,16 +60,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             uint scaleunits = 0) :
             this(logger, tempPath, new List<INodeManagerFactory>
             {
-                new TestData.TestDataServer(),
-                new MemoryBuffer.MemoryBufferServer(),
-                new Boiler.BoilerServer(),
+                QuickstartsNodeManagerFactories.CreateTestData(),
+                QuickstartsNodeManagerFactories.CreateMemoryBuffer(),
+                QuickstartsNodeManagerFactories.CreateBoiler(),
                 new Vehicles.VehiclesServer(),
-                new Reference.ReferenceServer(),
+                QuickstartsNodeManagerFactories.CreateReference(),
                 new HistoricalEvents.HistoricalEventsServer(new TimeService()),
                 new HistoricalAccess.HistoricalAccessServer(new TimeService()),
                 new Views.ViewsServer(),
                 new DataAccess.DataAccessServer(),
-                new Alarms.AlarmConditionServer(new TimeService()),
+                QuickstartsNodeManagerFactories.CreateAlarms(),
                 new SimpleEvents.SimpleEventsServer(),
                 new Plc.PlcServer(new TimeService(), logger, scaleunits),
                 new Isa95Jobs.Isa95JobControlServer()
@@ -94,6 +95,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// <inheritdoc/>
         private sealed class Server : ReverseConnectServer, ITestServer
         {
+            // TODO(Stage final): The 2.0 stack threads ITelemetryContext through the
+            // server base ctor. The test-server host only has an ILogger, so use a
+            // shared default telemetry context here to keep behavior equivalent.
+            private static readonly ITelemetryContext kTelemetry =
+                DefaultTelemetry.Create(_ => { });
+
             /// <inheritdoc/>
             public string PublishedNodesJson => _plc.GetPnJson();
 
@@ -136,6 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="logger"></param>
             public Server(bool logStatus, IEnumerable<INodeManagerFactory> nodes,
                 ILogger logger)
+                : base(kTelemetry)
             {
                 _logger = logger;
                 _logStatus = logStatus;
@@ -162,27 +170,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 var extensions = new List<object>
                 {
-                    new MemoryBuffer.MemoryBufferConfiguration
-                    {
-                        Buffers =
-                        [
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "UInt32",
-                                TagCount = 10000,
-                                DataType = "UInt32"
-                            },
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "Double",
-                                TagCount = 100,
-                                DataType = "Double"
-                            }
-                        ]
-                    },
-
-                    // ...
-
                     new FolderConfiguration
                     {
                         CurrentDirectory = curDir
@@ -198,12 +185,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     path = "/" + path;
                 }
-                var configuration = new ApplicationConfiguration
+                var configuration = new ApplicationConfiguration(kTelemetry)
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri = $"urn:{hostName ?? Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
-                    Extensions = [.. extensions.Select(XmlElementEx.SerializeObject)],
+                    ApplicationUri = $"urn:{hostName ?? CoreUtils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                    Extensions = [.. extensions.Select(e =>
+                        Opc.Ua.XmlElement.From(XmlElementEx.SerializeObject(e)))],
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration
@@ -212,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         {
                             StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/own",
-                            SubjectName = "UA Core Sample Server"
+                            SubjectName = "CN=UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
@@ -265,8 +253,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         ReverseConnect = new ReverseConnectServerConfiguration
                         {
                             ConnectInterval = 1000,
-                            ConnectTimeout = 120000,
-                            RejectTimeout = 120000
+                            ConnectTimeout = 30000,
+                            RejectTimeout = 30000
                         },
 
                         NodeManagerSaveFile = "nodes.xml",
@@ -277,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         BaseAddresses = [.. ports
                             .Distinct()
                             .Select(p => $"opc.tcp://{hostName ?? "localhost"}:{p}{path}")],
-                        AlternateBaseAddresses = alternativeAddresses == null ? null :
+                        AlternateBaseAddresses = alternativeAddresses == null ? default :
                             [.. alternativeAddresses.Distinct().SelectMany(e => ports
                                 .Distinct()
                                 .Select(p => $"opc.tcp://{e}:{p}{path}"))],
@@ -326,7 +314,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         MaxMessageQueueSize = 100,
                         MaxNotificationQueueSize = 100,
                         MaxNotificationsPerPublish = 1000,
-                        MinMetadataSamplingInterval = 1000,
                         MaxPublishRequestCount = 8,
                         MaxSubscriptionCount = 30,
                         MaxEventQueueSize = 10000,
@@ -342,6 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     }
                 };
                 configure?.Invoke(configuration.ServerConfiguration);
+                QuickstartsNodeManagerFactories.AddMemoryBufferConfiguration(configuration);
                 return configuration;
             }
 
@@ -355,7 +343,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 foreach (var session in Sessions)
                 {
-                    CurrentInstance.CloseSession(null, session, deleteSubscriptions);
+                    // #4197 moved CloseSession onto IServerContext and left only
+                    // the async form. This is a synchronous interface method, so
+                    // it blocks the same way the neighbouring CloseSubscription
+                    // already does for DeleteSubscriptionAsync.
+                    CurrentInstance.CloseSessionAsync(null, session, deleteSubscriptions)
+                        .AsTask().GetAwaiter().GetResult();
                 }
             }
 
@@ -413,9 +406,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     ManufacturerName = "OPC Foundation",
                     ProductName = "OPC UA Sample Servers",
                     ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
-                    SoftwareVersion = Utils.GetAssemblySoftwareVersion(),
-                    BuildNumber = Utils.GetAssemblyBuildNumber(),
-                    BuildDate = Utils.GetAssemblyTimestamp()
+                    SoftwareVersion = CoreUtils.GetAssemblySoftwareVersion(),
+                    BuildNumber = CoreUtils.GetAssemblyBuildNumber(),
+                    BuildDate = CoreUtils.GetAssemblyTimestamp()
                 };
             }
 
@@ -425,11 +418,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
+                    .Where(n => n is not AsyncNodeManagerFactoryAdapter)
                     .Select(n => n.Create(server, configuration))
+                    .ToArray();
+                var asyncNodeManagers = _nodes
+                    .OfType<AsyncNodeManagerFactoryAdapter>()
+                    .Select(n => n.Factory.CreateAsync(server, configuration)
+                        .AsTask().GetAwaiter().GetResult())
                     .ToArray();
 
                 _plc = nodeManagers.OfType<Plc.PlcNodeManager>().FirstOrDefault();
-                return new MasterNodeManager(server, configuration, null, nodeManagers);
+                return new MasterNodeManager(server, configuration, null,
+                    asyncNodeManagers, nodeManagers);
             }
 
             /// <inheritdoc/>
@@ -522,18 +522,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="lastContact"></param>
             private void LogSessionStatus(ISession session, string reason, DateTime? lastContact = null)
             {
-                lock (session.DiagnosticsLock)
+                if (lastContact.HasValue)
                 {
-                    if (lastContact.HasValue)
-                    {
-                        _logger.SessionLastContact(reason, session.SessionDiagnostics.SessionName, lastContact.Value);
-                    }
-                    else
-                    {
-                        _logger.SessionStatus(reason, session.SessionDiagnostics.SessionName,
-                            session.Identity.DisplayName ?? "session",
-                            session.Id);
-                    }
+                    _logger.SessionLastContact(reason,
+                        session.ReadDiagnostics(d => d.SessionName), lastContact.Value);
+                }
+                else
+                {
+                    _logger.SessionStatus(reason,
+                        session.ReadDiagnostics(d => d.SessionName),
+                        session.Identity.DisplayName ?? "session",
+                        session.Id);
                 }
             }
             /// <summary>
@@ -592,7 +591,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         }
 
                         // trusts any certificate in the trusted people store.
-                        _certificateValidator = CertificateValidator.GetChannelValidator();
+                        // (channel-scoped validator removed in UA 2.0; the base
+                        // CertificateValidator is used directly in VerifyCertificate.)
                     }
                 }
             }
@@ -619,9 +619,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 // check for a user name token.
                 if (args.NewIdentity is UserNameIdentityToken userNameToken)
                 {
-                    var password = userNameToken.DecryptedPassword == null
+                    var password = userNameToken.Password.IsEmpty
                         ? null
-                        : System.Text.Encoding.UTF8.GetString(userNameToken.DecryptedPassword);
+                        : System.Text.Encoding.UTF8.GetString(userNameToken.Password.ToArray());
                     var admin = VerifyPassword(userNameToken.UserName, password);
                     args.Identity = new UserIdentity(userNameToken);
                     if (admin)
@@ -635,7 +635,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 // check for x509 user token.
                 if (args.NewIdentity is X509IdentityToken x509Token)
                 {
-                    var admin = VerifyCertificate(x509Token.Certificate);
+                    var admin = VerifyCertificate(x509Token);
                     args.Identity = new UserIdentity(x509Token);
                     if (admin)
                     {
@@ -664,7 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 // create an exception with a vendor defined sub-code.
                 throw new ServiceResultException(new ServiceResult(
                     kServerNamespaceUri,
-                    new StatusCode(StatusCodes.BadIdentityTokenRejected, "Bad token"),
+                    new StatusCode((uint)StatusCodes.BadIdentityTokenRejected, "Bad token"),
                     new LocalizedText(info)));
             }
 
@@ -675,14 +675,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <exception cref="ServiceResultException"></exception>
             private static bool VerifyToken(IssuedIdentityToken wssToken)
             {
-                if ((wssToken.TokenData?.Length ?? 0) == 0)
+                if (wssToken.TokenData.IsEmpty)
                 {
                     var info = new TranslationInfo("InvalidToken", "en-US",
                         "Specified token is empty.");
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
                         kServerNamespaceUri,
-                        new StatusCode(StatusCodes.BadIdentityTokenRejected, "Bad token"),
+                        new StatusCode((uint)StatusCodes.BadIdentityTokenRejected, "Bad token"),
                         new LocalizedText(info)));
                 }
                 return false;
@@ -706,7 +706,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
                         kServerNamespaceUri,
-                        new StatusCode(StatusCodes.BadIdentityTokenRejected, "InvalidPassword"),
+                        new StatusCode((uint)StatusCodes.BadIdentityTokenRejected, "InvalidPassword"),
                         new LocalizedText(info)));
                 }
 
@@ -721,63 +721,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Verifies that a certificate user token is trusted.
             /// </summary>
-            /// <param name="certificate"></param>
+            /// <param name="token"></param>
             /// <exception cref="ServiceResultException"></exception>
-            private bool VerifyCertificate(X509Certificate2 certificate)
+            private bool VerifyCertificate(X509IdentityToken token)
             {
-                try
-                {
-                    if (_certificateValidator != null)
-                    {
-                        _certificateValidator.Validate(certificate);
-                    }
-                    else
-                    {
-                        CertificateValidator.Validate(certificate);
-                    }
-
-                    // determine if self-signed.
-                    var isSelfSigned = X509Utils.CompareDistinguishedName(
-                        certificate.Subject, certificate.Issuer);
-
-                    // do not allow self signed application certs as user token
-                    if (isSelfSigned && X509Utils.HasApplicationURN(certificate))
-                    {
-                        throw new ServiceResultException(StatusCodes.BadCertificateUseNotAllowed);
-                    }
-                    return false;
-                }
-                catch (Exception e)
-                {
-                    TranslationInfo info;
-                    StatusCode result = StatusCodes.BadIdentityTokenRejected;
-                    if (e is ServiceResultException se &&
-                        se.StatusCode == StatusCodes.BadCertificateUseNotAllowed)
-                    {
-                        info = new TranslationInfo(
-                            "InvalidCertificate",
-                            "en-US",
-                            "'{0}' is an invalid user certificate.",
-                            certificate.Subject);
-
-                        result = StatusCodes.BadIdentityTokenInvalid;
-                    }
-                    else
-                    {
-                        // construct translation object with default text.
-                        info = new TranslationInfo(
-                            "UntrustedCertificate",
-                            "en-US",
-                            "'{0}' is not a trusted user certificate.",
-                            certificate.Subject);
-                    }
-
-                    // create an exception with a vendor defined sub-code.
-                    throw new ServiceResultException(new ServiceResult(
-                        kServerNamespaceUri,
-                        new StatusCode(result.Code, info.Key),
-                        new LocalizedText(info)));
-                }
+                // TODO(Stage final): The UA-.NETStandard 2.0 stack restructured
+                // CertificateValidator and moved X509 user-token validation to the
+                // async IdentityRegistry authenticators. The test servers do not
+                // grant administrative access via user certificates (integration
+                // tests use anonymous or username tokens), so this is reduced to a
+                // non-admin, best-effort acceptance for now.
+                _ = token;
+                return false;
             }
 
             /// <summary>
@@ -823,7 +778,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                                 var session = sessions[Random.Shared.Next(0, sessions.Length)];
                                 var delete = Random.Shared.Next() % 2 == 0;
                                 Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
-                                CurrentInstance.CloseSession(null, session, delete);
+                                await CurrentInstance.CloseSessionAsync(null, session, delete, ct)
+                                    .ConfigureAwait(false);
                                 break;
                             case > 10 and < 13:
                                 if (InjectErrorResponseRate != 0)
@@ -909,7 +865,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             private Task _statusLogger;
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
-            private ICertificateValidator _certificateValidator;
             private CancellationTokenSource _chaosCts;
             private Task _chaosMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed

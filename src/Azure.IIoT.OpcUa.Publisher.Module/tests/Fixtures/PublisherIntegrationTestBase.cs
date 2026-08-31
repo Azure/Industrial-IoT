@@ -5,14 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Encoders;
-    using Autofac;
-    using Furly.Exceptions;
-    using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Microsoft.Extensions.Logging;
     using Neovolve.Logging.Xunit;
     using System;
@@ -40,6 +38,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// Base class for integration testing, it connects to the server, runs
     /// publisher and injects mocked IoTHub services.
     /// </summary>
+    // Fixture-backed server and PubSub contracts remain provisional until
+    // quickstarts-consume verifies local and upstream fixture equivalence.
+    [Trait("Category", "ServerIntegration")]
+    [Trait("Compatibility", "ProvisionalFixture")]
     public class PublisherIntegrationTestBase : IDisposable
     {
         protected string EndpointUrl { get; set; }
@@ -179,6 +181,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         /// <summary>
+        /// Start publisher and collect raw telemetry payloads without
+        /// interpreting them. Binary encodings such as UADP cannot go through
+        /// the JSON collector, which parses every payload it receives.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="messageCollectionTimeout"></param>
+        /// <param name="messageCount"></param>
+        /// <param name="arguments"></param>
+        /// <param name="version"></param>
+        protected async Task<List<(string Topic, string ContentType, byte[] Payload)>>
+            ProcessRawMessagesAsync(string test, string publishedNodesFile,
+            TimeSpan messageCollectionTimeout, int messageCount,
+            string[] arguments = default, MqttVersion? version = null)
+        {
+            StartPublisher(test, publishedNodesFile, arguments, version);
+            try
+            {
+                var payloads = new List<(string, string, byte[])>();
+                using var cts = new CancellationTokenSource(messageCollectionTimeout);
+                try
+                {
+                    await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
+                    {
+                        if (evt.Data.IsEmpty)
+                        {
+                            continue;
+                        }
+                        payloads.Add((evt.Topic, evt.ContentType, evt.Data.ToArray()));
+                        if (payloads.Count >= messageCount)
+                        {
+                            break;
+                        }
+                    }
+                }
+                catch (OperationCanceledException) { }
+                return payloads;
+            }
+            finally
+            {
+                await StopPublisherAsync();
+            }
+        }
+
+        /// <summary>
         /// Wait for one message
         /// </summary>
         /// <param name="predicate"></param>
@@ -222,6 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var messages = new List<JsonMessage>();
 
             JsonMessage? metadata = null;
+            TimeSpan? metadataDeadline = null;
             using var cts = new CancellationTokenSource(messageCollectionTimeout);
             try
             {
@@ -229,7 +277,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
                         schematype != MessageSchemaTypes.NetworkMessageJson &&
-                        schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
                         schematype != MessageSchemaTypes.NetworkMessageUadp)
                     {
                         continue;
@@ -258,7 +305,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     }
                     if (messages.Count >= messageCount)
                     {
-                        break;
+                        //
+                        // The collector used to stop here, which made every
+                        // "metadata is not null" assertion depend on the
+                        // metadata message arriving before the Nth data
+                        // message. That is an ordering property, and it was
+                        // being asserted incidentally by tests about payload
+                        // content, so one scheduling race made the whole suite
+                        // intermittent. Ordering is asserted deliberately by
+                        // its own test instead.
+                        //
+                        // Nothing is weakened: a run that never publishes
+                        // metadata still leaves it null and still fails, and
+                        // the extra wait is bounded and skipped entirely when
+                        // the run disabled metadata.
+                        //
+                        if (metadata is not null || _metaDataDisabled)
+                        {
+                            break;
+                        }
+                        metadataDeadline ??= stopWatch.Elapsed + kMetaDataCollectionGrace;
+                        if (stopWatch.Elapsed >= metadataDeadline)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -307,6 +377,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         };
 
         /// <summary>
+        /// How much longer the collector keeps reading after it has the
+        /// messages it was asked for, when metadata is expected and has not
+        /// arrived yet.
+        /// </summary>
+        private static readonly TimeSpan kMetaDataCollectionGrace =
+            TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Whether the run under collection disabled dataset metadata, in
+        /// which case waiting for a metadata message would only burn the
+        /// collection timeout.
+        /// </summary>
+        private bool _metaDataDisabled;
+
+        /// <summary>
         /// <para>
         /// Stream telemetry into a sink for a bounded duration without
         /// buffering it. <see cref="WaitForMessagesAndMetadataAsync"/>
@@ -339,9 +424,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
                 {
+                    //
+                    // MonitoredItemMessageJson is deliberately absent: 3.0
+                    // removed the MonitoredItemMessage format, so a message
+                    // can only ever carry one of the two remaining schemas.
+                    //
                     if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
                         schematype != MessageSchemaTypes.NetworkMessageJson &&
-                        schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
                         schematype != MessageSchemaTypes.NetworkMessageUadp)
                     {
                         continue;
@@ -411,6 +500,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // long-lived file - so this stays a test-only setting.
             arguments = [.. arguments, "--pol"];
 
+            //
+            // Recorded so the collector knows whether a metadata message is
+            // ever coming. A run that disables metadata must not be made to
+            // wait for one.
+            //
+            _metaDataDisabled = arguments.Any(IsMetaDataDisabled);
+
             if (reverseConnectPort != null)
             {
                 arguments =
@@ -426,6 +522,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             _publisher = new PublisherModule(null, null, null, null,
                 _testOutputHelper, arguments, version, keepAliveInterval);
             _logger.PublisherStarted(sw.Elapsed);
+
+            static bool IsMetaDataDisabled(string argument)
+            {
+                if (string.Equals(argument, "--dm", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+                return argument.StartsWith("--dm=", StringComparison.Ordinal)
+                    && bool.TryParse(argument["--dm=".Length..], out var disabled)
+                    && disabled;
+            }
         }
 
         /// <summary>
@@ -477,7 +584,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var publisher = _publisher;
                 _publisher = null;
 
-                // Bound the publisher disposal. The same upstream MQTTnet/Furly
+                // Bound the publisher disposal. The same upstream MQTTnet/Legacy
                 // reconnect race that ExecuteWithMqttRetryAsync retries can also
                 // leave the MQTT client stuck while disconnecting, so the host
                 // shutdown awaited by PublisherModule.DisposeAsync never
@@ -506,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
         /// <summary>
         /// Run an integration test body, retrying the whole test if the
-        /// publisher's MQTT session is lost to a known upstream MQTTnet/Furly
+        /// publisher's MQTT session is lost to a known upstream MQTTnet/Legacy
         /// reconnect race. Tearing down a writer group (UnpublishNodes) makes
         /// the publisher's MQTT client briefly disconnect and reconnect; an
         /// in-flight QoS1 "$call" response PUBLISH then races the reconnect and
@@ -522,7 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// genuine assertion failures (those are neither a
         /// <see cref="MethodCallException"/> nor a per-attempt cancellation and
         /// propagate immediately). This is a test-side mitigation for an
-        /// upstream Furly/MQTTnet reconnect bug, not a product defect.
+        /// upstream Legacy/MQTTnet reconnect bug, not a product defect.
         /// </summary>
         /// <param name="testBody"></param>
         /// <param name="maxAttempts"></param>
@@ -586,13 +693,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string test, string publishedNodesFile,
             bool useReverseConnect = false, SecurityMode? securityMode = null)
         {
-            IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile)
                 .Replace("\"{{UseReverseConnect}}\"", useReverseConnect ? "true" : "false", StringComparison.Ordinal)
                 .Replace("{{EndpointUrl}}", EndpointUrl, StringComparison.Ordinal)
                 .Replace("{{SecurityMode}}", (securityMode ?? SecurityMode.None).ToString(), StringComparison.Ordinal)
                 .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
-            return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
+            return Json.Deserialize<PublishedNodesEntryModel[]>(fileContent) ?? [];
         }
 
         private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);

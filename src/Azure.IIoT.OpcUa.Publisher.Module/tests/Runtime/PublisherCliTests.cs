@@ -13,11 +13,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     /// <summary>
     /// Class to test Cli options
     /// </summary>
-    public class PublisherCliTests
+    public class PublisherCliTests : IDisposable
     {
         public PublisherCliTests()
         {
+            _deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
             Environment.SetEnvironmentVariable("IOTEDGE_DEVICEID", "deviceId");
+        }
+
+        public void Dispose()
+        {
+            Environment.SetEnvironmentVariable("IOTEDGE_DEVICEID", _deviceId);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -193,5 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
                 .Should()
                 .Be(0);
         }
+
+        private readonly string? _deviceId;
     }
 }

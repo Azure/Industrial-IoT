@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Historic event
@@ -21,6 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "eventFields", Order = 0)]
         [SkipValidation]
-        public required IReadOnlyList<VariantValue> EventFields { get; set; }
+        public required IReadOnlyList<JsonNode?> EventFields { get; set; }
     }
 }

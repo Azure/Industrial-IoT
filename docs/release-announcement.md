@@ -2,6 +2,10 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 3.0](#azure-industrial-iot-opc-publisher-30)
+  - [Breaking changes in 3.0](#breaking-changes-in-30)
+  - [Changes in 3.0](#changes-in-30)
+  - [Verification status of this release candidate](#verification-status-of-this-release-candidate)
 - [Azure Industrial IoT OPC Publisher 2.9.15](#azure-industrial-iot-opc-publisher-2915)
   - [Breaking changes](#breaking-changes)
   - [Changes in 2.9.15](#changes-in-2915)
@@ -64,6 +68,46 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 3.0
+
+We are pleased to announce the release of version 3.0 of OPC Publisher. This is a major release that replaces the custom telemetry encoder with the native OPC UA PubSub runtime from the UA-.NETStandard 2.0 stack. The publisher now produces standards-compliant OPC UA Part 14 messages over all supported transports. The module targets .NET 10 and its container image is distroless.
+
+### Breaking changes in 3.0
+
+> IMPORTANT. Please read before upgrading.
+
+- The `Samples` and `FullSamples` messaging modes are **removed**. They emitted a proprietary `MonitoredItemMessage` format that predates OPC UA PubSub and has no representation in Part 14. A deployment configured for either mode will refuse to start with an error naming the replacement (`PubSub` for `Samples`, `FullNetworkMessages` for `FullSamples`). See the [migration guide](./opc-publisher/migration-2.9-to-3.0.md) for step-by-step instructions.
+- All other removed features — Avro encoding, automatic topic routing via browse paths (`--uns`), `--bs` batch size, `--wgp` writer group partitions — are accepted and ignored so existing command lines and `published_nodes.json` files still start without modification.
+- The `Heartbeat: true` member that 2.x could write into data set messages is no longer emitted. It was not a Part 14 field. Consumers that relied on it to detect heartbeats should compare `SourceTimestamp` values across consecutive messages for the same field instead (see the [migration guide](./opc-publisher/migration-2.9-to-3.0.md#heartbeat-indicator-removed-from-data-set-messages)).
+- **The container image is now distroless and runs as a non-root user** (`UID 1654`). Two consequences follow. The image has no shell and no package manager, so `docker exec ... sh` and any startup script that assumed one will not work. And because OPC Publisher only defaults to the privileged ports when it is running as root in a container, **the default HTTPS port inside the image changes from 443 to 9072**. Deployments that relied on the in-container defaults must either publish the new port or set `--httpserverport` explicitly.
+- **The unsecure (plaintext) HTTP listener is now genuinely off by default.** `--unsecurehttp` has always documented itself as `Default: disabled`, and warned that the listener exposes the api key on the network — but it was never actually off. An absent, empty or unparseable `UnsecureHttpServerPort` all resolved to the default port, so the documented state could not be reached by any configuration input, and every deployment listened on 9071 (80 as root) on all interfaces whether it wanted to or not. As of 3.0 the behaviour matches the documentation: the listener starts only when you ask for it. **Anything that talked to OPC Publisher over plaintext HTTP without setting the option will now get connection refused.** Add `--unsecurehttp` to keep the previous behaviour on the default port, or `--unsecurehttp=<port>` to choose one — and prefer the TLS port instead, since the api key is sent in the clear on this one. The MCP endpoint is refused on the plaintext listener even when it is enabled.
+
+### Changes in 3.0
+
+- Telemetry is published through the native OPC UA PubSub runtime. The custom encoder has been removed.
+- Migrated to the UA-.NETStandard 2.0 stack, consumed as the published `OPCFoundation.NetStandard.Opc.Ua.*` NuGet packages.
+- Native AOT publishing is supported for the module (`-p:IIoTPublishAot=true`) and is gated in CI for linux-amd64 and linux-arm64. **The published container image is not itself Native AOT** — it is a framework-dependent build on the .NET 10 base image, which is what allows the MCP tool server to ship in it.
+- The container image is distroless (`aspnet:10.0-azurelinux3.0-distroless`) and runs as a non-root user. libpcap is staged into it so the MCP protocol diagnostics can capture from a network interface when the container is given the necessary privilege.
+- Updated to .NET 10.
+- Avro and Avro+Gzip encoding with schema publishing removed. The Avro encoder was deleted as part of the 2.0 stack migration; Avro support is expected to return via the upstream 2.0 stack in a later release.
+- Automatic topic routing using OPC UA browse paths (`--uns` / `DataSetRouting`) removed. Use topic templates (`--ttt`) to build structured topic hierarchies.
+- `--bs` (BatchSize) and `--wgp` (writer group partitions) are now inert; `--bi` controls sampling cadence and `--om` bounds the send queue.
+- Fixed watchdog heartbeat timer racing the value it waits for.
+- Fixed heartbeat notifications not being serialized consistently with value change dispatch.
+- Fixed an inverted endpoint comparison and an empty-sequence crash on reconnect.
+- Configuring `NamespaceFormat` via `published_nodes.json` and the configuration API is now supported.
+- Keep alive messages and trigger-based publishing now work correctly on the native path.
+- New `--mcp` option exposes the OPC UA MCP tool server over HTTP so an agent can browse, read and write through the publisher. It is served on the already configured HTTP listener behind the same authentication as the rest of the API, and enables the HTTPS listener on its default port if none is configured. It is available in the published container image; it is **not** available when the module is published with Native AOT, because the MCP libraries are excluded from that configuration and `--mcp` reports that rather than starting without the tools. See [MCP tool server](./opc-publisher/mcp.md), and read the security section there before enabling it: the tools can write to and call into the plant.
+
+### Verification status of this release candidate
+
+This is a release candidate (`3.0.0-rc`). What has and has not been established:
+
+- All seven test suites pass, and every shipping assembly meets the 85% line and 70% branch coverage floors.
+- **The multi-hour leak soak has not been run.** A shorter soak — 20 fresh-process runs, each publishing two rounds over MQTT v5 on the native PubSub path — found no leak: about 637 kB of growth per round against an ~87 MB baseline, no compounding, and first-round heap drifting down rather than up across runs. That structure can rule out gross retention but cannot detect slow accumulation over hours, which is the failure mode a soak exists to find. The honest statement is therefore **no leak detectable at that timescale**, not *no leak*. Treat sustained multi-hour operation as unverified until that run is done.
+
+For a full list of behaviour changes and instructions for adapting downstream consumers, see the [2.9 to 3.0 migration guide](./opc-publisher/migration-2.9-to-3.0.md).
 
 ## Azure Industrial IoT OPC Publisher 2.9.15
 

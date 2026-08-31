@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [Flags]
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<NodeAccessRestrictions>))]
     public enum NodeAccessRestrictions
     {
         /// <summary>

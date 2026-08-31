@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,10 +6,9 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Linq;
@@ -74,12 +73,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             _dataSet = new JsonDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, definitions, uniqueNames);
             _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags
-                ?? PubSubMessage.DefaultDataSetFieldContentFlags;
+                ?? PubSubMessageDefaults.DefaultDataSetFieldContentFlags;
             UseCompatibilityMode = useCompatibilityMode;
             Id = dataSetMessage.Id;
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
             Ref = Compile(dataSetMessage.DataSetMessageContentFlags
-                ?? PubSubMessage.DefaultDataSetMessageContentFlags);
+                ?? PubSubMessageDefaults.DefaultDataSetMessageContentFlags);
         }
 
         /// <inheritdoc/>
@@ -181,19 +180,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             }
 
             //
-            // The heartbeat indicator is optional, it is only written when the data set
-            // message was produced by a heartbeat. It is therefore not added to the list
-            // of required properties below.
+            // No heartbeat indicator here. 2.9 wrote an optional Heartbeat
+            // member on data set messages produced by a heartbeat, but that is
+            // not a Part 14 member and the standards compliant encoder 3.0
+            // publishes through has no notion of it. Declaring it in the schema
+            // would describe a member the runtime never writes - the exact
+            // failure mode this file's remarks warn about.
             //
             var required = properties.Keys.ToList();
-            if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
-            {
-                properties.Add(nameof(PubSub.JsonDataSetMessage.Heartbeat),
-                    encoding.GetSchemaForBuiltInType(BuiltInType.Boolean));
-            }
-
-            properties.Add(nameof(PubSub.JsonDataSetMessage.Payload), _dataSet.Ref);
-            required.Add(nameof(PubSub.JsonDataSetMessage.Payload));
+            properties.Add(PubSubMessageMembers.Payload, _dataSet.Ref);
+            required.Add(PubSubMessageMembers.Payload);
 
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
@@ -215,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += BaseDataSetMessage.MessageTypeName;
+            typeName += PubSubMessageMembers.DataSetMessageTypeName;
             if (uniqueNames != null)
             {
                 var uniqueName = typeName;

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Furly.Extensions.Serializers;
     using Irony.Parsing;
     using System;
     using System.Buffers;
@@ -17,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -32,11 +32,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         /// </summary>
         /// <param name="syntaxTree"></param>
         /// <param name="context"></param>
-        /// <param name="serializer"></param>
         private FilterModelBuilder(ParseTree syntaxTree,
-            IFilterParserContext context, IJsonSerializer serializer)
+            IFilterParserContext context)
         {
-            _serializer = serializer;
             _context = context;
             _syntaxTree = syntaxTree;
 
@@ -111,14 +109,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         /// </summary>
         /// <param name="syntaxTree"></param>
         /// <param name="context"></param>
-        /// <param name="serializer"></param>
         /// <param name="ct"></param>
         public static Task<EventFilterModel> BuildEventFilterAsync(
-            ParseTree syntaxTree, IFilterParserContext context,
-            IJsonSerializer serializer, CancellationToken ct)
+            ParseTree syntaxTree, IFilterParserContext context, CancellationToken ct)
         {
-            var builder = new FilterModelBuilder(syntaxTree,
-                context, serializer);
+            var builder = new FilterModelBuilder(syntaxTree, context);
             return builder.BuildEventFilterAsync(ct);
         }
 
@@ -485,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             return new FilterOperandModel
             {
                 DataType = dataType,
-                Value = _serializer.Parse(str)
+                Value = JsonNode.Parse(str)
             };
         }
 
@@ -959,7 +954,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         private readonly List<ContentFilterElement2Model> _contentFilter = [];
         private readonly HashSet<SimpleAttributeOperandModel> _selectClauses =
             new(new SimpleAttributeOperandComperer());
-        private readonly IJsonSerializer _serializer;
         private readonly IFilterParserContext _context;
         private readonly ParseTree _syntaxTree;
         private readonly List<ParseTreeNode> _fieldItemList;

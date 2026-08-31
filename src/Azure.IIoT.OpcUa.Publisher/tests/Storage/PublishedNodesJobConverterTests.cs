@@ -7,9 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Furly.Azure.IoT.Edge.Services;
-    using Furly.Extensions.Logging;
-    using Furly.Extensions.Serializers.Newtonsoft;
+    using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
     using Moq;
@@ -27,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     /// project file set to copy to the output build directory so that it can
     /// be easily referenced here.
     /// </summary>
+    [Trait("Compatibility", "Authoritative")]
     public class PublishedNodesJobConverterTests
     {
         [Fact]
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var writerGroups = converter.Read(pn);
 
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -188,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
 
             var writerGroups = converter.ToWriterGroups(converter.Read(pn)).ToList();
             Assert.Equal(2, writerGroups.Count);
@@ -265,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(),
+            var converter = new PublishedNodesConverter(logger, GetOptions(),
                 cryptoProvider: withCryptoProvider ? providerThrows ? CreateThrowProvider() : CreateMockProvider() : null);
 
             var entries = converter.Read(pn);
@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var logger = Log.Console<PublishedNodesConverter>();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.ForceCredentialEncryption = true;
-            var converter = new PublishedNodesConverter(logger, _serializer, options, CreateMockProvider());
+            var converter = new PublishedNodesConverter(logger, options, CreateMockProvider());
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -372,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -422,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), cryptoProvider: CreateThrowProvider());
+            var converter = new PublishedNodesConverter(logger, GetOptions(), cryptoProvider: CreateThrowProvider());
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -474,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
 """;
             var logger = Log.Console<PublishedNodesConverter>();
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), cryptoProvider: CreateMockProvider());
+            var converter = new PublishedNodesConverter(logger, GetOptions(), cryptoProvider: CreateMockProvider());
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -530,7 +530,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var logger = Log.Console<PublishedNodesConverter>();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.ForceCredentialEncryption = true;
-            var converter = new PublishedNodesConverter(logger, _serializer, options, CreateMockProvider());
+            var converter = new PublishedNodesConverter(logger, options, CreateMockProvider());
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -589,7 +589,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var logger = Log.Console<PublishedNodesConverter>();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.ForceCredentialEncryption = true;
-            var converter = new PublishedNodesConverter(logger, _serializer, options);
+            var converter = new PublishedNodesConverter(logger, options);
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -653,7 +653,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var logger = Log.Console<PublishedNodesConverter>();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.ForceCredentialEncryption = true;
-            var converter = new PublishedNodesConverter(logger, _serializer, options, CreateThrowProvider());
+            var converter = new PublishedNodesConverter(logger, options, CreateThrowProvider());
 
             var entries = converter.Read(pn);
             var entry = Assert.Single(entries);
@@ -710,7 +710,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -745,7 +745,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -780,7 +780,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 """;
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -816,7 +816,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 """;
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -852,7 +852,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 """;
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -896,7 +896,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 """;
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -941,7 +941,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -988,7 +988,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1032,7 +1032,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 """;
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1084,7 +1084,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 """;
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1142,7 +1142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1202,7 +1202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1236,7 +1236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1272,7 +1272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1309,7 +1309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1341,7 +1341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1375,7 +1375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1411,7 +1411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1448,7 +1448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1481,7 +1481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1514,7 +1514,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1549,7 +1549,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1583,7 +1583,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1617,7 +1617,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1650,7 +1650,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1685,7 +1685,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1719,7 +1719,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1752,7 +1752,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1794,7 +1794,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1836,7 +1836,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1874,7 +1874,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -1909,7 +1909,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1947,7 +1947,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -1986,7 +1986,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2026,7 +2026,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2076,7 +2076,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
 
@@ -2116,7 +2116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2178,7 +2178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2240,7 +2240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2309,7 +2309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2378,7 +2378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2445,7 +2445,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries);
@@ -2468,7 +2468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -2523,7 +2523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn.ToString());
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -2580,7 +2580,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn.ToString());
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -2670,7 +2670,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn.ToString());
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -2701,7 +2701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(FilterOperatorType.OfType, model.Filter.Elements[0].FilterOperator);
             Assert.Single(model.Filter.Elements[0].FilterOperands);
             Assert.Equal("i=2041", model.Filter.Elements[0].FilterOperands[0].NodeId);
-            Assert.Equal("ns=2;i=235", model.Filter.Elements[0].FilterOperands[0].Value);
+            Assert.Equal("ns=2;i=235", (string?)model.Filter.Elements[0].FilterOperands[0].Value);
 
             // Check where clause
             Assert.Single(model.Filter.Elements[0].FilterOperands[0].BrowsePath);
@@ -2786,7 +2786,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -2823,7 +2823,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Single(eventModel.Filter.Elements);
             Assert.Equal(FilterOperatorType.OfType, eventModel.Filter.Elements[0].FilterOperator);
             Assert.Single(eventModel.Filter.Elements[0].FilterOperands);
-            Assert.Equal("ns=2;i=235", eventModel.Filter.Elements[0].FilterOperands[0].Value);
+            Assert.Equal("ns=2;i=235", (string?)eventModel.Filter.Elements[0].FilterOperands[0].Value);
 
             Assert.NotEmpty(writers[4].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Empty(writers[4].DataSet.DataSetSource.PublishedEvents.PublishedData);
@@ -2940,7 +2940,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -3007,7 +3007,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             var logger = Log.Console<PublishedNodesConverter>();
 
-            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
+            var converter = new PublishedNodesConverter(logger, GetOptions());
 
             var entries = converter.Read(pn);
             var writerGroups = converter.ToWriterGroups(entries).ToList();
@@ -3056,10 +3056,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         private static IOptions<PublisherOptions> GetOptions()
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
-            options.Value.MessagingProfile = MessagingProfile.Get(MessagingMode.Samples, MessageEncoding.Json);
+            options.Value.MessagingProfile = MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
             return options;
         }
 
-        private readonly NewtonsoftJsonSerializer _serializer = new();
     }
 }

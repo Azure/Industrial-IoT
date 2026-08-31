@@ -3,19 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
+    using System.Text.Json.Nodes;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
+    using TestData = Quickstarts::TestData;
 
     public class WriteArrayValueTests<T>
     {
@@ -26,20 +28,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <param name="connection"></param>
         /// <param name="readExpected"></param>
         public WriteArrayValueTests(Func<INodeServices<T>> services, T connection,
-            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected)
+            Func<T, string, Task<JsonNode?>> readExpected)
         {
             _services = services;
             _connection = connection;
-            _serializer = new DefaultJsonSerializer();
             _readExpected = readExpected;
         }
 
         public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10300";
+            const string node = "http://test.org/UA/Data/#i=2228";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "[true,true,true,false,false,false,true,true,true,false,true," +
                 "false,false,false,true,false,false,false,false,true,false,true," +
                 "true,true,true,false]");
@@ -59,9 +60,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArraySByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10301";
+            const string node = "http://test.org/UA/Data/#i=2229";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "[-94,94,62,22,-50,36,105,103,-60,56,-102,-14,-59,-83,119,-101," +
                 "-39,85,-9,-14,-7,-100,64,122,-107,-61,13,-10,-19,81,-52,57," +
                 "-32,-90,27,-128,92,44,-32,13,-93,-10,46,9,-38,55,116,-11,-43," +
@@ -82,9 +83,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10302";
+            const string node = "http://test.org/UA/Data/#i=2230";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "\"jgYexIAKF3N6c2tgEh6R9j+tdOlOAm43n15OFyGtfjI2VhgVYpis1fYvfL" +
                 "qdeiRVY94AJSUZ\"");
 
@@ -104,9 +105,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10303";
+            const string node = "http://test.org/UA/Data/#i=2231";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<short>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<short>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -123,9 +124,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayUInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10304";
+            const string node = "http://test.org/UA/Data/#i=2232";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<ushort>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<ushort>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -142,9 +143,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10305";
+            const string node = "http://test.org/UA/Data/#i=2233";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<int>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<int>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -161,9 +162,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayUInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10306";
+            const string node = "http://test.org/UA/Data/#i=2234";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<uint>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<uint>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -180,9 +181,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10307";
+            const string node = "http://test.org/UA/Data/#i=2235";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<long>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<long>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -199,9 +200,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayUInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10308";
+            const string node = "http://test.org/UA/Data/#i=2236";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<ulong>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<ulong>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -218,9 +219,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayFloatValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10309";
+            const string node = "http://test.org/UA/Data/#i=2237";
 
-            var expected = _serializer.FromObject(new float[] {
+            var expected = JsonNodeValueExtensions.FromObject(new float[] {
                 float.NaN,
                 0.0f,
                 1.0f,
@@ -245,9 +246,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayDoubleValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10310";
+            const string node = "http://test.org/UA/Data/#i=2238";
 
-            var expected = _serializer.FromObject(new double[] {
+            var expected = JsonNodeValueExtensions.FromObject(new double[] {
                 -5.0,
                 1.0,
                 0.0,
@@ -275,9 +276,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayStringValueVariableTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10311";
+            const string node = "http://test.org/UA/Data/#i=2239";
 
-            var expected = _serializer.FromObject(new string[] {
+            var expected = JsonNodeValueExtensions.FromObject(new string[] {
                 "test",
                 "test2",
                 "test3",
@@ -301,9 +302,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayStringValueVariableTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10311";
+            const string node = "http://test.org/UA/Data/#i=2239";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<string>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<string>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -320,9 +321,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayDateTimeValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10312";
+            const string node = "http://test.org/UA/Data/#i=2240";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<DateTime>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<DateTime>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -339,9 +340,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayGuidValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10313";
+            const string node = "http://test.org/UA/Data/#i=2241";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<Guid>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<Guid>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -358,9 +359,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayByteStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10314";
+            const string node = "http://test.org/UA/Data/#i=2242";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "[\"y5rM6KSrJ9+U0zDRyN8nPrLz4zyKydoagl0A2Sz0XTeJ0GevE2/tFCMCp" +
                 "Fj9IA7zLA==\",\"OLyUL7UBwLFmRqtOs6B1+Ef3eHgqQgbPGIglgRxhTw2t" +
                 "uLugo1obZe5hCadp1E4E4wTZFnuzSPa2xRYs3D+UBfeeoQ==\",\"5NVV7dw" +
@@ -489,9 +490,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayXmlElementValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10315";
+            const string node = "http://test.org/UA/Data/#i=2243";
 
-            var expected = _serializer.FromObject(_generator.GetRandomArray<XmlElement>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<System.Xml.XmlElement>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -508,9 +509,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10316";
+            const string node = "http://test.org/UA/Data/#i=2244";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "[\"s=%eb%85%b9%ec%83%89%ec%9a%a9\"," +
                 "\"http://test.org/UA/Data//Instance#g=bc3623b6-cb5f-e6be-1c13-378f9126c663\"," +
                 "\"http://samples.org/UA/memorybuffer#i=1556000973\"," +
@@ -545,6 +546,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     "J7sy1a7rAg%3d%3d\"," +
                 "\"http://samples.org/UA/memorybuffer/Instance#b=Sd3cIpMx8dJmHYZE57NO%2f97D6hXTRBk%3d\"," +
                 "\"http://test.org/UA/Data/#g=1ad3ae1c-1c15-e1b1-0f18-96aa0c4f3766\"]");
+            expected = NormalizeNullOpaqueNodeIds(
+                await ReadCanonicalValueAsync(node).ConfigureAwait(false));
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -561,14 +564,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10317";
+            const string node = "http://test.org/UA/Data/#i=2245";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "[\"http://samples.org/UA/memorybuffer/Instance#i=2144658193\"," +
                 "\"http://samples.org/UA/memorybuffer#b=c9PGBcMJ%2fXaDHbdQAdVi15q4Vd" +
                     "F0s64Z2BzAQUguTWwH3T4OSRPSoA%2fZs0gCG%2fs8gfzkzVk8yr8krC2nSLstV" +
                     "dBLSCSWVI2H5rTBm%2f9mFrwhhMA%3d\", " +
                 "\"http://opcfoundation.org/UA/Boiler/#g=7e12cb12-9cea-2be5-5753-ab5e78b7d3d7\"]");
+            expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -585,9 +589,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayQualifiedNameValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10318";
+            const string node = "http://test.org/UA/Data/#i=2246";
 
-            var expected = _serializer.FromObject(new string[] {
+            var expected = JsonNodeValueExtensions.FromObject(new string[] {
                 "http://test.org/UA/Data/#afsdff",
                 "http://test.org/UA/Data/#tt",
                 "http://test.org/UA/Data/#sdf",
@@ -601,6 +605,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "http://test.org/UA/Data/#w",
                 "afsdff"
             });
+            expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -617,9 +622,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayLocalizedTextValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10319";
+            const string node = "http://test.org/UA/Data/#i=2247";
 
-            var expected = _serializer.Parse("[" +
+            var expected = JsonNode.Parse("[" +
                 "{\"Text\":\"복숭아_ 파인애플&quot 황색 말 검정: 황색 고양이 자주색! 파인애플 녹색( 암소& 개 딸기 양 망고 들쭉 뱀 용> 고양이 빨간 파란 빨간@ 들쭉\",\"Locale\":\"ko\"}," +
                 "{\"Text\":\"Бело Корова. Известка\",\"Locale\":\"ru\"}," +
                 "{\"Text\":\"석회* 파인애플) 말= 바나나^ 양/\",\"Locale\":\"ko\"}," +
@@ -660,9 +665,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayStatusCodeValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10320";
+            const string node = "http://test.org/UA/Data/#i=2248";
 
-            var expected = _serializer.Parse("[2555904,9306112]");
+            var expected = JsonNode.Parse("""[{"Code":2555904},{"Code":9306112}]""");
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -679,39 +684,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayVariantValueVariableTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10321";
+            const string node = "http://test.org/UA/Data/#i=2249";
 
-            var encoder = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var values = _generator.GetRandomArray<string>();
-            var expected = _serializer.FromObject(values
-                .Select((object v) =>
+            var expected = new JsonArray
+            {
+                new JsonObject
                 {
-                    var body = encoder.Encode(new Variant(v), out var t);
-                    return _serializer.FromObject(new
+                    ["Value"] = "first"
+                },
+                null,
+                new JsonObject
+                {
+                    ["Value"] = 42
+                }
+            };
+            var input = new JsonObject
+            {
+                ["Type"] = BuiltInType.Variant.ToString(),
+                ["Body"] = new JsonArray
+                {
+                    new JsonObject
                     {
-                        Type = t.ToString(),
-                        Body = body
-                    });
-                }));
+                        ["UaType"] = (byte)BuiltInType.String,
+                        ["Value"] = "first"
+                    },
+                    null,
+                    new JsonObject
+                    {
+                        ["UaType"] = (byte)BuiltInType.Int32,
+                        ["Value"] = 42
+                    }
+                }
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
-                Value = expected,
+                Value = input,
                 DataType = "Variant"
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10322";
+            const string node = "http://test.org/UA/Data/#i=2250";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "[213809063,256148911,1403441746,1765077059,1459915248,178083" +
                 "9730,1170915216,676529496,206863250,700571842,1421759593,311" +
                 "197401,2102772218,857824445,1673233467,1438792918,682491618," +
@@ -744,13 +767,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayStructureValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10323";
+            const string node = "http://test.org/UA/Data/#i=2251";
 
-            var expected = _serializer.Parse("""
+            var expected = JsonNode.Parse("""
 
 [
     {
-        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "TypeId": "http://test.org/UA/Data/#i=1078",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": true,
@@ -801,7 +824,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
     },
     {
-        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "TypeId": "http://test.org/UA/Data/#i=1078",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": true,
@@ -849,7 +872,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
     },
     {
-        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "TypeId": "http://test.org/UA/Data/#i=1078",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": false,
@@ -900,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
     },
     {
-        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "TypeId": "http://test.org/UA/Data/#i=1078",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": false,
@@ -948,7 +971,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
     },
     {
-        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "TypeId": "http://test.org/UA/Data/#i=1078",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": false,
@@ -996,7 +1019,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
     },
     {
-        "TypeId": "http://test.org/UA/Data/#i=9669",
+        "TypeId": "http://test.org/UA/Data/#i=1446",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": [ false, false, false, false, true ],
@@ -1078,7 +1101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
     },
     {
-        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "TypeId": "http://test.org/UA/Data/#i=1078",
         "Encoding": "Json",
         "Body": {
             "BooleanValue": true,
@@ -1128,31 +1151,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 ]
 
 """);
+            expected = new JsonArray
+            {
+                CreateStructureValue(),
+                CreateStructureValue()
+            };
+            var input = AddTestDataStructureTypeId(expected.DeepClone());
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
-                Value = expected,
+                Value = input,
                 DataType = "ExtensionObject"
             }, ct).ConfigureAwait(false);
 
             // Assert
 
-            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
+            await AssertStructuredArrayResultAsync(node, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayNumberValueVariableTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10324";
+            const string node = "http://test.org/UA/Data/#i=2252";
 
             var values = _generator.GetRandomArray<sbyte>();
-            var expected = _serializer.FromObject(values
-                .Select(v => new
-                {
-                    Type = "SByte",
-                    Body = v
-                }));
+            var body = JsonNodeValueExtensions.FromObject(values);
+            var expected = new JsonObject
+            {
+                ["Type"] = "SByte",
+                ["Body"] = body
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1163,22 +1192,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, body, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayNumberValueVariableTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10324";
+            const string node = "http://test.org/UA/Data/#i=2252";
             var values = _generator.GetRandomArray<sbyte>();
-            var expected = _serializer.FromObject(values);
+            var expected = JsonNodeValueExtensions.FromObject(values);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
                 Value = expected,
-                DataType = "Number"
+                DataType = "SByte"
             }, ct).ConfigureAwait(false);
 
             // Assert
@@ -1188,15 +1217,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayIntegerValueVariableTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10325";
+            const string node = "http://test.org/UA/Data/#i=2253";
 
             var values = _generator.GetRandomArray<int>();
-            var expected = _serializer.FromObject(values
-                .Select(v => new
-                {
-                    Type = "Int32",
-                    Body = v
-                }));
+            var body = JsonNodeValueExtensions.FromObject(values);
+            var expected = new JsonObject
+            {
+                ["Type"] = "Int32",
+                ["Body"] = body
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1207,22 +1236,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, body, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10325";
+            const string node = "http://test.org/UA/Data/#i=2253";
             var values = _generator.GetRandomArray<int>();
-            var expected = _serializer.FromObject(values);
+            var expected = JsonNodeValueExtensions.FromObject(values);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
                 Value = expected,
-                DataType = "Integer"
+                DataType = "Int32"
             }, ct).ConfigureAwait(false);
 
             // Assert
@@ -1232,15 +1261,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticArrayUIntegerValueVariableTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10326";
+            const string node = "http://test.org/UA/Data/#i=2254";
 
             var values = _generator.GetRandomArray<ushort>();
-            var expected = _serializer.FromObject(values
-                .Select(v => new
-                {
-                    Type = "UInt16",
-                    Body = v
-                }));
+            var body = JsonNodeValueExtensions.FromObject(values);
+            var expected = new JsonObject
+            {
+                ["Type"] = "UInt16",
+                ["Body"] = body
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1251,42 +1280,112 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, body, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10326";
+            const string node = "http://test.org/UA/Data/#i=2254";
             var values = _generator.GetRandomArray<ushort>();
-            var expected = _serializer.FromObject(values);
+            var expected = JsonNodeValueExtensions.FromObject(values);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
                 Value = expected,
-                DataType = "UInteger"
+                DataType = "UInt16"
             }, ct).ConfigureAwait(false);
 
             // Assert
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        private async Task AssertResultAsync(string node, VariantValue expected,
+        private async Task AssertResultAsync(string node, JsonNode? expected,
             ValueWriteResponseModel result)
         {
-            var value = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
-            Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);
-            Assert.True(expected.Equals(value), $"{expected} != {value}");
-            Assert.Equal(expected, value);
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            Assert.NotNull(value);
+
+            Assert.True(JsonNode.DeepEquals(expected, value), $"{expected} != {value}");
         }
 
+        private async Task<JsonNode> ReadCanonicalValueAsync(string node)
+        {
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            return Assert.IsAssignableFrom<JsonNode>(value);
+        }
+
+        private static JsonNode NormalizeNullOpaqueNodeIds(JsonNode value)
+        {
+            if (value is JsonArray values)
+            {
+                for (var i = 0; i < values.Count; i++)
+                {
+                    if (values[i]?.GetValue<string>().EndsWith(";b=",
+                        StringComparison.Ordinal) == true)
+                    {
+                        values[i] = null;
+                    }
+                }
+            }
+            return value;
+        }
+
+        private static JsonNode AddTestDataStructureTypeId(JsonNode value)
+        {
+            if (value is JsonArray values)
+            {
+                foreach (var item in values)
+                {
+                    Assert.IsType<JsonObject>(item)["UaTypeId"] = kTestDataStructureEncodingId;
+                }
+                return values;
+            }
+            Assert.IsType<JsonObject>(value)["UaTypeId"] = kTestDataStructureEncodingId;
+            return value;
+        }
+
+        private static JsonNode CreateStructureValue()
+        {
+            var value = new TestData.ScalarStructureDataType();
+            return new JsonObject
+            {
+                ["UaEncoding"] = (byte)ExtensionObjectEncoding.Binary,
+                ["UaBody"] = Convert.ToBase64String(
+                    value.AsBinary(new ServiceMessageContext()))
+            };
+        }
+
+        private async Task AssertStructuredArrayResultAsync(string node,
+            ValueWriteResponseModel result)
+        {
+            Assert.Null(result.ErrorInfo);
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            var structures = Assert.IsType<JsonArray>(value);
+            Assert.Equal(2, structures.Count);
+            foreach (var item in structures)
+            {
+                var structure = Assert.IsType<JsonObject>(item);
+                Assert.False(structure["BooleanValue"]!.GetValue<bool>());
+                Assert.Equal((sbyte)0, structure["SByteValue"]!.GetValue<sbyte>());
+                Assert.Equal((byte)0, structure["ByteValue"]!.GetValue<byte>());
+                Assert.Equal((short)0, structure["Int16Value"]!.GetValue<short>());
+                Assert.Equal((ushort)0, structure["UInt16Value"]!.GetValue<ushort>());
+                Assert.Equal(0, structure["Int32Value"]!.GetValue<int>());
+                Assert.Equal(0u, structure["UInt32Value"]!.GetValue<uint>());
+                Assert.Equal("0", structure["Int64Value"]!.GetValue<string>());
+                Assert.Equal("0", structure["UInt64Value"]!.GetValue<string>());
+            }
+        }
+
+        private const string kTestDataStructureEncodingId =
+            "nsu=http://test.org/UA/Data/;i=1078";
         private readonly T _connection;
-        private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
+        private readonly Func<T, string, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
-        private readonly DefaultJsonSerializer _serializer;
         private readonly Opc.Ua.Test.TestDataGenerator _generator = new();
     }
 }

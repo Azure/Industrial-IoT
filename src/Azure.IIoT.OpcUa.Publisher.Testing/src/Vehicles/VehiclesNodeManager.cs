@@ -58,8 +58,7 @@ namespace Vehicles
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<VehiclesServerConfiguration>()
-                ?? new VehiclesServerConfiguration();
+            _configuration = new VehiclesServerConfiguration();
         }
 
         /// <summary>
@@ -112,17 +111,17 @@ namespace Vehicles
                     typeof(BaseDataVariableState));
 
                 var type = GetType().GetTypeInfo();
-                dictionary.Value = LoadSchemaFromResource(
+                dictionary.Value = new Variant((ByteString)LoadSchemaFromResource(
                     $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespace}.Types.Types.bsd",
-                    typeof(Types.VehicleType).Assembly);
+                    typeof(Types.VehicleType).Assembly));
 
                 dictionary = (BaseDataVariableState)FindPredefinedNode(
                     ExpandedNodeId.ToNodeId(Types.VariableIds.Vehicles_XmlSchema, Server.NamespaceUris),
                     typeof(BaseDataVariableState));
 
-                dictionary.Value = LoadSchemaFromResource(
+                dictionary.Value = new Variant((ByteString)LoadSchemaFromResource(
                     $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespace}.Types.Types.xsd",
-                    typeof(Types.VehicleType).Assembly);
+                    typeof(Types.VehicleType).Assembly));
             }
         }
 

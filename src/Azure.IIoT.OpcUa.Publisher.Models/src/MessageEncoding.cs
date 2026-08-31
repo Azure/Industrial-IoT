@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
+    [JsonConverter(typeof(JsonStringEnumConverter<MessageEncoding>))]
     public enum MessageEncoding
     {
         /// <summary>

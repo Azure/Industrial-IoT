@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,8 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Extensions.Configuration;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Configuration;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;
@@ -18,9 +18,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
     public sealed class TestClientConfig : ConfigureOptionBase<OpcUaClientOptions>,
         IDisposable
     {
+        /// <summary>
+        /// Configuration key used by server fixtures to provide an isolated PKI root.
+        /// </summary>
+        public const string PkiRootPathKey = "TestClient:PkiRootPath";
+
         public TestClientConfig(IConfiguration configuration) : base(configuration)
         {
-            _path = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+            _path = configuration[PkiRootPathKey] ?? configuration["PkiRootPath"] ??
+                Path.Combine(Path.GetTempPath(), "opcua-test-client-pki",
                     Guid.NewGuid().ToByteArray().ToBase16String());
         }
 
@@ -28,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         public override void Configure(string? name, OpcUaClientOptions options)
         {
             options.Security.PkiRootPath = _path;
+            options.Security.AutoAcceptUntrustedCertificates = true;
             options.LingerTimeoutDuration = TimeSpan.FromSeconds(20);
         }
 

@@ -29,7 +29,7 @@ namespace Opc.Ua.Extensions
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
             NamespaceTable? namespaces)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId.IsNull)
             {
                 return ExpandedNodeId.Null;
             }
@@ -58,27 +58,42 @@ namespace Opc.Ua.Extensions
             {
                 return NodeId.Null;
             }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null)
+            var id = nodeId.Value;
+            if (id.NamespaceIndex > 0 && namespaces == null)
             {
                 throw new ArgumentNullException(nameof(namespaces));
             }
-            int index = nodeId.NamespaceIndex;
-            if (!string.IsNullOrEmpty(nodeId.NamespaceUri))
+            int index = id.NamespaceIndex;
+            if (!string.IsNullOrEmpty(id.NamespaceUri))
             {
-                index = namespaces.GetIndex(nodeId.NamespaceUri);
+                index = namespaces.GetIndex(id.NamespaceUri);
                 if (index < 0)
                 {
                     if (!allowUnknownNamespace)
                     {
                         throw new ArgumentException(
-                            $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.",
+                            $"Namespace '{id.NamespaceUri}' was not found in NamespaceTable.",
                             nameof(nodeId));
                     }
                     index = 0;
                 }
             }
-            return new NodeId(nodeId.Identifier, (ushort)index);
+            return new NodeId(id.Identifier, (ushort)index);
         }
+
+        /// <summary>
+        /// Convert an expanded node id to a node id. Non-nullable struct
+        /// overload so callers with a value-typed <see cref="ExpandedNodeId"/>
+        /// bind here (extension methods do not apply nullable conversions to
+        /// the receiver).
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="namespaces"></param>
+        /// <param name="allowUnknownNamespace"></param>
+        /// <returns></returns>
+        public static NodeId ToNodeId(this ExpandedNodeId nodeId, NamespaceTable namespaces,
+            bool allowUnknownNamespace = false)
+            => ToNodeId((ExpandedNodeId?)nodeId, namespaces, allowUnknownNamespace);
 
         /// <summary>
         /// Returns a uri that identifies the node id uniquely.  If the server
@@ -94,7 +109,7 @@ namespace Opc.Ua.Extensions
         public static string? AsString(this NodeId nodeId, IServiceMessageContext context,
             NamespaceFormat namespaceFormat)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId.IsNull)
             {
                 return null;
             }
@@ -113,7 +128,7 @@ namespace Opc.Ua.Extensions
         public static string? AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
             NamespaceFormat namespaceFormat)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId.IsNull)
             {
                 return null;
             }
@@ -176,7 +191,7 @@ namespace Opc.Ua.Extensions
             }
             if (parts.Any(s => s.StartsWith("nsu=", StringComparison.CurrentCulture)))
             {
-                return ExpandedNodeId.Parse(value).ToNodeId(context.NamespaceUris);
+                return ((ExpandedNodeId?)ExpandedNodeId.Parse(value)).ToNodeId(context.NamespaceUris);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
             return new NodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri));
@@ -274,7 +289,7 @@ namespace Opc.Ua.Extensions
                         break; // null
                     }
                     buffer = buffer.AppendFormat(CultureInfo.InvariantCulture,
-                        "{0}", ((byte[])identifier).ToBase64String().UrlEncode());
+                        "{0}", ((ByteString)identifier).ToArray().ToBase64String().UrlEncode());
                     break;
                 default:
                     throw new FormatException($"Node id type {idType} is unknown!");
@@ -321,7 +336,7 @@ namespace Opc.Ua.Extensions
                 case IdType.Opaque:
                     buffer = buffer.Append("b=")
                         .Append(identifier == null ? string.Empty :
-                        Convert.ToBase64String((byte[])identifier));
+                        Convert.ToBase64String(((ByteString)identifier).ToArray()));
                     break;
                 default:
                     buffer = buffer.Append("s=")
@@ -449,11 +464,11 @@ namespace Opc.Ua.Extensions
                 case 'b':
                     try
                     {
-                        return Convert.FromBase64String(text.UrlDecode());
+                        return (ByteString)Convert.FromBase64String(text.UrlDecode());
                     }
                     catch
                     {
-                        return Convert.FromBase64String(text);
+                        return (ByteString)Convert.FromBase64String(text);
                     }
                 case 'g':
                     if (!Guid.TryParse(text.UrlDecode(), out var guid))

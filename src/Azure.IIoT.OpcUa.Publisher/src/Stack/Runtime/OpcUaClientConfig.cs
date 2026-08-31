@@ -1,11 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 {
-    using Furly.Extensions.Configuration;
+    using Azure.IIoT.OpcUa.Core.Configuration;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;
@@ -448,6 +448,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 _ => throw new ArgumentOutOfRangeException(nameof(storeType),
                     $"Unknown certificate store type '{storeType}'")
             };
+        }
+
+        /// <inheritdoc/>
+        protected override OpcUaClientOptions Bind()
+        {
+            return NormalizeLegacyBooleanAliases(
+                nameof(OpcUaClientOptions.DisableComplexTypePreloading),
+                nameof(OpcUaClientOptions.EnableOpcUaStackLogging),
+                nameof(SecurityOptions.AutoAcceptUntrustedCertificates),
+                nameof(SecurityOptions.RejectSha1SignedCertificates),
+                nameof(SecurityOptions.AddAppCertToTrustedStore),
+                nameof(SecurityOptions.RejectUnknownRevocationStatus),
+                nameof(SecurityOptions.TryUseConfigurationFromExistingAppCert))
+                .Get<OpcUaClientOptions>() ?? new();
         }
 
         /// <inheritdoc/>

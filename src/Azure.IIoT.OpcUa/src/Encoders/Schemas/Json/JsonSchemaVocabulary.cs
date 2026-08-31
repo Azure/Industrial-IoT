@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         public static ReadOnlySpan<byte> AdditionalProperties => "additionalProperties"u8;
         public static ReadOnlySpan<byte> MinLength => "minLength"u8;
         public static ReadOnlySpan<byte> MaxLength => "maxLength"u8;
+        public static ReadOnlySpan<byte> Pattern => "pattern"u8;
         public static ReadOnlySpan<byte> MinItems => "minItems"u8;
         public static ReadOnlySpan<byte> MaxItems => "maxItems"u8;
         public static ReadOnlySpan<byte> UniqueItems => "uniqueItems"u8;

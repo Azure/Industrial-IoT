@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using DiagnosticsLevel = Publisher.Models.DiagnosticsLevel;
@@ -14,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using System.Threading;
 
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     .ToStackType(),
                 Timestamp = timestamp,
                 TimeoutHint = (uint)(header?.OperationTimeout ?? 0),
-                AdditionalHeader = null // TODO
+                AdditionalHeader = ExtensionObject.Null // TODO
             };
         }
 
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 TypeDefinitionId = model.TypeDefinitionId.ToNodeId(context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
-                BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
+                BrowsePath = new List<QualifiedName>(model.BrowsePath == null ?
                     [] :
                     model.BrowsePath.Select(n => n.ToQualifiedName(context))),
                 IndexRange = model.IndexRange
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 TypeDefinitionId = model.TypeDefinitionId
                     .AsString(context, namespaceFormat),
                 AttributeId = (NodeAttribute)model.AttributeId,
-                BrowsePath = model.BrowsePath?
+                BrowsePath = model.BrowsePath.IsNull ? null : model.BrowsePath.ToArray()?
                     .Select(p => p.AsString(context, namespaceFormat))
                     .ToArray(),
                 IndexRange = model.IndexRange
@@ -213,10 +213,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Convert user token policies to service model
         /// </summary>
         /// <param name="policies"></param>
-        /// <param name="serializer"></param>
         /// <returns></returns>
         public static IReadOnlyList<AuthenticationMethodModel> ToServiceModel(
-            this UserTokenPolicyCollection policies, IJsonSerializer serializer)
+            this List<UserTokenPolicy> policies)
         {
             if (policies == null || policies.Count == 0)
             {
@@ -229,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 };
             }
             return policies
-                .Select(p => p.ToServiceModel(serializer)!)
+                .Select(p => p.ToServiceModel()!)
                 .Where(p => p != null)
                 .Distinct()
                 .ToList();
@@ -239,16 +238,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Convert user token policy to service model
         /// </summary>
         /// <param name="policy"></param>
-        /// <param name="serializer"></param>
         /// <returns></returns>
         public static AuthenticationMethodModel? ToServiceModel(
-            this UserTokenPolicy? policy, IJsonSerializer serializer)
+            this UserTokenPolicy? policy)
         {
             if (policy == null)
             {
                 return null;
             }
-            var configuration = VariantValue.Null;
+            JsonNode? configuration = null;
             var credentialType = CredentialType.None;
             switch (policy.TokenType)
             {
@@ -259,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     break;
                 case UserTokenType.Certificate:
                     credentialType = CredentialType.X509Certificate;
-                    configuration = policy.IssuerEndpointUrl;
+                    configuration = JsonValue.Create(policy.IssuerEndpointUrl);
                     break;
                 case UserTokenType.IssuedToken:
                     switch (policy.IssuedTokenType)
@@ -269,12 +267,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                             try
                             {
                                 // See part 6
-                                configuration = serializer.Parse(policy.IssuerEndpointUrl);
+                                configuration = JsonNode.Parse(policy.IssuerEndpointUrl);
                             }
                             catch
                             {
                                 // Store as string
-                                configuration = policy.IssuerEndpointUrl;
+                                configuration = JsonValue.Create(policy.IssuerEndpointUrl);
                             }
                             break;
                         default:
@@ -328,8 +326,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     {
                         using var users = configuration.SecurityConfiguration
                             .TrustedUserCertificates.OpenStore(configuration.CreateMessageContext().Telemetry);
-                        var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
-                            null, null /* TODO add rsa/ecc*/, passCode?.ToCharArray(), ct).ConfigureAwait(false);
+                        using var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
+                            null, NodeId.Null /* TODO add rsa/ecc*/, passCode?.ToCharArray(), ct).ConfigureAwait(false);
                         if (userCertWithPrivateKey == null)
                         {
                             throw new ServiceResultException(StatusCodes.BadCertificateInvalid,
@@ -337,7 +335,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                                 "or provided password invalid. Please configure the User " +
                                 "Certificate correctly in the User certificate store.");
                         }
-                        return new UserIdentity(userCertWithPrivateKey);
+                        // 2.0 removed UserIdentity(Certificate); private-key challenge
+                        // signing now flows through provider-based UserIdentity.CreateAsync.
+                        // The X509IdentityTokenHandler resolves the private-key certificate
+                        // on demand via the certificate provider and signs the activation
+                        // challenge with it. We pass a CertificateIdentifier (resolved from
+                        // the trusted-user store above) rather than a live certificate.
+                        var certificateId = new CertificateIdentifier
+                        {
+                            Thumbprint = userCertWithPrivateKey.Thumbprint,
+                            SubjectName = userCertWithPrivateKey.Subject,
+                            StorePath = users.StorePath,
+                            StoreType = users.StoreType
+                        };
+                        var passwordProvider = passCode == null
+                            ? new CertificatePasswordProvider()
+                            : new CertificatePasswordProvider(passCode.AsSpan());
+                        return await UserIdentity.CreateAsync(certificateId, passwordProvider,
+                            configuration.CertificateManager.CertificateProvider, ct).ConfigureAwait(false);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                        "X509Certificate credential requires to set either a thumbprint or subject name (user).");

@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Variant encoder extensions
@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static Variant Decode(this IVariantEncoder encoder, VariantValue value,
+        public static Variant Decode(this IVariantEncoder encoder, JsonNode? value,
             string? type)
         {
             return encoder.Decode(value, string.IsNullOrEmpty(type) ? BuiltInType.Null :

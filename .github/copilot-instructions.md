@@ -12,10 +12,24 @@ dotnet restore -s https://api.nuget.org/v3/index.json
 dotnet build --no-restore
 
 # Tests MUST run serially — OPC UA servers contend on ports and PKI directories
+# These are the same six projects CI runs. Core and Testing were missing here
+# for a long time, so they went unrun locally; keep this list and the ci.yml
+# matrix in step.
 dotnet test src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+dotnet test src/Azure.IIoT.OpcUa.Core/tests/Azure.IIoT.OpcUa.Core.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
 dotnet test src/Azure.IIoT.OpcUa/tests/Azure.IIoT.OpcUa.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+dotnet test src/Azure.IIoT.OpcUa.Publisher.Testing/tests/Azure.IIoT.OpcUa.Publisher.Testing.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
 dotnet test src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
 dotnet test src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+
+# Coverage, scoped to the shipping assemblies by the repo root .runsettings.
+# Build the WHOLE solution first: a test project running against a stale copy of
+# a shared assembly silently changes the measured denominator, and the resulting
+# number looks entirely plausible. check-coverage.ps1 fails loudly if it detects
+# this, but only after the suites have already run.
+dotnet build Industrial-IoT.slnx --no-restore
+dotnet test <project> --no-build --settings coverage.runsettings --collect:"XPlat Code Coverage;Format=cobertura"
+pwsh ./tools/scripts/check-coverage.ps1 -ReportPath <results-dir>
 
 # Run a single test by name
 dotnet test src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj --no-build --blame-hang-timeout 10m --filter "FullyQualifiedName~YourTestName"

@@ -58,8 +58,7 @@ namespace SimpleEvents
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<SimpleEventsServerConfiguration>()
-                ?? new SimpleEventsServerConfiguration();
+            _configuration = new SimpleEventsServerConfiguration();
         }
 
         /// <summary>
@@ -70,7 +69,7 @@ namespace SimpleEvents
         {
             if (disposing && _simulationTimer != null)
             {
-                Utils.SilentDispose(_simulationTimer);
+                ((_simulationTimer) as System.IDisposable)?.Dispose();
                 _simulationTimer = null;
             }
             base.Dispose(disposing);
@@ -227,15 +226,26 @@ namespace SimpleEvents
                     };
 
                     e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CurrentStep, NamespaceIndex), step, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), new CycleStepDataType[] { step, step }, false);
+                    ArrayOf<CycleStepDataType> steps = [step, step];
+                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), steps, false);
 
                     Server.ReportEvent(e);
                 }
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException ex)
             {
-                // Stop simulation because the subscription is closed. This should be fixed in the server library.
-                _simulationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                // A tick can race the server tearing its address space down,
+                // which surfaces as a null dereference deep inside ReportEvent.
+                // That is transient, so abandon this tick but keep the
+                // simulation running: this node manager is shared by every test
+                // in a class, and latching the timer off here silently starves
+                // every later test of events for the rest of the server's life.
+                // Touching _simulationTimer here is also unsafe - Dispose nulls
+                // it, so a racing callback would throw from inside this handler,
+                // unhandled, on a timer thread. Only Dispose stops the
+                // simulation.
+                Utils.Trace(ex,
+                    "Event simulation tick raced server shutdown; continuing.");
             }
             catch (Exception e)
             {

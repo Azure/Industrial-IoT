@@ -51,8 +51,7 @@ namespace PerfTest
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<PerfTestServerConfiguration>() ??
-                new PerfTestServerConfiguration();
+            _configuration = new PerfTestServerConfiguration();
         }
 
         /// <summary>

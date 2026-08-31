@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using System;
     using System.Collections.Generic;
 
@@ -35,6 +35,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Poll changes instead of using file watcher
         /// </summary>
         public bool? UseFileChangePolling { get; set; }
+
+        /// <summary>
+        /// Use the native OPC UA PubSub runtime for telemetry publishing.
+        /// </summary>
+        public bool? UseNativePubSub { get; set; }
 
         /// <summary>
         /// Create the configuration file if it does not exist
@@ -73,12 +78,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// from the queue of notifications.
         /// </summary>
         public TimeSpan? BatchTriggerInterval { get; set; }
-
-        /// <summary>
-        /// Whether to remove duplicate values from the batch
-        /// of monitored item samples if samples mode is used.
-        /// </summary>
-        public bool? RemoveDuplicatesFromBatch { get; set; }
 
         /// <summary>
         /// Default maximum network message size to use.
@@ -319,6 +318,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Secure port
         /// </summary>
         public int? HttpServerPort { get; set; }
+
+        /// <summary>
+        /// Expose the OPC UA Model Context Protocol tool server on the
+        /// module's existing http endpoint. Disabled unless set.
+        /// </summary>
+        public bool? EnableMcpServer { get; set; }
 
         /// <summary>
         /// Publisher runs as Azure IoT Operations connector.

@@ -1,12 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Azure.IIoT.OpcUa.Publisher.Testing.Servers</AssemblyName>
+    <PackageId>Azure.IIoT.OpcUa.Publisher.Testing.Servers</PackageId>
+    <RootNamespace>$(AssemblyName)</RootNamespace>
     <Description>Contains several test servers to run tests against</Description>
-    <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <Nullable>disable</Nullable>
+    <ModelSourceGeneratorOmitFluentApi>true</ModelSourceGeneratorOmitFluentApi>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Boolean.txt" />
@@ -53,16 +57,39 @@
     <EmbeddedResource Include="Generated\HistoricalEvents\Design\HistoricalEvents.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\Plc\Design\PlcModel.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\SimpleEvents\Design\SimpleEvents.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\TestData\Design\TestData.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\MemoryBuffer\Design\MemoryBuffer.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.bsd" />
-    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.xsd" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" />
     <PackageReference Include="System.Linq.Async" />
+    <!-- Legacy Asset simulations intentionally use Newtonsoft.Json and are test-only. -->
+    <PackageReference Include="Newtonsoft.Json" />
+    <!-- Consume the authoritative generic server cohorts under an alias so the
+         Quickstarts types do not collide with the local simulation types. -->
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Quickstarts.Servers"
+                      Aliases="Quickstarts" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The model source generator. The package auto-imports its own build props,
+         which declare the ModelSourceGenerator* properties and AdditionalFiles
+         metadata the generator reads below. -->
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.SourceGeneration"
+                      PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.csv" />
+    <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.xml" />
+    <AdditionalFiles Include="Generated\Plc\Design\ModelDesign.csv" />
+    <AdditionalFiles Include="Generated\Plc\Design\ModelDesign.xml" />
+    <AdditionalFiles Include="Generated\SimpleEvents\Design\ModelDesign.csv" />
+    <AdditionalFiles Include="Generated\SimpleEvents\Design\ModelDesign.xml" />
+    <AdditionalFiles Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.NodeSet2.xml">
+      <ModelSourceGeneratorModelUri>http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/</ModelSourceGeneratorModelUri>
+      <ModelSourceGeneratorName>ISA95_JOBCONTROL_V2</ModelSourceGeneratorName>
+      <ModelSourceGeneratorPrefix>UAModel.ISA95_JOBCONTROL_V2</ModelSourceGeneratorPrefix>
+    </AdditionalFiles>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>

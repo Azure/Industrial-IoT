@@ -503,7 +503,10 @@ namespace OpcPublisherAEE2ETests
                     "mkdir -p /app/files && " +
                     "echo \"$PLC_CONFIG_B64\" | base64 -d > /app/files/" + configFileName + " && " +
                     "exec sh -c " + ShellQuote(last);
-                container.Command.AddRange(prepended);
+                foreach (var command in prepended)
+                {
+                    container.Command.Add(command);
+                }
                 container.EnvironmentVariables.Add(new ContainerEnvironmentVariable("PLC_CONFIG_B64")
                 {
                     SecureValue = configFileB64
@@ -511,14 +514,17 @@ namespace OpcPublisherAEE2ETests
             }
             else
             {
-                container.Command.AddRange(commandLine);
+                foreach (var command in commandLine)
+                {
+                    container.Command.Add(command);
+                }
             }
             container.Ports.Add(new ContainerPort(50000));
 
-            var containerGroup = new ContainerGroupData(resGroup.Data.Location, container.YieldReturn(),
+            var containerGroup = new ContainerGroupData(resGroup.Data.Location, [container],
                 ContainerInstanceOperatingSystemType.Linux)
             {
-                IPAddress = new ContainerGroupIPAddress(new ContainerGroupPort(50000).YieldReturn(),
+                IPAddress = new ContainerGroupIPAddress([new ContainerGroupPort(50000)],
                     ContainerGroupIPAddressType.Public)
                 {
                     DnsNameLabel = containerGroupName

@@ -170,6 +170,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 
                     Write(JsonSchemaVocabulary.MinLength, schema.MinLength);
                     Write(JsonSchemaVocabulary.MaxLength, schema.MaxLength);
+                    Write(JsonSchemaVocabulary.Pattern, schema.Pattern);
                 }
                 finally
                 {
@@ -339,6 +340,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             {
                 return;
             }
+            constValue.EnsureSupported();
             if (name.Length != 0)
             {
                 _writer.WritePropertyName(name);
@@ -356,6 +358,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             if (constValues == null)
             {
                 return;
+            }
+            foreach (var constValue in constValues)
+            {
+                constValue.EnsureSupported();
             }
             if (name.Length != 0)
             {

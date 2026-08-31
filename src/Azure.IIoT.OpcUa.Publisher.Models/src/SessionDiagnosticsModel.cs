@@ -301,5 +301,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "subscriptions", Order = 44,
             EmitDefaultValue = false)]
         public IReadOnlyList<SubscriptionDiagnosticsModel>? Subscriptions { get; init; }
+
+        /// <summary>
+        /// Managed runtime diagnostics.
+        /// </summary>
+        [DataMember(Name = "managed", Order = 45,
+            EmitDefaultValue = false)]
+        public ManagedSessionDiagnosticsModel? Managed { get; init; }
     }
 }

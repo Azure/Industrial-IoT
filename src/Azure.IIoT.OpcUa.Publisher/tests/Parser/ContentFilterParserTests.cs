@@ -5,9 +5,8 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
 {
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Threading.Tasks;
     using Xunit;
@@ -15,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
 
     public sealed class ContentFilterParserTests
     {
-        private readonly IJsonSerializer _serializer = new DefaultJsonSerializer();
         private readonly ITestOutputHelper _output;
 
         public ContentFilterParserTests(ITestOutputHelper output)
@@ -32,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     from BaseObjectType, AType, BType
     where ((AType/A = 5) or BType/B in (3,5,7)) and BaseObjectType.displayName like 'Main%'
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("AType", new [] { "/A" }, "A"),
@@ -137,8 +135,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 }
             };
 
-            var evtFilter = _serializer.SerializeToString(filter.WhereClause);
-            var expFilter = _serializer.SerializeToString(expectedWhere);
+            var evtFilter = Json.SerializeToString(filter.WhereClause);
+            var expFilter = Json.SerializeToString(expectedWhere);
             Assert.Equal(expFilter, evtFilter);
         }
 
@@ -150,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     from SystemEventType, Area1, Area2
     where oftype SystemEventType and (inview Area1 or inview Area2)
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.SystemEventType.ToString(), new [] { "/A" }, "A"),
@@ -235,8 +233,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 }
             };
 
-            var evtFilter = _serializer.SerializeToString(filter.WhereClause);
-            var expFilter = _serializer.SerializeToString(expectedWhere);
+            var evtFilter = Json.SerializeToString(filter.WhereClause);
+            var expFilter = Json.SerializeToString(expectedWhere);
             Assert.Equal(expFilter, evtFilter);
         }
 
@@ -249,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     where PersonType relatedTo (
         AnimalType relatedTo (ScheduleType, HasSchedule, 1), HasPet, 1)
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("PersonType", new [] { "/LastName" }, "LastName"),
@@ -260,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             };
 
             var filter = await parser.ParseEventFilterAsync(query1, context, default);
-            _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -328,8 +326,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 }
             };
 
-            var evtFilter = _serializer.SerializeToString(filter.WhereClause);
-            var expFilter = _serializer.SerializeToString(expectedWhere);
+            var evtFilter = Json.SerializeToString(filter.WhereClause);
+            var expFilter = Json.SerializeToString(expectedWhere);
             Assert.Equal(expFilter, evtFilter);
 
             const string query2 = @"
@@ -339,8 +337,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
         AnimalType relatedTo (ScheduleType, HasSchedule, 1), HasPet, 1)
 ";
             var filter2 = await parser.ParseEventFilterAsync(query2, context, default);
-            var filterJson1 = _serializer.SerializeToString(filter);
-            var filterJson2 = _serializer.SerializeToString(filter2);
+            var filterJson1 = Json.SerializeToString(filter);
+            var filterJson2 = Json.SerializeToString(filter2);
             Assert.Equal(filterJson1, filterJson2);
         }
 
@@ -355,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     or
         CatType relatedTo (FeedingScheduleType, HasSchedule, 1)
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("PersonType", new [] { "/LastName" }, "LastName"),
@@ -367,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             };
 
             var filter = await parser.ParseEventFilterAsync(query, context, default);
-            _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -451,8 +449,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 }
             };
 
-            var evtFilter = _serializer.SerializeToString(filter.WhereClause);
-            var expFilter = _serializer.SerializeToString(expectedWhere);
+            var evtFilter = Json.SerializeToString(filter.WhereClause);
+            var expFilter = Json.SerializeToString(expectedWhere);
             Assert.Equal(expFilter, evtFilter);
         }
 
@@ -475,7 +473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
       or PersonType<HasPet>AnimalType<HasSchedule>FeedingSchedule/Period = 'Hourly')
     and PersonType<HasPet>AnimalType<HasSchedule>FeedingSchedule/Amount > (10 cast(Int32))
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("PersonType", new [] { "/LastName" }, "LastName"),
@@ -492,7 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             };
 
             var filter = await parser.ParseEventFilterAsync(query, context, default);
-            _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -511,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     where PersonType relatedTo
         (PersonType relatedTo (AnimalType, HasPet, 1), HasChild, 1)
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("PersonType", new [] { "/LastName" }, "LastName"),
@@ -521,7 +519,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             };
 
             var filter = await parser.ParseEventFilterAsync(query, context, default);
-            _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -589,8 +587,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 }
             };
 
-            var evtFilter = _serializer.SerializeToString(filter.WhereClause);
-            var expFilter = _serializer.SerializeToString(expectedWhere);
+            var evtFilter = Json.SerializeToString(filter.WhereClause);
+            var expFilter = Json.SerializeToString(expectedWhere);
             Assert.Equal(expFilter, evtFilter);
         }
 
@@ -605,7 +603,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     where parent relatedTo (child, HasChild, 1)
       and parent/FirstName = child/FirstName
 ";
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("PersonType", new [] { "/LastName" }, "LastName"),
@@ -614,7 +612,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             };
 
             var filter = await parser.ParseEventFilterAsync(query, context, default);
-            _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -692,8 +690,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 }
             };
 
-            var evtFilter = _serializer.SerializeToString(filter.WhereClause);
-            var expFilter = _serializer.SerializeToString(expectedWhere);
+            var evtFilter = Json.SerializeToString(filter.WhereClause);
+            var expFilter = Json.SerializeToString(expectedWhere);
             Assert.Equal(expFilter, evtFilter);
         }
     }

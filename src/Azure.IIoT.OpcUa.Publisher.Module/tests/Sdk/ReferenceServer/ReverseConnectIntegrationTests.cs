@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using System;
     using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
@@ -60,6 +61,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 reverseConnectPort: useReverseConnect ? server.ReverseConnectPort : null);
             try
             {
+                if (useReverseConnect)
+                {
+                    await WaitForReverseListenerAsync(server.ReverseConnectPort);
+                    await server.StartReverseConnectionAsync();
+                }
+
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
@@ -95,6 +102,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 reverseConnectPort: useReverseConnect ? server.ReverseConnectPort : null);
             try
             {
+                if (useReverseConnect)
+                {
+                    await WaitForReverseListenerAsync(server.ReverseConnectPort);
+                    await server.StartReverseConnectionAsync();
+                }
+
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
@@ -102,8 +115,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 // Assert
                 var message = Assert.Single(messages).Message;
-                Assert.True(message.GetProperty("Messages")[0].TryGetProperty("Payload", out var payload));
-                Assert.Empty(payload.EnumerateObject());
+                //
+                // A keep alive carries no data set payload. The writer path
+                // wrote an empty object; the native runtime omits the member,
+                // which is a documented 3.0 wire change. Either says the same
+                // thing, and a keep alive carrying fields would not.
+                //
+                var dataSetMessage = message.GetProperty("Messages")[0];
+                if (dataSetMessage.TryGetProperty("Payload", out var payload))
+                {
+                    Assert.Empty(payload.EnumerateObject());
+                }
 
                 var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
@@ -127,6 +149,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 }
                 return default;
             }
+        }
+
+        private static async Task WaitForReverseListenerAsync(int port)
+        {
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+            while (DateTime.UtcNow < deadline)
+            {
+                if (IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners()
+                    .Any(endpoint => endpoint.Port == port))
+                {
+                    return;
+                }
+                await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+            throw new TimeoutException(
+                $"Publisher did not start the reverse-connect listener on port {port}.");
         }
     }
 }

@@ -5,12 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Storage
 {
+    using SerializerException = global::Azure.IIoT.OpcUa.Core.Exceptions.SerializerException;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Azure.IoT.Edge.Services;
-    using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -30,15 +31,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// Create converter
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="cryptoProvider"></param>
         public PublishedNodesConverter(ILogger<PublishedNodesConverter> logger,
-            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            IOptions<PublisherOptions> options,
             IIoTEdgeWorkloadApi? cryptoProvider = null)
         {
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
 
@@ -65,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _logger.ReadingPublishedNodesFile();
             try
             {
-                var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
+                var items = Json.Deserialize(publishedNodesContent,
+                    Json.GetTypeInfo<List<PublishedNodesEntryModel>>())
                     ?? throw new SerializerException("Published nodes files, malformed.");
 
                 _logger.ReadPublishedNodesFile(items.Count, sw.Elapsed);
@@ -1012,7 +1011,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         private readonly int _maxNodesPerDataSet;
         private readonly bool _noPublishingIntervalGrouping;
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
-        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
     }
 

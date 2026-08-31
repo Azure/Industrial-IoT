@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// and qualified names.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<NamespaceFormat>))]
     public enum NamespaceFormat
     {
         /// <summary>

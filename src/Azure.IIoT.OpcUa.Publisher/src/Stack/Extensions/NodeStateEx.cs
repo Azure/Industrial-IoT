@@ -22,7 +22,7 @@ namespace Opc.Ua.Extensions
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static TResult? GetValueOrDefaultEx<T, TResult>(this PropertyState<T> state,
+        public static TResult? GetValueOrDefaultEx<T, TResult>(this PropertyState<T>? state,
             Func<T?, TResult?> convert, T? defaultValue = default) where T : struct
         {
             var result = GetValueOrDefaultEx(state, defaultValue);
@@ -38,7 +38,7 @@ namespace Opc.Ua.Extensions
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static TResult? GetValueOrDefaultEx<TValue, TResult>(this PropertyState<TValue> state,
+        public static TResult? GetValueOrDefaultEx<TValue, TResult>(this PropertyState<TValue>? state,
             Func<TValue?, TResult?> convert, TValue? defaultValue = null) where TValue : class
         {
             var result = GetValueOrDefaultEx(state, defaultValue);
@@ -52,10 +52,10 @@ namespace Opc.Ua.Extensions
         /// <param name="state"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValueOrDefaultEx<T>(this PropertyState<T> state,
+        public static T? GetValueOrDefaultEx<T>(this PropertyState<T>? state,
             T? defaultValue = default) where T : struct
         {
-            if (!StatusCode.IsGood(state.StatusCode))
+            if (state == null || !StatusCode.IsGood(state.StatusCode))
             {
                 return defaultValue;
             }
@@ -69,10 +69,10 @@ namespace Opc.Ua.Extensions
         /// <param name="state"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValueOrDefaultEx<T>(this PropertyState<T> state,
+        public static T? GetValueOrDefaultEx<T>(this PropertyState<T>? state,
             T? defaultValue = null) where T : class
         {
-            if (!StatusCode.IsGood(state.StatusCode))
+            if (state == null || !StatusCode.IsGood(state.StatusCode))
             {
                 return defaultValue;
             }

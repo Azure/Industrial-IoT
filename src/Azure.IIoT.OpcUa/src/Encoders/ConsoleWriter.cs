@@ -1,13 +1,13 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Furly;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Storage;
+    using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Storage;
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
@@ -76,12 +76,18 @@ namespace Azure.IIoT.OpcUa.Encoders
                     break;
             }
 
-            static ReadOnlyMemory<byte> GetIndentedJson(ReadOnlySequence<byte> buffer)
+        }
+
+        internal static ReadOnlyMemory<byte> GetIndentedJson(ReadOnlySequence<byte> buffer)
+        {
+            using var document = JsonDocument.Parse(buffer);
+            var output = new ArrayBufferWriter<byte>();
+            using (var writer = new Utf8JsonWriter(output,
+                new JsonWriterOptions { Indented = true }))
             {
-                var reader = new Utf8JsonReader(buffer);
-                var json = JsonSerializer.Deserialize<JsonElement>(ref reader);
-                return JsonSerializer.SerializeToUtf8Bytes(json, kIndented);
+                document.RootElement.WriteTo(writer);
             }
+            return output.WrittenMemory.ToArray();
         }
 
         /// <inheritdoc/>
@@ -91,10 +97,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             _stderr?.Dispose();
         }
 
-        private static readonly JsonSerializerOptions kIndented = new()
-        {
-            WriteIndented = true
-        };
         private readonly IOptions<ConsoleWriterOptions> _options;
         private Stream? _stdout;
         private Stream? _stderr;

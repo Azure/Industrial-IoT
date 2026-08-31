@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -32,26 +32,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItemAsync(template);
+            var eventFilter = await GetEventFilterAsync(template);
 
             // Assert
-            Assert.NotNull(monitoredItem.Filter);
-            Assert.IsType<EventFilter>(monitoredItem.Filter);
-            var eventFilter = (EventFilter)monitoredItem.Filter;
+            Assert.NotNull(eventFilter);
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(2, eventFilter.SelectClauses.Count);
+            //
+            // The managed runtime does not append a hidden internal EventType
+            // select clause for plain events; only condition handling adds it.
+            //
+            Assert.Single(eventFilter.SelectClauses.AsEnumerable());
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Message, eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Message, eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
-            Assert.Single(eventFilter.WhereClause.Elements);
+            Assert.Single(eventFilter.WhereClause.Elements.AsEnumerable());
             Assert.Equal(FilterOperator.OfType, eventFilter.WhereClause.Elements[0].FilterOperator);
             Assert.NotNull(eventFilter.WhereClause.Elements[0].FilterOperands);
-            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands);
+            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands.AsEnumerable());
             Assert.IsType<LiteralOperand>(eventFilter.WhereClause.Elements[0].FilterOperands[0].Body);
             var operand = (LiteralOperand)eventFilter.WhereClause.Elements[0].FilterOperands[0].Body;
             Assert.IsType<NodeId>(operand.Value.Value);
@@ -73,38 +73,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItemAsync(template);
+            var eventFilter = await GetEventFilterAsync(template);
 
             // Assert
-            Assert.NotNull(monitoredItem.Filter);
-            Assert.IsType<EventFilter>(monitoredItem.Filter);
-            var eventFilter = (EventFilter)monitoredItem.Filter;
+            Assert.NotNull(eventFilter);
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(7, eventFilter.SelectClauses.Count);
+            Assert.Equal(6, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[0].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[0].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[0].BrowsePath);
+            Assert.Empty(eventFilter.SelectClauses[0].BrowsePath.AsEnumerable());
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Comment, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Comment, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Equal(BrowseNames.ConditionName, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.ConditionName, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[3].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EnabledState, eventFilter.SelectClauses[3].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.EnabledState, eventFilter.SelectClauses[3].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[4].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EnabledState, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(BrowseNames.Id, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(1));
+            Assert.Equal((QualifiedName)BrowseNames.EnabledState, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Id, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(1));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[5].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[6].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
-            Assert.Single(eventFilter.WhereClause.Elements);
+            Assert.Single(eventFilter.WhereClause.Elements.AsEnumerable());
             Assert.Equal(FilterOperator.OfType, eventFilter.WhereClause.Elements[0].FilterOperator);
             Assert.NotNull(eventFilter.WhereClause.Elements[0].FilterOperands);
-            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands);
+            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands.AsEnumerable());
             Assert.IsType<LiteralOperand>(eventFilter.WhereClause.Elements[0].FilterOperands[0].Body);
             var operand = (LiteralOperand)eventFilter.WhereClause.Elements[0].FilterOperands[0].Body;
             Assert.IsType<NodeId>(operand.Value.Value);
@@ -130,40 +126,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItemAsync(template);
+            var eventFilter = await GetEventFilterAsync(template);
 
             // Assert
-            Assert.NotNull(monitoredItem.Filter);
-            Assert.IsType<EventFilter>(monitoredItem.Filter);
-            var eventFilter = (EventFilter)monitoredItem.Filter;
+            Assert.NotNull(eventFilter);
 
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(8, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[0].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[0].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[0].BrowsePath);
+            Assert.Empty(eventFilter.SelectClauses[0].BrowsePath.AsEnumerable());
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Comment, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Comment, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Equal(BrowseNames.ConditionName, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.ConditionName, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[3].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EnabledState, eventFilter.SelectClauses[3].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.EnabledState, eventFilter.SelectClauses[3].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[4].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EnabledState, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(BrowseNames.Id, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(1));
+            Assert.Equal((QualifiedName)BrowseNames.EnabledState, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Id, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(1));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[5].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[6].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.EventType, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[7].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Retain, eventFilter.SelectClauses[7].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal((QualifiedName)BrowseNames.Retain, eventFilter.SelectClauses[7].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
-            Assert.Single(eventFilter.WhereClause.Elements);
+            Assert.Single(eventFilter.WhereClause.Elements.AsEnumerable());
             Assert.Equal(FilterOperator.OfType, eventFilter.WhereClause.Elements[0].FilterOperator);
             Assert.NotNull(eventFilter.WhereClause.Elements[0].FilterOperands);
-            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands);
+            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands.AsEnumerable());
             Assert.IsType<LiteralOperand>(eventFilter.WhereClause.Elements[0].FilterOperands[0].Body);
             var operand = (LiteralOperand)eventFilter.WhereClause.Elements[0].FilterOperands[0].Body;
             Assert.IsType<NodeId>(operand.Value.Value);
@@ -210,8 +204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _baseObjectTypeNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.BaseObjectType,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.BaseObjectType,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.BaseObjectType
@@ -219,8 +213,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _baseEventTypeNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.BaseEventType,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.BaseEventType,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.BaseEventType
@@ -228,9 +222,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _messageNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.Message,
-            BrowseName = BrowseNames.Message,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.Message,
+            BrowseName = (QualifiedName)BrowseNames.Message,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.BaseEventType_Message
@@ -238,8 +232,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _conditionTypeNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.ConditionType,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.ConditionType,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.ConditionType
@@ -247,9 +241,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _conditionNameNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.ConditionName,
-            BrowseName = BrowseNames.ConditionName,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.ConditionName,
+            BrowseName = (QualifiedName)BrowseNames.ConditionName,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_ConditionName
@@ -257,9 +251,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _commentNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.Comment,
-            BrowseName = BrowseNames.Comment,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.Comment,
+            BrowseName = (QualifiedName)BrowseNames.Comment,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_Comment
@@ -267,9 +261,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _enabledStateNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.EnabledState,
-            BrowseName = BrowseNames.EnabledState,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.EnabledState,
+            BrowseName = (QualifiedName)BrowseNames.EnabledState,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_EnabledState
@@ -277,9 +271,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private readonly Node _idNode = new()
         {
             AccessRestrictions = 0,
-            Description = null,
-            DisplayName = BrowseNames.Id,
-            BrowseName = BrowseNames.Id,
+            Description = LocalizedText.Null,
+            DisplayName = (LocalizedText)BrowseNames.Id,
+            BrowseName = (QualifiedName)BrowseNames.Id,
             Handle = null,
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_EnabledState_Id

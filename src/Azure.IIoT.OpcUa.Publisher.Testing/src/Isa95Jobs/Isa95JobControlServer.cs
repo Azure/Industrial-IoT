@@ -31,12 +31,14 @@ namespace Isa95Jobs
 {
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <inheritdoc/>
-    public class Isa95JobControlServer : INodeManagerFactory
+    public sealed class Isa95JobControlServer : INodeManagerFactory, IAsyncNodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {
@@ -50,7 +52,17 @@ namespace Isa95Jobs
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration)
         {
-            return new Isa95JobControlNodeManager(server, configuration);
+            return new Isa95JobControlNodeManager(server, configuration).SyncNodeManager;
+        }
+
+        /// <inheritdoc/>
+        public ValueTask<IAsyncNodeManager> CreateAsync(
+            IServerInternal server,
+            ApplicationConfiguration configuration,
+            CancellationToken cancellationToken = default)
+        {
+            return new ValueTask<IAsyncNodeManager>(
+                new Isa95JobControlNodeManager(server, configuration));
         }
     }
 }

@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 });
 
             var result = Assert.Single(results);
-            Assert.Empty(result.Path.Elements);
+            Assert.Empty(result.Path.Elements.AsEnumerable());
             Assert.NotNull(result.ErrorInfo);
             Assert.Equal(StatusCodes.BadNodeIdUnknown, result.ErrorInfo.StatusCode);
         }
@@ -113,13 +113,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             Assert.Collection(results,
                 result =>
                 {
-                    Assert.NotEmpty(result.Path.Elements);
+                    Assert.NotEmpty(result.Path.Elements.AsEnumerable());
                     Assert.Null(result.ErrorInfo);
                     Assert.Equal(5, result.Path.Elements.Count);
                 },
                 result =>
                 {
-                    Assert.Empty(result.Path.Elements);
+                    Assert.Empty(result.Path.Elements.AsEnumerable());
                     Assert.NotNull(result.ErrorInfo);
                     Assert.Equal(StatusCodes.BadNodeIdUnknown, result.ErrorInfo.StatusCode);
                 });

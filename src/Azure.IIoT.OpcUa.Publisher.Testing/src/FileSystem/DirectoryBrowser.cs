@@ -43,64 +43,61 @@ namespace FileSystem
         /// <returns>The next reference that meets the browse criteria.</returns>
         public override IReference Next()
         {
-            lock (DataLock)
+            // enumerate pre-defined references.
+            // always call first to ensure any pushed-back references are returned first.
+            var reference = base.Next();
+
+            if (reference != null)
             {
-                // enumerate pre-defined references.
-                // always call first to ensure any pushed-back references are returned first.
-                var reference = base.Next();
+                return reference;
+            }
+
+            // don't start browsing huge number of references when only internal references are requested.
+            if (InternalOnly)
+            {
+                return null;
+            }
+
+            if (!IsRequired(ReferenceTypeIds.HasComponent, false))
+            {
+                return null;
+            }
+
+            if (_stage == Stage.Begin)
+            {
+                _directories = [.. Directory.GetDirectories(_source.FullPath)];
+                _stage = Stage.Directories;
+            }
+
+            // enumerate segments.
+            if (_stage == Stage.Directories)
+            {
+                reference = NextChild();
 
                 if (reference != null)
                 {
                     return reference;
                 }
 
-                // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly)
-                {
-                    return null;
-                }
-
-                if (!IsRequired(ReferenceTypeIds.HasComponent, false))
-                {
-                    return null;
-                }
-
-                if (_stage == Stage.Begin)
-                {
-                    _directories = [.. Directory.GetDirectories(_source.FullPath)];
-                    _stage = Stage.Directories;
-                }
-
-                // enumerate segments.
-                if (_stage == Stage.Directories)
-                {
-                    reference = NextChild();
-
-                    if (reference != null)
-                    {
-                        return reference;
-                    }
-
-                    _files = [.. Directory.GetFiles(_source.FullPath)];
-                    _stage = Stage.Files;
-                }
-
-                // enumerate files.
-                if (_stage == Stage.Files)
-                {
-                    reference = NextChild();
-
-                    if (reference != null)
-                    {
-                        return reference;
-                    }
-
-                    _stage = Stage.Done;
-                }
-
-                // all done.
-                return null;
+                _files = [.. Directory.GetFiles(_source.FullPath)];
+                _stage = Stage.Files;
             }
+
+            // enumerate files.
+            if (_stage == Stage.Files)
+            {
+                reference = NextChild();
+
+                if (reference != null)
+                {
+                    return reference;
+                }
+
+                _stage = Stage.Done;
+            }
+
+            // all done.
+            return null;
         }
 
         /// <summary>
@@ -108,10 +105,10 @@ namespace FileSystem
         /// </summary>
         private NodeStateReference NextChild()
         {
-            NodeId targetId = null;
+            NodeId targetId = default;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName))
+            if (!(BrowseName).IsNull)
             {
                 // browse name must be qualified by the correct namespace.
                 if (_source.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)
@@ -170,7 +167,7 @@ namespace FileSystem
             }
 
             // create reference.
-            if (targetId != null)
+            if (!targetId.IsNull)
             {
                 return new NodeStateReference(ReferenceTypeIds.HasComponent, false, targetId);
             }

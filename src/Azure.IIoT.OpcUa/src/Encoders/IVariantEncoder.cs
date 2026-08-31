@@ -6,8 +6,8 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Variant codec
@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// while the non-reversible encoding produces a more compact
         /// representation.</param>
         /// <returns></returns>
-        VariantValue Encode(Variant? value, out BuiltInType builtinType,
+        JsonNode? Encode(Variant? value, out BuiltInType builtinType,
             ValueEncoding encoding = ValueEncoding.Reversible);
 
         /// <summary>
@@ -38,6 +38,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
         /// <returns></returns>
-        Variant Decode(VariantValue value, BuiltInType builtinType);
+        Variant Decode(JsonNode? value, BuiltInType builtinType);
     }
 }

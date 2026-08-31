@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Node attribute identifiers
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<NodeAttribute>))]
     public enum NodeAttribute
     {
         /// <summary>

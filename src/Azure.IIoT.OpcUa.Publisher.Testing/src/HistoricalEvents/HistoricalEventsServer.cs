@@ -37,7 +37,7 @@ namespace HistoricalEvents
     public class HistoricalEventsServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

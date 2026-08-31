@@ -1,3 +1,16 @@
 ﻿<Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove(common.props))" Condition="'$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))' != ''" />
+
+  <!--
+    OPC Publisher 3.0 scaffolding (Phase 0).
+    Native-AOT / trimming is opt-in per project during the migration: a project
+    sets <IIoTNativeAot>true</IIoTNativeAot> once its phase has made it AOT/trim
+    clean. The opt-in is applied in src/Directory.Build.targets (imported after
+    the project body) so a csproj-level <IIoTNativeAot> is honored.
+  -->
+  <PropertyGroup>
+    <!-- Source-generated configuration binding (AOT/trim friendly) everywhere. -->
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+  </PropertyGroup>
 </Project>
+

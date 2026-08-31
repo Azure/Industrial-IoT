@@ -5,17 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Autofac;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Injectable service that registers a logger with stack
     /// </summary>
-    public sealed class OpcUaStack : IStartable, IDisposable
+    public sealed class OpcUaStack : IHostedService, IDisposable
     {
         /// <summary>
         /// Create stack logger
@@ -30,9 +32,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void Start()
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            // No op
+            // No op - the stack logger is set up in the constructor.
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>

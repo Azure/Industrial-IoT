@@ -148,18 +148,39 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         }
 
         Write-Host "Publish $($projFile.FullName) as $($fullName):$($fullTag)..."
-        $baseImage = $($properties.ContainerBaseImage -split "-")[0]
+
+        # The csproj declares a full tag (e.g. "...aspnet:10.0-azurelinux3.0-distroless")
+        # but the architecture suffix has to be appended here, so the declared
+        # flavour is split off and rebuilt around the arch.
+        #
+        # Splitting on "-" and keeping [0] used to discard the flavour entirely,
+        # which silently shipped the ordinary azurelinux image whenever the
+        # csproj asked for distroless - the hardening the csproj requested was
+        # never actually applied. The flavour is now carried through.
+        $declaredBaseImage = $properties.ContainerBaseImage
+        $baseImage = $($declaredBaseImage -split "-")[0]
+        $distroless = ""
+        if ($declaredBaseImage -match "-distroless-extra") {
+            $distroless = "-distroless-extra"
+        }
+        elseif ($declaredBaseImage -match "-distroless") {
+            $distroless = "-distroless"
+        }
 
         # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
         if ($script:Arch -eq "x64") {
-	        $baseImage = "$($baseImage)-azurelinux3.0-amd64"
+	        $baseImage = "$($baseImage)-azurelinux3.0$($distroless)-amd64"
 	    }
 	    if ($script:Arch -eq "arm64") {
-	        $baseImage = "$($baseImage)-azurelinux3.0-arm64v8"
+	        $baseImage = "$($baseImage)-azurelinux3.0$($distroless)-arm64v8"
 	    }
 	    if ($script:Arch -eq "arm") {
+            # .NET publishes no distroless variant for the 32 bit arm images,
+            # which are Alpine based and already minimal, so the flavour is
+            # deliberately not appended here.
 	        $baseImage = "$($baseImage)-alpine-arm32v7"
 	    }
+        Write-Host "Base image: $baseImage"
 
         if (![string]::IsNullOrWhiteSpace($script:TarFileOutput)) {
             Write-Host "Publish as tarball to $($script:TarFileOutput)/$($fullName).tar.gz..."

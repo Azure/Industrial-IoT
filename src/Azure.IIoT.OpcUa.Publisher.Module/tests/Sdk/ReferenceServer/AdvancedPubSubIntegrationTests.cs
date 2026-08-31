@@ -32,7 +32,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerTestAsync);
             StartPublisher(name, "./Resources/Fixedvalue.json",
-                arguments: ["--mm=PubSub", "--dm=false"], keepAliveInterval: 1);
+                arguments:
+                [
+                    "--mm=PubSub",
+                    "--dm=false",
+                    "--msi=5000"
+                ],
+                keepAliveInterval: 1);
             try
             {
                 // Arrange
@@ -174,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data");
+                    predicate: WaitUntilOutput, messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -238,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data");
+                    predicate: WaitUntilOutput2, messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -381,7 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data");
+                    predicate: WaitUntilOutput, messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -529,11 +535,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
         internal static JsonElement WaitUntilOutput2(JsonElement jsonElement)
         {
+            return WaitUntilPayloadHas(jsonElement, "Output2");
+        }
+
+        internal static JsonElement WaitUntilOutput(JsonElement jsonElement)
+        {
+            return WaitUntilPayloadHas(jsonElement, "Output");
+        }
+
+        /// <summary>
+        /// Accept a ua-data message only once the value under test is actually
+        /// carried in its payload. Two things can be missing independently: a
+        /// data set message can arrive without the field at all - a keep alive
+        /// carries no payload entries - and the field can be present while
+        /// carrying only a status code, because a DataValue whose value is bad
+        /// or not yet sampled encodes without a "Value" member. A test that
+        /// takes the first message it sees and reads Payload.Field.Value throws
+        /// KeyNotFoundException on either, which is what made these tests
+        /// intermittent. Requiring both here is not a timing workaround: the
+        /// test is asserting on a sampled value, so a message that carries no
+        /// value is simply not the message it means to assert on.
+        /// </summary>
+        /// <param name="jsonElement"></param>
+        /// <param name="name"></param>
+        private static JsonElement WaitUntilPayloadHas(JsonElement jsonElement,
+            string name)
+        {
             var messages = jsonElement.GetProperty("Messages");
             if (messages.ValueKind == JsonValueKind.Array)
             {
                 var element = messages.EnumerateArray().FirstOrDefault();
-                if (element.GetProperty("Payload").TryGetProperty("Output2", out _))
+                if (element.ValueKind == JsonValueKind.Object &&
+                    element.TryGetProperty("Payload", out var payload) &&
+                    payload.TryGetProperty(name, out var field) &&
+                    field.ValueKind == JsonValueKind.Object &&
+                    field.TryGetProperty("Value", out _))
                 {
                     return jsonElement;
                 }

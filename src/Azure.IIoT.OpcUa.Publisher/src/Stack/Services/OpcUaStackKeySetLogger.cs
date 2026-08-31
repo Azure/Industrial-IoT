@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -33,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// See: https://gitlab.com/wireshark/wireshark/-/blob/master/plugins/epan/opcua/opcua.c#L232
     /// </para>
     /// </summary>
-    public sealed class OpcUaStackKeySetLogger : IDisposable
+    public sealed class OpcUaStackKeySetLogger : IHostedService, IDisposable
     {
         /// <summary>
         /// Create logger
@@ -53,6 +54,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             _task = WriteDebugFileAsync(options.Value.OpcUaKeySetLogFolderName, _cts.Token);
+        }
+
+        /// <inheritdoc/>
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            // No op - the debug file writer is started in the constructor.
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>

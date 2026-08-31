@@ -18,7 +18,7 @@ namespace Plc
 
         public T Value
         {
-            get => (T)_variable.Value;
+            get => GetValue(_variable.Value);
             set => SetValue(_variable, value);
         }
 
@@ -58,9 +58,69 @@ namespace Plc
 
         private void SetValue(BaseDataVariableState variable, T value)
         {
-            variable.Value = value;
+            variable.Value = ToVariant(variable, value);
             variable.Timestamp = _timeService.Now;
             variable.ClearChangeMasks(_context, false);
+        }
+
+        private static T GetValue(Variant value)
+        {
+            if (typeof(T) == typeof(bool) && value.TryGetValue(out bool boolValue))
+            {
+                return (T)(object)boolValue;
+            }
+
+            if (typeof(T) == typeof(int) && value.TryGetValue(out int intValue))
+            {
+                return (T)(object)intValue;
+            }
+
+            if (typeof(T) == typeof(uint) && value.TryGetValue(out uint uintValue))
+            {
+                return (T)(object)uintValue;
+            }
+
+            if (typeof(T) == typeof(double) && value.TryGetValue(out double doubleValue))
+            {
+                return (T)(object)doubleValue;
+            }
+
+            if (typeof(T) == typeof(string) && value.TryGetValue(out string stringValue))
+            {
+                return (T)(object)stringValue;
+            }
+
+            if (typeof(T) == typeof(byte[]))
+            {
+                if (value.TryGetValue(out ByteString byteStringValue))
+                {
+                    return (T)(object)byteStringValue.ToArray();
+                }
+
+                if (value.TryGetValue(out ArrayOf<byte> arrayValue))
+                {
+                    return (T)(object)(arrayValue.ToArray() ?? []);
+                }
+            }
+
+            return default!;
+        }
+
+        private static Variant ToVariant(BaseDataVariableState variable, T value)
+        {
+            return value switch
+            {
+                bool boolValue => new Variant(boolValue),
+                int intValue => new Variant(intValue),
+                uint uintValue => new Variant(uintValue),
+                double doubleValue => new Variant(doubleValue),
+                string stringValue => new Variant(stringValue),
+                byte[] bytes when variable.ValueRank == ValueRanks.Scalar =>
+                    new Variant(ByteString.From(bytes)),
+                byte[] bytes => new Variant((ArrayOf<byte>)bytes),
+                null => Variant.Null,
+                _ => throw new NotSupportedException($"Cannot convert {typeof(T)} to an OPC UA Variant.")
+            };
         }
     }
 }

@@ -92,7 +92,7 @@ namespace Opc.Ua.Test
         /// Create generator
         /// </summary>
         /// <param name="random"></param>
-        public TestDataGenerator(IRandomSource random = null)
+        public TestDataGenerator(ISecureRandomSource random = null)
         {
             MinDateTimeValue = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             MaxDateTimeValue = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -324,7 +324,7 @@ namespace Opc.Ua.Test
                 case BuiltInType.ByteString:
                     return GetRandomArray<byte[]>(length, fixedLength);
                 case BuiltInType.XmlElement:
-                    return GetRandomArray<XmlElement>(length, fixedLength);
+                    return GetRandomArray<Opc.Ua.XmlElement>(length, fixedLength);
                 case BuiltInType.NodeId:
                     return GetRandomArray<NodeId>(length, fixedLength);
                 case BuiltInType.ExpandedNodeId:
@@ -378,7 +378,23 @@ namespace Opc.Ua.Test
                     return (T)boundaryValue;
                 }
             }
-            return (T)GetRandom(typeof(T));
+            var value = GetRandom(typeof(T));
+            // The 2.0 stack models several built-in values as dedicated structs
+            // (Opc.Ua.XmlElement, Opc.Ua.Uuid) whereas this DOM/BCL-based generator
+            // produces the legacy System.Xml.XmlElement / System.Guid. Convert at the
+            // generic boundary so callers requesting either representation work
+            // (e.g. TestData XmlElement variables use Opc.Ua.XmlElement, Guid arrays
+            // in variants use Uuid); System.Xml.XmlElement / System.Guid callers are
+            // unaffected.
+            if (typeof(T) == typeof(Opc.Ua.XmlElement) && value is System.Xml.XmlElement node)
+            {
+                value = Opc.Ua.XmlElement.From(node);
+            }
+            else if (typeof(T) == typeof(Uuid) && value is Guid guid)
+            {
+                value = new Uuid(guid);
+            }
+            return (T)value;
         }
 
         /// <summary>
@@ -621,7 +637,7 @@ namespace Opc.Ua.Test
                 case 2:
                     return new NodeId(GetRandomGuid(), namespaceIndex);
                 case 3:
-                    return new NodeId(GetRandomByteString(), namespaceIndex);
+                    return new NodeId(ByteString.From(GetRandomByteString()), namespaceIndex);
                 default:
                     return new NodeId(GetRandomUInt32(), namespaceIndex);
             }
@@ -756,7 +772,7 @@ namespace Opc.Ua.Test
                     case BuiltInType.ByteString:
                         return new Variant(GetRandomArray<byte[]>(num, true));
                     case BuiltInType.XmlElement:
-                        return new Variant(GetRandomArray<XmlElement>(num, true));
+                        return new Variant(GetRandomArray<Opc.Ua.XmlElement>(num, true));
                     case BuiltInType.NodeId:
                         return new Variant(GetRandomArray<NodeId>(num, true));
                     case BuiltInType.ExpandedNodeId:
@@ -781,10 +797,14 @@ namespace Opc.Ua.Test
         public ExtensionObject GetRandomExtensionObject()
         {
             var randomNodeId = GetRandomNodeId();
-            if (!NodeId.IsNull(randomNodeId))
+            if (!(randomNodeId).IsNull)
             {
-                return new ExtensionObject(randomNodeId, (_random.NextInt32(1) == 0) ?
-                    GetRandomXmlElement() : GetRandomByteString());
+                // 2.0 ExtensionObject exposes typed body ctors; the DOM/BCL bodies
+                // must be converted to the stack representations (Opc.Ua.XmlElement /
+                // ByteString) rather than the legacy System.Xml.XmlElement / byte[].
+                return _random.NextInt32(1) == 0
+                    ? new ExtensionObject(randomNodeId, Opc.Ua.XmlElement.From(GetRandomXmlElement()))
+                    : new ExtensionObject(randomNodeId, ByteString.From(GetRandomByteString()));
             }
             return new ExtensionObject();
         }
@@ -970,9 +990,9 @@ namespace Opc.Ua.Test
         /// forever, hanging the test host. Serialize every access on a
         /// process-wide lock to keep the generator state consistent.
         /// </summary>
-        private sealed class ThreadSafeRandomSource : IRandomSource
+        private sealed class ThreadSafeRandomSource : ISecureRandomSource
         {
-            public ThreadSafeRandomSource(IRandomSource source)
+            public ThreadSafeRandomSource(ISecureRandomSource source)
             {
                 _source = source;
             }
@@ -994,10 +1014,10 @@ namespace Opc.Ua.Test
             }
 
             private static readonly object kLock = new();
-            private readonly IRandomSource _source;
+            private readonly ISecureRandomSource _source;
         }
 
-        private readonly IRandomSource _random;
+        private readonly ISecureRandomSource _random;
         private readonly SortedDictionary<string, object[]> _boundaryValues;
         private readonly bool _useBoundaryValues = true;
         private readonly string[] _availableLocales;

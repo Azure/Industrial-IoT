@@ -153,9 +153,10 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }
@@ -212,7 +213,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -341,9 +342,10 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }
@@ -379,7 +381,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -508,9 +510,10 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }
@@ -546,7 +549,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -672,9 +675,10 @@ namespace Asset
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
+            BaseInstanceState replacement,
+            bool assignInstanceNodeIds = true)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }
@@ -710,7 +714,7 @@ namespace Asset
                 return instance;
             }
 
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return base.FindChild(context, browseName, createOrReplace, replacement, assignInstanceNodeIds);
         }
         #endregion
 
@@ -776,8 +780,8 @@ namespace Asset
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -786,9 +790,9 @@ namespace Asset
 
             ServiceResult _result = null;
 
-            string assetName = (string)_inputArguments[0];
+            string assetName = (string)_inputArguments[0].Value;
 
-            NodeId assetId = (NodeId)_outputArguments[0];
+            NodeId assetId = (NodeId)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -800,7 +804,7 @@ namespace Asset
                     ref assetId);
             }
 
-            _outputArguments[0] = assetId;
+            _outputArguments[0] = new Variant(assetId);
 
             return _result;
         }
@@ -875,8 +879,8 @@ namespace Asset
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -885,7 +889,7 @@ namespace Asset
 
             ServiceResult _result = null;
 
-            NodeId assetId = (NodeId)_inputArguments[0];
+            NodeId assetId = (NodeId)_inputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -968,8 +972,8 @@ namespace Asset
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -978,7 +982,7 @@ namespace Asset
 
             ServiceResult _result = null;
 
-            uint fileHandle = (uint)_inputArguments[0];
+            uint fileHandle = (uint)_inputArguments[0].Value;
 
             if (OnCall != null)
             {

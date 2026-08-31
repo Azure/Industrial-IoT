@@ -4,5 +4,7 @@
 // ------------------------------------------------------------
 
 using System;
+using Xunit;
 
 [assembly: CLSCompliant(false)]
+[assembly: CollectionBehavior(DisableTestParallelization = true)]

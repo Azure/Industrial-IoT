@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -159,18 +159,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var (nodeId, errorInfo) = await context.Session.CreateAssetAsync(
                     request.Header.ToRequestHeader(_timeProvider),
                     request.Entry.DataSetName, context.Ct).ConfigureAwait(false); // Asset name
-                if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
+                if (errorInfo != null || nodeId is null || NodeIdCompat.IsNull(nodeId))
                 {
                     // TOOD errorInfo?.StatusCode ==
                     //  Opc.Ua.StatusCodes.BadBrowseNameDuplicated
                     errorInfo ??= new ServiceResultModel
                     {
-                        StatusCode = StatusCodes.BadNodeIdInvalid,
+                        StatusCode = StatusCodes.BadNodeIdInvalid.Code,
                         ErrorMessage = "Failed to create asset."
                     };
                     return (entry with { DataSetWriterId = null }, errorInfo);
                 }
-                var assetId = nodeId.AsString(context.Session.MessageContext,
+                var assetId = nodeId.Value.AsString(context.Session.MessageContext,
                     NamespaceFormat.Expanded);
 
                 entry = entry with
@@ -188,13 +188,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // Find the created asset file
                 (nodeId, errorInfo) = await context.Session.GetAssetFileAsync(
-                    request.Header.ToRequestHeader(_timeProvider), nodeId!,
+                    request.Header.ToRequestHeader(_timeProvider), nodeId.Value,
                     context.Ct).ConfigureAwait(false);
-                if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
+                if (errorInfo != null || nodeId is null || NodeIdCompat.IsNull(nodeId))
                 {
                     errorInfo ??= new ServiceResultModel
                     {
-                        StatusCode = StatusCodes.BadNotFound,
+                        StatusCode = StatusCodes.BadNotFound.Code,
                         ErrorMessage = "Asset did not have a file component."
                     };
                     return (entry, errorInfo);
@@ -202,16 +202,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // 2) upload asset file
                 var bufferSize = await context.Session.GetBufferSizeAsync(
-                    request.Header.ToRequestHeader(_timeProvider), nodeId,
+                    request.Header.ToRequestHeader(_timeProvider), nodeId.Value,
                     context.Ct).ConfigureAwait(false);
                 var (fileHandle, openError) = await context.Session.OpenAsync(
-                    request.Header.ToRequestHeader(_timeProvider), nodeId, 0x2 | 0x4,
+                    request.Header.ToRequestHeader(_timeProvider), nodeId.Value, 0x2 | 0x4,
                     context.Ct).ConfigureAwait(false);
-                if (openError != null || !fileHandle.HasValue || NodeId.IsNull(nodeId))
+                if (openError != null || !fileHandle.HasValue || NodeIdCompat.IsNull(nodeId))
                 {
                     openError ??= new ServiceResultModel
                     {
-                        StatusCode = StatusCodes.BadUserAccessDenied,
+                        StatusCode = StatusCodes.BadUserAccessDenied.Code,
                         ErrorMessage = "Asset file could not be opened for write."
                     };
                     return (entry, openError);
@@ -229,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             break;
                         }
                         errorInfo = await context.Session.WriteAsync(
-                            request.Header.ToRequestHeader(_timeProvider), nodeId,
+                            request.Header.ToRequestHeader(_timeProvider), nodeId.Value,
                             fileHandle.Value, buffer.AsMemory()[..read],
                             context.Ct).ConfigureAwait(false);
                         if (errorInfo != null)
@@ -248,8 +248,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 errorInfo = await context.Session.CloseAndUpdateAsync(
-                    request.Header.ToRequestHeader(_timeProvider), nodeId,
+                    request.Header.ToRequestHeader(_timeProvider), nodeId.Value,
                     fileHandle.Value, context.Ct).ConfigureAwait(false);
+                if (errorInfo?.StatusCode == StatusCodes.BadDecodingError.Code)
+                {
+                    errorInfo = errorInfo with
+                    {
+                        StatusCode = StatusCodes.BadUnexpectedError.Code,
+                        SymbolicId = StatusCodes.BadUnexpectedError.AsString()
+                    };
+                }
                 return (entry, errorInfo);
             }, request.Header, ct).ConfigureAwait(false);
 
@@ -276,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // the session is disconnected now and the server is restarting.
                     // We wait a bit here to ensure all of this has happened correctly.
                     //
-                    await _timeProvider.Delay(request.WaitTime.Value, ct).ConfigureAwait(false);
+                    await Task.Delay(request.WaitTime.Value, _timeProvider, ct).ConfigureAwait(false);
                 }
 
                 // 3) Collect all created tags under the asset
@@ -303,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .FirstOrDefault(r => r != null);
                     errorInfo ??= new ServiceResultModel
                     {
-                        StatusCode = StatusCodes.BadUnexpectedError,
+                        StatusCode = StatusCodes.BadUnexpectedError.Code,
                         ErrorMessage = "Failed to find any tags for the asset."
                     };
                     await DeleteAssetAsync(request.Header, entry, ct).ConfigureAwait(false);
@@ -376,11 +384,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return await _client.ExecuteAsync(entry.ToConnectionModel(), async context =>
             {
                 var assetId = entry.DataSetWriterId.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(assetId))
+                if (NodeIdCompat.IsNull(assetId))
                 {
                     return new ServiceResultModel
                     {
-                        StatusCode = StatusCodes.BadNodeIdInvalid,
+                        StatusCode = StatusCodes.BadNodeIdInvalid.Code,
                         ErrorMessage = "Invalid node id and browse path in file system object"
                     };
                 }

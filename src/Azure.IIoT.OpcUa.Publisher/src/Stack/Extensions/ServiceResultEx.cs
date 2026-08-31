@@ -1,14 +1,15 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Opc.Ua;
     using System;
-
+
+    using System.Collections.Generic;
     /// <summary>
     /// Service result model extensions
     /// </summary>
@@ -26,15 +27,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             // status codes. Preserve the historical "en-US" default to keep
             // the publisher's external contract stable.
             var localizedText = sr.LocalizedText;
-            var locale = localizedText?.Locale;
-            if (locale == null && !string.IsNullOrEmpty(localizedText?.Text))
+            var locale = localizedText.Locale;
+            if (locale == null && !string.IsNullOrEmpty(localizedText.Text))
             {
                 locale = "en-US";
             }
             return new ServiceResultModel
             {
                 StatusCode = sr.Code,
-                ErrorMessage = localizedText?.Text,
+                ErrorMessage = localizedText.Text,
                 Locale = locale,
                 AdditionalInfo = sr.AdditionalInfo,
                 NamespaceUri = sr.NamespaceUri,
@@ -88,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="stringTable"></param>
         /// <returns></returns>
         public static ServiceResultModel CreateResultModel(this StatusCode statusCode,
-            DiagnosticInfo? diagnostics = null, StringCollection? stringTable = null)
+            DiagnosticInfo? diagnostics = null, List<string>? stringTable = null)
         {
             // The reference server in OPC Foundation 1.5.378.x no longer
             // populates LocalizedText / Locale entries in the per-operation
@@ -118,10 +119,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 NamespaceUri = stringTable?.GetStringFromTable(diagnostics?.NamespaceUri),
                 Locale = locale,
                 AdditionalInfo = diagnostics?.AdditionalInfo,
-                Inner = diagnostics?.InnerStatusCode == null ||
+                Inner = diagnostics == null ||
                     diagnostics.InnerStatusCode == StatusCodes.Good ? null :
                     diagnostics.InnerStatusCode.CreateResultModel(
-                        diagnostics?.InnerDiagnosticInfo, stringTable)
+                        diagnostics.InnerDiagnosticInfo, stringTable)
             };
         }
 
@@ -132,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="index"></param>
         /// <returns></returns>
         private static string? GetStringFromTable(
-            this StringCollection stringTable, int? index)
+            this List<string> stringTable, int? index)
         {
             if (index == null || stringTable == null ||
                 index.Value >= stringTable.Count ||

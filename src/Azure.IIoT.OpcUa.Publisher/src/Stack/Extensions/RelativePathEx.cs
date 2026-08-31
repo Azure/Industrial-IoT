@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -32,9 +32,10 @@ namespace Opc.Ua.Extensions
             }
             return new RelativePath
             {
-                Elements = new RelativePathElementCollection(path
+                Elements = path
                     .Where(p => !string.IsNullOrEmpty(p))
-                    .Select(p => ParsePathElement(p, context)))
+                    .Select(p => ParsePathElement(p, context))
+                    .ToArray()
             };
         }
 
@@ -52,7 +53,7 @@ namespace Opc.Ua.Extensions
             {
                 return null;
             }
-            return path.Elements
+            return path.Elements.ToArray()?
                 .Select(p => FormatRelativePathElement(p, context, namespaceFormat))
                 .ToList();
         }
@@ -95,7 +96,7 @@ namespace Opc.Ua.Extensions
                 switch (element[index])
                 {
                     case '<':
-                        if (pathElement.ReferenceTypeId == null)
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId))
                         {
                             parseReference = true;
                             break;
@@ -108,7 +109,7 @@ namespace Opc.Ua.Extensions
                         pathElement.IncludeSubtypes = false;
                         break;
                     case '/':
-                        if (pathElement.ReferenceTypeId == null &&
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                             !parseReference)
                         {
                             pathElement.ReferenceTypeId =
@@ -117,7 +118,7 @@ namespace Opc.Ua.Extensions
                         }
                         throw new FormatException("Reference type set.");
                     case '.':
-                        if (pathElement.ReferenceTypeId == null &&
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                             !parseReference)
                         {
                             pathElement.ReferenceTypeId =
@@ -130,7 +131,7 @@ namespace Opc.Ua.Extensions
                         {
                             index++;
                         }
-                        if (pathElement.ReferenceTypeId == null &&
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                             !parseReference)
                         {
                             // Set to all references
@@ -163,11 +164,11 @@ namespace Opc.Ua.Extensions
                 // TODO: Deescape &<, &>, &/, &., &:, &&
                 index = to + 1;
                 pathElement.ReferenceTypeId = reference.ToNodeId(context);
-                if (NodeId.IsNull(pathElement.ReferenceTypeId) &&
+                if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                     TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference,
                         out var id))
                 {
-                    pathElement.ReferenceTypeId = id;
+                    pathElement.ReferenceTypeId = new NodeId(id);
                 }
             }
             var target = element[index..];

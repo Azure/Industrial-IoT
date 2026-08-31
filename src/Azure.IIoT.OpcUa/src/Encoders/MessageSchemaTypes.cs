@@ -11,12 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     public static class MessageSchemaTypes
     {
         /// <summary>
-        /// Monitored item message
-        /// </summary>
-        public const string MonitoredItemMessageJson =
-            "application/x-monitored-item-json-v1";
-
-        /// <summary>
         /// Json network message
         /// </summary>
         public const string NetworkMessageJson =

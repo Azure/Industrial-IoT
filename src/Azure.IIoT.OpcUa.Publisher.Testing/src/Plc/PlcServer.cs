@@ -14,7 +14,7 @@ namespace Plc
     public class PlcServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

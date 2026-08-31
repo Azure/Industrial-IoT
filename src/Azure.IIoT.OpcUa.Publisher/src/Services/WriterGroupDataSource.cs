@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,10 +8,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Furly.Exceptions;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -40,20 +40,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="clients"></param>
         /// <param name="writerGroup"></param>
         /// <param name="sink"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="metrics"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
         public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients,
-            WriterGroupModel writerGroup, IMessageSink sink, IJsonSerializer serializer,
+            WriterGroupModel writerGroup, IMessageSink sink,
             IOptions<PublisherOptions> options, IMetricsContext? metrics,
             ILoggerFactory loggerFactory, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
 
             _loggerFactory = loggerFactory;
-            _serializer = serializer;
             _sink = sink;
             _options = options;
             _logger = loggerFactory.CreateLogger<WriterGroupDataSource>();
@@ -75,6 +73,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _writerGroup = Copy(writerGroup);
 
             InitializeMetrics();
+        }
+
+        /// <summary>
+        /// Expand a writer group's writers the way the data source will run
+        /// them, so that anything downstream sees the same writers.
+        /// </summary>
+        /// <remarks>
+        /// A routing mode turns one configured writer into one writer per
+        /// published item, each with its own topic, and until now that
+        /// happened only inside this class when the group was started. The
+        /// native PubSub host registers a data set source per writer from the
+        /// model it is handed, so it was told about the unexpanded writer and
+        /// then silently discarded every notification the expanded ones
+        /// produced - the publisher looked healthy and published nothing.
+        /// </remarks>
+        /// <param name="writerGroup">The group to expand.</param>
+        /// <param name="options">Publisher options supplying the defaults.</param>
+        internal static WriterGroupModel ExpandRouting(WriterGroupModel writerGroup,
+            PublisherOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroup);
+            ArgumentNullException.ThrowIfNull(options);
+            if (writerGroup.DataSetWriters is not { Count: > 0 } writers)
+            {
+                return writerGroup;
+            }
+            var expanded = new List<DataSetWriterModel>(writers.Count);
+            var changed = false;
+            foreach (var writer in writers)
+            {
+                if (writer?.DataSet?.DataSetSource is null)
+                {
+                    expanded.Add(writer!);
+                    continue;
+                }
+                var partitions = DataSetWriter.Expand(options, writerGroup,
+                    writerGroup.Id, writer).ToList();
+                //
+                // A writer that does not route expands to itself, and the
+                // common case must stay identical: writer ids key the durable
+                // identity registry, so a rewrite that changed them for no
+                // reason would move identities across an upgrade.
+                //
+                if (partitions.Count == 1 &&
+                    string.Equals(partitions[0].Id, writer.Id, StringComparison.Ordinal))
+                {
+                    expanded.Add(writer);
+                    continue;
+                }
+                changed = true;
+                expanded.AddRange(partitions);
+            }
+            return changed ? writerGroup with { DataSetWriters = expanded } : writerGroup;
         }
 
         /// <inheritdoc/>
@@ -302,67 +353,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Safe clone the writer group model
+        /// Safe clone the writer group model and resolve its messaging profile
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         private WriterGroupModel Copy(WriterGroupModel model)
         {
-            var writerGroup = model with
-            {
-                DataSetWriters = model.DataSetWriters == null ?
-                    Array.Empty<DataSetWriterModel>() :
-                    model.DataSetWriters
-                        .Where(w => w.HasDataToPublish())
-                        .Select(f => f.Clone())
-                        .ToList(),
-                LocaleIds = model.LocaleIds?.ToList(),
-                MessageSettings = model.MessageSettings == null ? null :
-                    model.MessageSettings with { },
-                SecurityKeyServices = model.SecurityKeyServices?
-                    .Select(c => c.Clone())
-                    .ToList()
-            };
-
-            // Set the messaging profile settings
-            var defaultMessagingProfile = _options.Value.MessagingProfile ??
-                MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
-            if (writerGroup.HeaderLayoutUri != null)
-            {
-                defaultMessagingProfile = MessagingProfile.Get(
-                    Enum.Parse<MessagingMode>(writerGroup.HeaderLayoutUri),
-                    writerGroup.MessageType ?? defaultMessagingProfile.MessageEncoding);
-            }
-
-            writerGroup.MessageType ??= defaultMessagingProfile.MessageEncoding;
-
-            // Set the messaging settings for the encoder
-            if (writerGroup.MessageSettings?.NetworkMessageContentMask == null)
-            {
-                writerGroup.MessageSettings ??= new WriterGroupMessageSettingsModel();
-                writerGroup.MessageSettings.NetworkMessageContentMask =
-                    defaultMessagingProfile.NetworkMessageContentMask;
-            }
-
-            foreach (var dataSetWriter in writerGroup.DataSetWriters)
-            {
-                if (dataSetWriter.MessageSettings?.DataSetMessageContentMask == null)
-                {
-                    dataSetWriter.MessageSettings ??= new DataSetWriterMessageSettingsModel();
-                    dataSetWriter.MessageSettings.DataSetMessageContentMask =
-                        defaultMessagingProfile.DataSetMessageContentMask;
-                }
-                dataSetWriter.DataSetFieldContentMask ??=
-                        defaultMessagingProfile.DataSetFieldContentMask;
-
-                if (_options.Value.WriteValueWhenDataSetHasSingleEntry == true)
-                {
-                    dataSetWriter.DataSetFieldContentMask
-                        |= Models.DataSetFieldContentFlags.SingleFieldDegradeToValue;
-                }
-            }
-
-            return writerGroup;
+            return model.CopyAndResolve(_options.Value);
         }
 
         /// <summary>
@@ -441,7 +438,7 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
 #endif
                 try
                 {
-                    if (PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
+                    if (NetworkMessageSchema.TryCreate(encoding, input,
                         out schema, _options.Value.SchemaOptions))
                     {
                         schemaGroup = new SchemaGroup(topic, (ulong)_metadataChanges, schema);
@@ -775,7 +772,6 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
         private readonly ConcurrentDictionary<string, SchemaGroup> _schemaGroups = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IJsonSerializer _serializer;
         private readonly IMessageSink _sink;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;

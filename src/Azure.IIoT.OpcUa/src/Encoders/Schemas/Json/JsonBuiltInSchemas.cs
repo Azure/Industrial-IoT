@@ -195,6 +195,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 {
                     Title = GetTitle(BuiltInType.QualifiedName),
                     Id = GetId(BuiltInType.QualifiedName),
+                    Type = SchemaType.Object,
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Name"] = GetSchemaForBuiltInType(BuiltInType.String),

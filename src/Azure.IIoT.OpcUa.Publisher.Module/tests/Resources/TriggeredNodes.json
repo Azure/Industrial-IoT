@@ -1,0 +1,19 @@
+[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2258",
+                "DataSetFieldId": "CurrentTime",
+                "TriggeredNodes": [
+                    {
+                        "Id": "i=2259",
+                        "DataSetFieldId": "ServerState"
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
-    using System;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
+    using System;
 
     /// <summary>
     /// Historic data
@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "value", Order = 0)]
         [SkipValidation]
-        public VariantValue? Value { get; set; }
+        public JsonNode? Value { get; set; }
 
         /// <summary>
         /// Built in data type of the updated values

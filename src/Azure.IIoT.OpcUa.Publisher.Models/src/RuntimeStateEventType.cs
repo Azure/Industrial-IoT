@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Enum of valid values for MessageType.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<RuntimeStateEventType>))]
     public enum RuntimeStateEventType
     {
         /// <summary>

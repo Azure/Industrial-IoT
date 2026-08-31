@@ -5,28 +5,27 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
-    using System;
+    using System.Text.Json;
 
     /// <summary>
     /// Encodeable wrapper for Json tokens
     /// </summary>
-    public sealed class EncodeableJToken : IEncodeable, IJsonEncodeable
+    public sealed class EncodeableJToken : IEncodeable
     {
         /// <summary>
         /// The encoded object
         /// </summary>
-        public JToken JToken { get; private set; }
+        public JsonElement JToken { get; private set; }
 
         /// <summary>
         /// Create encodeable token
         /// </summary>
-        /// <param name="jToken"></param>
+        /// <param name="json"></param>
         /// <param name="typeId"></param>
-        public EncodeableJToken(JToken jToken, ExpandedNodeId typeId)
+        public EncodeableJToken(JsonElement json, ExpandedNodeId typeId)
         {
-            JToken = jToken ?? throw new ArgumentNullException(nameof(jToken));
+            JToken = json.Clone();
             TypeId = typeId;
         }
 
@@ -35,28 +34,29 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
 
         /// <inheritdoc/>
         public ExpandedNodeId JsonEncodingId =>
-            "s=" + nameof(EncodeableJToken) + "_Encoding_DefaultJson";
+            (ExpandedNodeId)("s=" + nameof(EncodeableJToken) + "_Encoding_DefaultJson");
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
-            "s=" + nameof(EncodeableJToken) + "_Encoding_DefaultBinary";
+            (ExpandedNodeId)("s=" + nameof(EncodeableJToken) + "_Encoding_DefaultBinary");
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
-            "s=" + nameof(EncodeableJToken) + "_Encoding_DefaultXml";
+            (ExpandedNodeId)("s=" + nameof(EncodeableJToken) + "_Encoding_DefaultXml");
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder)
         {
             TypeId = decoder.ReadExpandedNodeId(nameof(TypeId));
-            JToken = JToken.Parse(decoder.ReadString(nameof(JToken)));
+            using var document = JsonDocument.Parse(decoder.ReadString(nameof(JToken)));
+            JToken = document.RootElement.Clone();
         }
 
         /// <inheritdoc/>
         public void Encode(IEncoder encoder)
         {
             encoder.WriteExpandedNodeId(nameof(TypeId), TypeId);
-            encoder.WriteString(nameof(JToken), JToken.ToString());
+            encoder.WriteString(nameof(JToken), JToken.GetRawText());
         }
 
         /// <inheritdoc/>
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             if (encodeable is EncodeableJToken wrapper)
             {
                 return TypeId == wrapper.TypeId &&
-                    JToken.EqualityComparer.Equals(wrapper.JToken, JToken);
+                    JsonElement.DeepEquals(wrapper.JToken, JToken);
             }
             return false;
         }

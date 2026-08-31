@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Exceptions
 {
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using System;
 
     /// <summary>

@@ -1,18 +1,18 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Edge.Services;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Storage;
+    using Azure.IIoT.OpcUa.Core.IoTEdge;
+    using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Storage;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -27,9 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -47,7 +48,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Constructor for runtime state reporter.
         /// </summary>
         /// <param name="events"></param>
-        /// <param name="serializer"></param>
         /// <param name="stores"></param>
         /// <param name="options"></param>
         /// <param name="collector"></param>
@@ -57,14 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="identity"></param>
         /// <param name="workload"></param>
         public RuntimeStateReporter(IEnumerable<IEventClient> events,
-            IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
+            IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
             TimeProvider? timeProvider = null, IIoTEdgeDeviceIdentity? identity = null,
             IIoTEdgeWorkloadApi? workload = null)
         {
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _logger = logger ??
@@ -118,6 +116,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void Dispose()
         {
+            // Dispose can be invoked more than once because the reporter is
+            // registered under multiple service interfaces and the DI container
+            // tracks the shared instance for disposal per forwarded registration.
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
             try
             {
                 _runtimeState = RuntimeStateEventType.Stopped;
@@ -166,11 +171,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 else
                 {
                     store.State[OpcUa.Constants.TwinPropertySchemeKey] =
-                        VariantValue.Null;
+                        null;
                     store.State[OpcUa.Constants.TwinPropertyHostnameKey] =
-                        VariantValue.Null;
+                        null;
                     store.State[OpcUa.Constants.TwinPropertyPortKey] =
-                        VariantValue.Null;
+                        null;
                 }
             }
 
@@ -203,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<VariantValue> GetHostAddressesAsync(CancellationToken ct)
+        private async Task<JsonNode?> GetHostAddressesAsync(CancellationToken ct)
         {
             try
             {
@@ -215,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             catch (Exception ex)
             {
                 _logger.HostnameResolveFailed(ex);
-                return VariantValue.Null;
+                return null;
             }
         }
 
@@ -225,7 +230,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private async Task UpdateApiKeyAndCertificateAsync()
         {
             var apiKeyStore = _stores.Find(s => s.State.TryGetValue(
-                OpcUa.Constants.TwinPropertyApiKeyKey, out var key) && key.IsString);
+                OpcUa.Constants.TwinPropertyApiKeyKey, out var key) &&
+                key?.GetValueKind() == JsonValueKind.String);
             if (apiKeyStore != null)
             {
                 ApiKey = (string?)apiKeyStore.State[OpcUa.Constants.TwinPropertyApiKeyKey];
@@ -257,13 +263,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
                 apiKeyStore != null &&
                 apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
-                    out var cert) && cert.IsBytes)
+                    out var cert) && cert is JsonValue certValue &&
+                    certValue.TryGetValue<string>(out var encodedCertificate))
             {
                 try
                 {
                     // Load certificate
                     Certificate?.Dispose();
-                    Certificate = X509CertificateLoader.LoadPkcs12((byte[])cert!, ApiKey);
+                    Certificate = X509CertificateLoader.LoadPkcs12(
+                        Convert.FromBase64String(encodedCertificate), ApiKey);
                     var now = _timeProvider.GetUtcNow().AddDays(1);
                     if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
                         Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
@@ -356,7 +364,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             apiKeyStore ??= _stores[0];
 
             var pfxCertificate = Certificate.Export(X509ContentType.Pfx, ApiKey);
-            apiKeyStore.State.AddOrUpdate(OpcUa.Constants.TwinPropertyCertificateKey, pfxCertificate);
+            apiKeyStore.State[OpcUa.Constants.TwinPropertyCertificateKey] =
+                Convert.ToBase64String(pfxCertificate);
 
             var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
@@ -413,7 +422,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     await events.SendEventAsync(eventsTopic,
-                        _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
+                        Json.SerializeToMemory(runtimeStateEvent,
+                            Json.GetTypeInfo<RuntimeStateEventModel>()), Json.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
                             eventMessage.SetRetain(true);
@@ -518,7 +528,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     try
                     {
                         await events.SendEventAsync(diagnosticsTopic,
-                            _serializer.SerializeToMemory(info), _serializer.MimeType,
+                            Json.SerializeToMemory(info,
+                                Json.GetTypeInfo<WriterGroupDiagnosticModel>()), Json.MimeType,
                             Encoding.UTF8.WebName, configure: eventMessage =>
                             {
                                 eventMessage
@@ -793,13 +804,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IIoTEdgeWorkloadApi? _workload;
         private readonly ITimer _renewalTimer;
         private readonly TimeProvider _timeProvider;
-        private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly List<IEventClient> _events;
         private readonly List<IKeyValueStore> _stores;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly IMetricsContext _metrics;
         private readonly CancellationTokenSource _cts;
+        private int _disposed;
         private readonly PeriodicTimer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
         private readonly PublisherDiagnosticTargetType _diagnostics;

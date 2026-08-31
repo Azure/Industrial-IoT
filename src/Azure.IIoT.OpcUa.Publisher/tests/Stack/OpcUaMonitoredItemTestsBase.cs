@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,8 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Furly.Extensions.Logging;
-    using Furly.Extensions.Serializers.Newtonsoft;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -25,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     {
         protected virtual Mock<IOpcUaSession> SetupMockedSession(NamespaceTable namespaceTable = null)
         {
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             namespaceTable ??= new NamespaceTable();
 
             var ctx = new Mock<INodeCacheContext>();
@@ -35,42 +33,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns((RequestHeader _, NodeId nodeId, NodeClass _, bool _, CancellationToken _)
                     => ValueTask.FromResult(GetNode(nodeId)));
-            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<IReadOnlyList<NodeId>>(),
+            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<ArrayOf<NodeId>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, bool _, CancellationToken _) =>
+                .Returns((RequestHeader _, ArrayOf<NodeId> nodeIds, bool _, CancellationToken _) =>
                 {
-                    var (nodes, errors) = GetNodes(nodeIds.ToList(), NodeClass.Unspecified, false);
+                    var (nodes, errors) = GetNodes(nodeIds.AsEnumerable().ToList(), NodeClass.Unspecified, false);
                     return ValueTask.FromResult(new ResultSet<Node>(nodes.ToArray(), errors.ToArray()));
                 });
-            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<IReadOnlyList<NodeId>>(),
+            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<ArrayOf<NodeId>>(),
                     It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, NodeClass nodeClass, bool _, CancellationToken _) =>
+                .Returns((RequestHeader _, ArrayOf<NodeId> nodeIds, NodeClass nodeClass, bool _, CancellationToken _) =>
                 {
-                    var (nodes, errors) = GetNodes(nodeIds.ToList(), nodeClass, false);
+                    var (nodes, errors) = GetNodes(nodeIds.AsEnumerable().ToList(), nodeClass, false);
                     return ValueTask.FromResult(new ResultSet<Node>(nodes.ToArray(), errors.ToArray()));
                 });
             ctx.Setup(x => x.FetchReferencesAsync(It.IsAny<RequestHeader>(), It.IsAny<NodeId>(),
                     It.IsAny<CancellationToken>()))
                 .Returns((RequestHeader _, NodeId nodeId, CancellationToken _)
-                    => ValueTask.FromResult(new ReferenceDescriptionCollection(GetReferences(nodeId))));
+                    => ValueTask.FromResult<ArrayOf<ReferenceDescription>>(GetReferences(nodeId).ToArray()));
             ctx.Setup(x => x.FetchReferencesAsync(It.IsAny<RequestHeader>(),
-                    It.IsAny<IReadOnlyList<NodeId>>(), It.IsAny<CancellationToken>()))
-                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, CancellationToken _) =>
+                    It.IsAny<ArrayOf<NodeId>>(), It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, ArrayOf<NodeId> nodeIds, CancellationToken _) =>
                 {
-                    var lists = nodeIds.Select(n => new ReferenceDescriptionCollection(GetReferences(n))).ToList();
-                    var errors = nodeIds.Select(_ => ServiceResult.Good).ToList();
+                    var lists = nodeIds.AsEnumerable()
+                        .Select(n => (ArrayOf<ReferenceDescription>)GetReferences(n).ToArray()).ToArray();
+                    var errors = nodeIds.AsEnumerable().Select(_ => ServiceResult.Good).ToArray();
                     return ValueTask.FromResult(
-                        new ResultSet<ReferenceDescriptionCollection>(lists, errors));
+                        new ResultSet<ArrayOf<ReferenceDescription>>(lists, errors));
                 });
 
-            var nodeCache = new LruNodeCache(ctx.Object, telemetry: null);
+            var telemetry = DefaultTelemetry.Create(_ => { });
+            var nodeCache = new LruNodeCache(ctx.Object, telemetry,
+                cacheExpiry: TimeSpan.FromMinutes(1), capacity: 1000);
 
-            var session = mock.Mock<IOpcUaSession>();
-            var messageContext = new ServiceMessageContext(telemetry: null)
+            var session = new Mock<IOpcUaSession>();
+            var messageContext = new ServiceMessageContext(telemetry)
             {
                 NamespaceUris = namespaceTable
             };
-            var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
+            var codec = new JsonVariantEncoder(messageContext);
             session.SetupGet(x => x.Codec).Returns(codec);
             session.SetupGet(x => x.LruNodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);
@@ -84,9 +85,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return node == null ? Array.Empty<ReferenceDescription>() :
                 node.ReferenceTable.Select(r => new ReferenceDescription
                 {
-                    ReferenceTypeId = new NodeId(r.ReferenceTypeId),
+                    ReferenceTypeId = r.ReferenceTypeId,
                     IsForward = !r.IsInverse,
-                    NodeId = new ExpandedNodeId(r.TargetId)
+                    NodeId = r.TargetId
                 });
         }
 
@@ -130,38 +131,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return null;
         }
 
-        internal async Task<OpcUaMonitoredItem> GetMonitoredItemAsync(BaseMonitoredItemModel template,
+        /// <summary>
+        /// Runs the production event-filter pipeline: build the simple filter from
+        /// the type definition, encode it back into the template, and resolve the
+        /// final monitored-item filter through the managed options adapter.
+        /// </summary>
+        internal async Task<EventFilter> GetEventFilterAsync(EventMonitoredItemModel template,
             NamespaceTable namespaceUris = null)
         {
             var session = SetupMockedSession(namespaceUris).Object;
-            var subscriber = new Mock<ISubscriber>();
-            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!,
-                (subscriber.Object, template).YieldReturn(),
-                Log.ConsoleFactory(), TimeProvider.System).Single();
-            using var subscription = new SimpleSubscription();
-            monitoredItemWrapper.AddTo(subscription, session, out _);
-            if (monitoredItemWrapper.FinalizeAddTo != null)
+            var filter = await SimpleEventFilterBuilder.CreateSimpleEventFilterAsync(
+                template, session, default);
+            var resolved = template with
             {
-                await monitoredItemWrapper.FinalizeAddTo(session, default);
-            }
-            return monitoredItemWrapper;
-        }
-
-        internal sealed class SimpleSubscription : Subscription
-        {
-            public SimpleSubscription()
-            {
-            }
-
-            public SimpleSubscription(Subscription template, bool copyEventHandlers)
-                : base(template, copyEventHandlers)
-            {
-            }
-
-            public override Subscription CloneSubscription(bool copyEventHandlers)
-            {
-                throw new NotImplementedException();
-            }
+                EventFilter = session.Codec.Encode(filter, template.NamespaceFormat)!
+            };
+            var options = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                resolved, new OpcUaSubscriptionOptions(), session.Codec);
+            return (EventFilter)options.Filter!;
         }
     }
 }

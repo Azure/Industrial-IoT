@@ -14,7 +14,7 @@ namespace Counter
     public sealed class CounterServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris => [Namespaces.Counter];
+        public ArrayOf<string> NamespacesUris => [Namespaces.Counter];
 
         /// <summary>
         /// The node manager that was created, if any. Tests use it to

@@ -5,11 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
+    using System.Text.Json.Nodes;
     using System;
     using System.Collections.Generic;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -24,12 +25,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <param name="connection"></param>
         /// <param name="readExpected"></param>
         public ReadArrayValueTests(Func<INodeServices<T>> services, T connection,
-            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected)
+            Func<T, string, Task<JsonNode?>> readExpected)
         {
             _services = services;
             _connection = connection;
             _readExpected = readExpected;
-            _serializer = new DefaultJsonSerializer();
         }
 
         public async Task NodeReadAllStaticArrayVariableNodeClassTest1Async(CancellationToken ct = default)
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const Opc.Ua.NodeClass expected = Opc.Ua.NodeClass.Variable;
 
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const int expected = Opc.Ua.AccessLevels.CurrentRead | Opc.Ua.AccessLevels.CurrentWrite;
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
 
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value!));
         }
 
         public async Task NodeReadAllStaticArrayVariableWriteMaskTest2Async(CancellationToken ct = default)
@@ -146,12 +146,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
 
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
                     Attribute = NodeAttribute.WriteMask,
-                    NodeId = "http://test.org/UA/Data/#i=10300"
+                    NodeId = "http://test.org/UA/Data/#i=2228"
                 });
             }
 
@@ -174,14 +174,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value!));
         }
 
         public async Task NodeReadStaticArrayBooleanValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10300";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2228";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -196,21 +196,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsBoolean, $"{result.Value[0]} is not a boolean.");
+            Assert.True(result.Value[0].IsBoolean(), $"{result.Value[0]} is not a boolean.");
             Assert.Equal("Boolean", result.DataType);
         }
 
         public async Task NodeReadStaticArraySByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10301";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2229";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -225,21 +225,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("SByte", result.DataType);
         }
 
         public async Task NodeReadStaticArrayByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10302";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2230";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -253,15 +253,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal("ByteString", result.DataType);
-            Assert.True(result.Value.IsNull() || result.Value!.IsBytes);
+            Assert.Equal("Byte", result.DataType);
+            Assert.True(result.Value!.IsListOfValues());
+            Assert.All(result.Value.Values(), value =>
+                Assert.True(value!.IsInteger(), $"{value} is not an integer."));
         }
 
         public async Task NodeReadStaticArrayInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10303";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2231";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -276,21 +278,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int16", result.DataType);
         }
 
         public async Task NodeReadStaticArrayUInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10304";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2232";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -305,21 +307,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("UInt16", result.DataType);
         }
 
         public async Task NodeReadStaticArrayInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10305";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2233";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -334,21 +336,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int32", result.DataType);
         }
 
         public async Task NodeReadStaticArrayUInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10306";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2234";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -363,21 +365,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("UInt32", result.DataType);
         }
 
         public async Task NodeReadStaticArrayInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10307";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2235";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -392,21 +394,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int64", result.DataType);
         }
 
         public async Task NodeReadStaticArrayUInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10308";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2236";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -421,21 +423,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("UInt64", result.DataType);
         }
 
         public async Task NodeReadStaticArrayFloatValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10309";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2237";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -450,21 +452,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsFloat, $"First is {result.Value}");
+            Assert.True(result.Value[0].IsFloat(), $"First is {result.Value}");
             Assert.Equal("Float", result.DataType);
         }
 
         public async Task NodeReadStaticArrayDoubleValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10310";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2238";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -479,21 +481,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsDouble);
+            Assert.True(result.Value[0].IsDouble());
             Assert.Equal("Double", result.DataType);
         }
 
         public async Task NodeReadStaticArrayStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10311";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2239";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -508,21 +510,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
+            Assert.True(result.Value[0].IsString(), $"{result.Value[0]} is not a string.");
             Assert.Equal("String", result.DataType);
         }
 
         public async Task NodeReadStaticArrayDateTimeValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10312";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2240";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -537,21 +539,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsDateTime);
+            Assert.True(result.Value[0].IsDateTime());
             Assert.Equal("DateTime", result.DataType);
         }
 
         public async Task NodeReadStaticArrayGuidValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10313";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2241";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -566,21 +568,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsGuid);
+            Assert.True(result.Value[0].IsGuid());
             Assert.Equal("Guid", result.DataType);
         }
 
         public async Task NodeReadStaticArrayByteStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10314";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2242";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -598,8 +600,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 return;
             }
-            Assert.True(result.Value!.IsListOfValues);
-            if (result.Value.Count == 0)
+            Assert.True(result.Value!.IsListOfValues());
+            if (result.Value.Count() == 0)
             {
                 return;
             }
@@ -611,8 +613,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayXmlElementValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10315";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2243";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -627,13 +629,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsBytes);
+            Assert.True(result.Value[0].IsBytes());
             Assert.Equal("XmlElement", result.DataType);
             var xml = result.Value[0].ConvertTo<XmlElement>();
             Assert.NotNull(xml);
@@ -642,8 +644,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10316";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2244";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -658,21 +660,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
+            AssertNodeIdElement(result.Value[0]);
             Assert.Equal("NodeId", result.DataType);
         }
 
         public async Task NodeReadStaticArrayExpandedNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10317";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2245";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -687,21 +689,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
+            AssertNodeIdElement(result.Value[0]);
             Assert.Equal("ExpandedNodeId", result.DataType);
+        }
+
+        private static void AssertNodeIdElement(JsonNode? value)
+        {
+            if (value is null)
+            {
+                return;
+            }
+            if (value.IsString())
+            {
+                return;
+            }
+            Assert.True(value.IsObject(), $"{value} is not a node id.");
+            Assert.NotNull(value!["Id"]);
         }
 
         public async Task NodeReadStaticArrayQualifiedNameValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10318";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2246";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -716,21 +732,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
+            Assert.True(result.Value[0].IsString(), $"{result.Value[0]} is not a string.");
             Assert.Equal("QualifiedName", result.DataType);
         }
 
         public async Task NodeReadStaticArrayLocalizedTextValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10319";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2247";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -745,21 +761,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsObject, $"{result.Value[0]} is not an object.");
+            Assert.True(result.Value[0].IsObject(), $"{result.Value[0]} is not an object.");
             Assert.Equal("LocalizedText", result.DataType);
         }
 
         public async Task NodeReadStaticArrayStatusCodeValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10320";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2248";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -774,22 +790,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
             Assert.True(
-               result.Value[0].IsObject ||
-               result.Value[0].IsInteger, $"{result.Value[0]} is not a integer or object.");
+               result.Value[0].IsObject() ||
+               result.Value[0].IsInteger(), $"{result.Value[0]} is not a integer or object.");
             Assert.Equal("StatusCode", result.DataType);
         }
 
         public async Task NodeReadStaticArrayVariantValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10321";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2249";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -804,14 +820,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
         }
 
         public async Task NodeReadStaticArrayEnumerationValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10322";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2250";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -826,21 +842,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int32", result.DataType);
         }
 
         public async Task NodeReadStaticArrayStructureValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10323";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2251";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -855,13 +871,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsObject, $"{result.Value[0]} is not an object.");
+            Assert.True(result.Value[0].IsObject(), $"{result.Value[0]} is not an object.");
             // TODO: Assert.Equal(VariantValueType.Bytes, (result.Value)[0].Type);
             Assert.Equal("ExtensionObject", result.DataType);
         }
@@ -869,8 +885,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayNumberValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10324";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2252";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -885,20 +901,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsArray, $"Not an array {result.Value}");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsArray(), $"Not an array {result.Value}");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
-            Assert.True(result.Value[0].IsDouble || result.Value[0].IsDecimal,
-                $"Not a number {result.Value[0]}");
+            AssertAbstractNumericElement(result.Value[0]);
         }
 
         public async Task NodeReadStaticArrayIntegerValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10325";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2253";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -913,20 +928,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsListOfValues(), $"{result.Value} is not a list.");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            AssertAbstractNumericElement(result.Value[0]);
         }
 
         public async Task NodeReadStaticArrayUIntegerValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10326";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            const string node = "http://test.org/UA/Data/#i=2254";
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -941,13 +956,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsArray, $"Not an array {result.Value}");
-            if (result.Value.Count == 0)
+            Assert.True(result.Value.IsArray(), $"Not an array {result.Value}");
+            if (result.Value.Count() == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
+            AssertAbstractNumericElement(result.Value[0]);
+        }
+
+        private static void AssertAbstractNumericElement(JsonNode? value)
+        {
+            if (value is null)
+            {
+                return;
+            }
+            if (value.IsObject())
+            {
+                Assert.NotNull(value!["Value"]);
+                return;
+            }
+            Assert.Equal(JsonValueKind.Number, value.GetValueKind());
         }
 
         /// <summary>
@@ -955,15 +984,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// </summary>
         /// <param name="expected"></param>
         /// <param name="value"></param>
-        private static void AssertEqualValue(VariantValue? expected, VariantValue? value)
+        private static void AssertEqualValue(JsonNode? expected, JsonNode? value)
         {
-            Assert.True(VariantValue.DeepEquals(expected, value),
+            Assert.True(JsonNode.DeepEquals(expected, value),
                 $"Expected: {expected}  != Actual: {value} ");
         }
 
         private readonly T _connection;
-        private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
-        private readonly DefaultJsonSerializer _serializer;
+        private readonly Func<T, string, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }
 }

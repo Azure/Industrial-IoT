@@ -7,9 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Asp.Versioning;
-    using Furly;
-    using Furly.Tunnel.Router;
+    using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -35,14 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Version("_V2")]
     [Version("")]
     [RouterExceptionFilter]
-    [ControllerExceptionFilter]
-    [ApiVersion("2")]
-    [Route("v{version:apiVersion}/history")]
-    [ApiController]
-    [Authorize]
-    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    public class HistoryController : ControllerBase, IMethodController
+    public class HistoryController : IMethodController
     {
         /// <summary>
         /// Create controller with service
@@ -73,13 +65,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/replace")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -109,13 +96,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/insert")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -145,13 +127,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/upsert")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -181,13 +158,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/delete")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteEventsDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<DeleteEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -217,13 +189,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/delete/attimes")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -253,13 +220,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/delete/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -289,13 +251,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/delete")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -325,13 +282,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/replace")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -361,13 +313,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/insert")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -397,13 +344,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/upsert")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
+             RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -433,13 +375,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/read/first")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -469,13 +406,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/read/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
+             RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -504,13 +436,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/first")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -540,13 +467,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/first/attimes")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -576,13 +498,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/first/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -612,13 +529,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/first/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -648,13 +560,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
+             RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -683,13 +590,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -718,13 +620,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/modified")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -753,13 +650,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/attimes")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -788,13 +680,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("values/read/processed")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -823,13 +710,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("events/read")]
         public IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
+             RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);

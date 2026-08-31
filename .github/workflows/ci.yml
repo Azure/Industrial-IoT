@@ -6,7 +6,7 @@ name: CI
 #
 # Stages (mirrors templates in the internal Industrial-IoT repo):
 #   version         -> compute nbgv version, share via job outputs
-#   build_test      -> matrix (Linux + Windows) x (4 unit test projects)
+#   build_test      -> matrix (Linux + Windows) x (Fast and ServerIntegration test projects)
 #                      with coverlet.msbuild Cobertura coverage
 #   coverage_report -> merge with ReportGenerator -> $GITHUB_STEP_SUMMARY
 #   images_build    -> matrix arch (x64/arm/arm64), produces image tarballs
@@ -22,9 +22,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, release/*]
+    branches: [main, preview, release/*]
   push:
-    branches: [main, release/*]
+    branches: [main, preview, release/*]
   workflow_dispatch:
     inputs:
       run_e2e:
@@ -100,16 +100,16 @@ jobs:
         shell: bash
 
   # --------------------------------------------------------------------------
-  # build_test: 8-way matrix (2 OS x 4 test projects). Each project is run
-  # in its own job so the OPC UA per-project port and PKI contention only
-  # has to be tolerated within a single project (matches the existing
-  # serial-per-project pattern in the deleted test.yml). Coverage is
+  # build_test: each project is run in its own job. Fast projects remain
+  # parallelizable in the matrix; each ServerIntegration project executes in
+  # one serial test process so its OPC UA fixture ports and PKI roots are
+  # isolated. Coverage is
   # collected with coverlet.msbuild (the only coverlet package referenced
   # by the test csproj files) using MSBuild integration -- same as the
   # internal templates/test.yml.
   # --------------------------------------------------------------------------
   build_test:
-    name: Build & Test (${{ matrix.os }} / ${{ matrix.project.name }})
+    name: Build & Test (${{ matrix.os }} / ${{ matrix.project.category }} / ${{ matrix.project.name }})
     needs: version
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -120,12 +120,25 @@ jobs:
         project:
           - name: Models
             path: src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj
+            category: Fast
+          - name: Sdk
+            path: src/Azure.IIoT.OpcUa.Publisher.Sdk/tests/Azure.IIoT.OpcUa.Publisher.Sdk.Tests.csproj
+            category: Fast
+          - name: Core
+            path: src/Azure.IIoT.OpcUa.Core/tests/Azure.IIoT.OpcUa.Core.Tests.csproj
+            category: Fast
           - name: OpcUa
             path: src/Azure.IIoT.OpcUa/tests/Azure.IIoT.OpcUa.Tests.csproj
+            category: Fast
+          - name: Testing
+            path: src/Azure.IIoT.OpcUa.Publisher.Testing/tests/Azure.IIoT.OpcUa.Publisher.Testing.csproj
+            category: ServerIntegration
           - name: Publisher
             path: src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj
+            category: ServerIntegration
           - name: Publisher.Module
             path: src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj
+            category: ServerIntegration
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -144,15 +157,15 @@ jobs:
         run: dotnet restore "${{ matrix.project.path }}" -s https://api.nuget.org/v3/index.json
         shell: pwsh
       - name: Build
-        run: dotnet build "${{ matrix.project.path }}" -c Release --no-restore
+        run: dotnet build "${{ matrix.project.path }}" -c Release --no-restore --no-incremental
         shell: pwsh
       - name: Test
         # OPC UA tests within a project contend on local ports and PKI
         # directories; --blame-hang-timeout protects against the
         # intermittent test-host hangs that historically affected Windows.
-        # 30m allows the coverlet.collector finalizer enough headroom on
-        # Linux (instrumentation flush on the Publisher.Module assembly
-        # can sit idle >10m after the last test completes).
+        # Keep the Publisher.Module Linux coverage run at 30 minutes: its
+        # coverlet finalizer can be idle for more than 10 minutes after tests
+        # complete. Fixture and server bounds remain much shorter.
         #
         # Coverage uses the `XPlat Code Coverage` data collector backed by
         # coverlet.collector (registered as a PackageReference in each test
@@ -165,11 +178,15 @@ jobs:
         # quality soak tests; they are run by soak.yml on a schedule.
         shell: pwsh
         run: |
+          $blameTimeout = if (
+            "${{ matrix.project.name }}" -eq "Publisher.Module" -and
+            "${{ runner.os }}" -eq "Linux") { "30m" } else { "10m" }
           dotnet test "${{ matrix.project.path }}" --no-build -c Release `
-            --blame-hang-timeout 30m --blame-hang-dump-type none `
+            --blame-hang-timeout $blameTimeout --blame-hang-dump-type none `
             --filter "Category!=LongRunning" `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
+            --settings coverage.runsettings `
             --collect:"XPlat Code Coverage;Format=cobertura"
       - name: Upload test results
         if: always()
@@ -177,6 +194,209 @@ jobs:
         with:
           name: testresults-${{ matrix.os }}-${{ matrix.project.name }}
           path: ./testresults
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # aot_publish: Native-AOT gate for the Publisher.Module. The ILC toolchain
+  # restore requires the public nuget.org feed and cannot run in the offline
+  # local dev environment, so this is validated here in CI. Publishes the
+  # module self-contained with the Native-AOT toolchain (-p:IIoTPublishAot=true
+  # sets PublishAot as a Module-local property and compiles the MCP tool server
+  # out of the image, because its schema generation is reflective). Runs as its
+  # own job in parallel with build_test so a trim/AOT regression is surfaced
+  # without blocking the normal build & test matrix.
+  # --------------------------------------------------------------------------
+  aot_publish:
+    name: AOT publish gate (Publisher.Module / linux-x64)
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore
+        # Restore against nuget.org explicitly (the repo Nuget.Config points
+        # only at the internal Azure Artifacts feed) and pass the RID + AOT
+        # flag so the restore also pulls the Native-AOT ILC runtime packages
+        # (Microsoft.DotNet.ILCompiler + runtime.linux-x64.*), letting the
+        # subsequent publish run with --no-restore.
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/aot-inventory
+          dotnet restore src/Azure.IIoT.OpcUa.Publisher.Module/src -r linux-x64 \
+            -p:IIoTPublishAot=true -s https://api.nuget.org/v3/index.json \
+            2>&1 | tee artifacts/aot-inventory/restore.log
+        shell: bash
+      - name: AOT publish (self-contained, Native-AOT)
+        # Fails the job if the Native-AOT compiler (ILC) reports a hard
+        # error. Trim/AOT analyzer warnings surface during the ordinary
+        # build (the Module sets IIoTNativeAot=true); this step is the
+        # end-to-end native compilation gate.
+        run: |
+          set -o pipefail
+          dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src \
+            -c Release -r linux-x64 --self-contained --no-restore \
+            -p:IIoTPublishAot=true 2>&1 | tee artifacts/aot-inventory/publish.log
+        shell: bash
+      - name: Generate AOT warning inventory
+        if: always()
+        run: |
+          set -euo pipefail
+          logs=()
+          for log in artifacts/aot-inventory/restore.log artifacts/aot-inventory/publish.log; do
+            if [ -f "$log" ]; then
+              logs+=(--log "$log")
+            fi
+          done
+          assets=()
+          if [ -f src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json ]; then
+            assets+=(--assets src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json)
+          fi
+          python3 tools/scripts/generate-aot-inventory.py \
+            "${logs[@]}" "${assets[@]}" \
+            --repo-root . --commit "$GITHUB_SHA" \
+            --json-out artifacts/aot-inventory/report.json \
+            --markdown-out artifacts/aot-inventory/report.md
+        shell: bash
+      - name: Materialize protected AOT baseline
+        id: aot_policy_baseline
+        if: success()
+        run: |
+          set -euo pipefail
+          baseline_source=tools/aot/publisher-module-nativeaot-baseline.json
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            if [ -z "${BASE_SHA}" ]; then
+              echo "::error::Pull request base SHA is unavailable; refusing to use the PR baseline."
+              exit 1
+            fi
+            if ! git cat-file -e "${BASE_SHA}:${baseline_source}" 2>/dev/null; then
+              echo "::error::Protected AOT baseline is missing at base ${BASE_SHA}: ${baseline_source}"
+              exit 1
+            fi
+            git show "${BASE_SHA}:${baseline_source}" > artifacts/aot-inventory/protected-baseline.json
+            echo "path=artifacts/aot-inventory/protected-baseline.json" >> "$GITHUB_OUTPUT"
+          else
+            if [ ! -f "${baseline_source}" ]; then
+              echo "::error::Checked-in AOT baseline is missing: ${baseline_source}"
+              exit 1
+            fi
+            echo "path=${baseline_source}" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+      - name: Enforce AOT warning baseline
+        if: success()
+        run: |
+          set -euo pipefail
+          python3 tools/scripts/generate-aot-inventory.py \
+            --log artifacts/aot-inventory/restore.log \
+            --log artifacts/aot-inventory/publish.log \
+            --assets src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json \
+            --repo-root . --commit "$GITHUB_SHA" \
+            --baseline "${{ steps.aot_policy_baseline.outputs.path }}" \
+            --candidate-baseline tools/aot/publisher-module-nativeaot-baseline.json \
+            --enforce
+        shell: bash
+      - name: Upload AOT warning inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aot-warning-inventory
+          path: artifacts/aot-inventory
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # aot_publish_arm64: cross-compilation gate for the linux-arm64 Native-AOT
+  # image. The x64 gate above cannot catch host/target architecture problems
+  # because there the host and target agree. Cross-compiling surfaces a whole
+  # class of defects that are invisible otherwise - most notably a build-time
+  # tool (source generator / analyzer) picking up the consuming project's
+  # RuntimeIdentifier and being emitted for the target architecture, which the
+  # compiler process then cannot load. That failure shows up as a CS8034
+  # warning followed by hard CS0246 errors for every generated type.
+  #
+  # Native-AOT cannot cross-compile from Windows at all ("Cross-OS native
+  # compilation is not supported"), so linux-arm64 is only reachable from a
+  # Linux host with the aarch64 cross toolchain installed. Deliberately no
+  # warning-baseline enforcement here: the trim/AOT inventory is architecture
+  # independent and is already enforced by the linux-x64 job.
+  # --------------------------------------------------------------------------
+  aot_publish_arm64:
+    name: AOT publish gate (Publisher.Module / linux-arm64)
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Install aarch64 cross toolchain
+        # ILC links through `clang --target=aarch64-linux-gnu -fuse-ld=bfd`, so
+        # it needs the cross binutils, the cross gcc, and the arm64 libc
+        # development files. libc6-dev-arm64-cross is the one that provides
+        # Scrt1.o/crti.o and libdl/librt/libm; without it the link fails.
+        # Do not pass -p:SysRoot: these packages install into the compiler's
+        # default target search path, and the libc linker scripts use absolute
+        # paths that a sysroot prefix would resolve twice.
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            binutils-aarch64-linux-gnu \
+            gcc-aarch64-linux-gnu \
+            libc6-dev-arm64-cross
+        shell: bash
+      - name: Restore (linux-arm64)
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/aot-arm64
+          dotnet restore src/Azure.IIoT.OpcUa.Publisher.Module/src -r linux-arm64 \
+            -p:IIoTPublishAot=true -s https://api.nuget.org/v3/index.json \
+            2>&1 | tee artifacts/aot-arm64/restore.log
+        shell: bash
+      - name: AOT publish (self-contained, Native-AOT, linux-arm64)
+        run: |
+          set -o pipefail
+          dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src \
+            -c Release -r linux-arm64 --self-contained --no-restore \
+            -p:IIoTPublishAot=true \
+            -p:ObjCopyName=aarch64-linux-gnu-objcopy \
+            2>&1 | tee artifacts/aot-arm64/publish.log
+        shell: bash
+      - name: Verify the produced binary is aarch64
+        # A silent fallback to the host architecture would make this gate
+        # pass while shipping an unusable image, so assert the ELF machine.
+        run: |
+          set -euo pipefail
+          binary=$(find src/Azure.IIoT.OpcUa.Publisher.Module/src/bin -type f \
+            -name 'Azure.IIoT.OpcUa.Publisher.Module' -path '*native*' | head -1)
+          if [ -z "$binary" ]; then
+            echo "::error::Native-AOT linux-arm64 binary was not produced."
+            exit 1
+          fi
+          file "$binary"
+          file "$binary" | grep -q 'ARM aarch64'
+        shell: bash
+      - name: Upload arm64 AOT logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aot-arm64-logs
+          path: artifacts/aot-arm64
           if-no-files-found: warn
           retention-days: 14
 
@@ -298,6 +518,17 @@ jobs:
           path: ./coverage
           if-no-files-found: warn
           retention-days: 14
+      # Per-assembly floors, ratcheted. The floors live in
+      # tools/scripts/coverage-thresholds.json and only ever move up: while an
+      # assembly is being brought to the 85% line / 70% branch target its floor
+      # sits at whatever was last measured, so the work cannot silently regress
+      # while it is in progress. This runs against ReportGenerator's merged
+      # Cobertura rather than the raw per-job files, because an assembly appears
+      # in the report of every suite that touched it and the runs have to be
+      # unioned rather than summed.
+      - name: Check coverage floors
+        run: pwsh ./tools/scripts/check-coverage.ps1 -ReportPath ./coverage/Cobertura.xml
+        shell: bash
 
   # --------------------------------------------------------------------------
   # images_build: build a tarball per linux architecture using the existing
@@ -436,7 +667,9 @@ jobs:
               # Tags:
               #   - :<simple_version>  always
               #   - :<nuget_version>   always (if differs from simple)
-              #   - :latest            only when pushing from main
+              #   - :latest            only when pushing from main. Deliberately
+              #     not preview: a pre-release line must never claim the
+              #     floating tag that unpinned consumers resolve to.
               tag_args=( -t "${image}:${SIMPLE_VERSION}" )
               if [ "${SIMPLE_VERSION}" != "${NUGET_VERSION}" ]; then
                 # Docker tags cannot contain '+'; nbgv NBGV_NuGetPackageVersion
@@ -565,15 +798,15 @@ jobs:
 
   # --------------------------------------------------------------------------
   # nuget_publish: push to the Azure org NuGet feed on GitHub Packages.
-  # Only runs on push to main or release/* (not on PR, not on dispatch, not
-  # on schedule). --skip-duplicate makes re-runs idempotent across reruns
-  # and against the existing internal pipeline (which may have already
-  # published the same version).
+  # Only runs on push to main, preview or release/* (not on PR, not on
+  # dispatch, not on schedule). --skip-duplicate makes re-runs idempotent
+  # across reruns and against the existing internal pipeline (which may have
+  # already published the same version).
   # --------------------------------------------------------------------------
   nuget_publish:
     name: Push packages to GitHub Packages
     needs: nuget_pack
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preview' || startsWith(github.ref, 'refs/heads/release/'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -600,8 +833,8 @@ jobs:
 
   # --------------------------------------------------------------------------
   # e2e: invoke the reusable E2E standalone workflow with the image tag we
-  # just pushed. Gated to push (main/release/*), manual dispatch (opt-in via
-  # run_e2e input), and the nightly schedule -- never PRs.
+  # just pushed. Gated to push (main/preview/release/*), manual dispatch
+  # (opt-in via run_e2e input), and the nightly schedule -- never PRs.
   # --------------------------------------------------------------------------
   e2e:
     name: E2E standalone tests
@@ -615,7 +848,7 @@ jobs:
       actions: read
     if: |
       github.event_name == 'schedule' ||
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preview' || startsWith(github.ref, 'refs/heads/release/'))) ||
       (github.event_name == 'workflow_dispatch' && inputs.run_e2e)
     uses: ./.github/workflows/e2e-standalone.yml
     with:
@@ -627,5 +860,3 @@ jobs:
       cleanup: ${{ github.event_name != 'workflow_dispatch' || inputs.e2e_cleanup }}
       head_sha: ${{ github.sha }}
     secrets: inherit
-
-

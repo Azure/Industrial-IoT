@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -75,7 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataItems"></param>
         /// <param name="settings"></param>
         /// <param name="namespaceFormat"></param>
-        /// <param name="includeTriggering"></param>
+        /// <param name="includeTriggering">False for an item that is itself
+        /// triggered, which stops the recursion.</param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedDataItemsModel dataItems, PublishedDataSetSettingsModel? settings,
@@ -101,7 +102,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="eventItems"></param>
         /// <param name="settings"></param>
         /// <param name="namespaceFormat"></param>
-        /// <param name="includeTriggering"></param>
+        /// <param name="includeTriggering">False for an item that is itself
+        /// triggered, which stops the recursion.</param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedEventItemsModel eventItems, PublishedDataSetSettingsModel? settings,
@@ -128,7 +130,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="publishedEvent"></param>
         /// <param name="settings"></param>
         /// <param name="namespaceFormat"></param>
-        /// <param name="includeTriggering"></param>
+        /// <param name="includeTriggering">False for an item that is itself
+        /// triggered, which stops the recursion.</param>
         /// <returns></returns>
         internal static BaseMonitoredItemModel? ToMonitoredItemTemplate(
             this PublishedDataSetEventModel publishedEvent, PublishedDataSetSettingsModel? settings,
@@ -154,8 +157,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                         ?? settings?.ResolveDisplayName,
                     RebrowsePeriod =
                         publishedEvent.ModelChangeHandling.RebrowseIntervalTimespan,
-                    TriggeredItems = includeTriggering ? null : ToMonitoredItems(
-                        publishedEvent.Triggering, settings, namespaceFormat),
+                    TriggeredItems = includeTriggering ? ToMonitoredItems(
+                        publishedEvent.Triggering, settings, namespaceFormat) : null,
                     AttributeId = null,
                     DiscardNew = false,
                     MonitoringMode = publishedEvent.MonitoringMode,
@@ -189,8 +192,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 NamespaceFormat = namespaceFormat,
                 FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
                     ?? settings?.ResolveDisplayName,
-                TriggeredItems = includeTriggering ? null : ToMonitoredItems(
-                    publishedEvent.Triggering, settings, namespaceFormat),
+                TriggeredItems = includeTriggering ? ToMonitoredItems(
+                    publishedEvent.Triggering, settings, namespaceFormat) : null,
                 ConditionHandling = publishedEvent.ConditionHandling.Clone()
             };
         }
@@ -201,7 +204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="publishedVariable"></param>
         /// <param name="settings"></param>
         /// <param name="namespaceFormat"></param>
-        /// <param name="includeTriggering"></param>
+        /// <param name="includeTriggering">False for an item that is itself
+        /// triggered, which stops the recursion.</param>
         /// <returns></returns>
         internal static DataMonitoredItemModel? ToMonitoredItemTemplate(
             this PublishedDataSetVariableModel publishedVariable, PublishedDataSetSettingsModel? settings,
@@ -241,14 +245,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 AggregateFilter = null,
                 AutoSetQueueSize = null,
                 NamespaceFormat = namespaceFormat,
-                TriggeredItems = includeTriggering ? null : ToMonitoredItems(
-                    publishedVariable.Triggering, settings, namespaceFormat)
+                TriggeredItems = includeTriggering ? ToMonitoredItems(
+                    publishedVariable.Triggering, settings, namespaceFormat) : null
             };
         }
 
         /// <summary>
         /// Convert triggering to monitored items
         /// </summary>
+        /// <remarks>
+        /// The items are built with triggering excluded, which is what stops
+        /// the recursion: an item that is itself triggered by another does not
+        /// go on to build its own triggers. OPC UA triggering is one level -
+        /// Part 4 has a triggering item and the items it reports - so there is
+        /// nothing below this to express.
+        /// <para>
+        /// A triggered item defaults to <see cref="MonitoringMode.Sampling"/>.
+        /// Part 4 5.12.1.6 only reports a triggered item on its trigger while
+        /// it is sampling; a reporting item publishes on its own and the link
+        /// changes nothing. Sampling is therefore what makes the documented
+        /// contract - report this node when its parent changes - true. An item
+        /// that names its own monitoring mode keeps it.
+        /// </para>
+        /// </remarks>
         /// <param name="triggering"></param>
         /// <param name="settings"></param>
         /// <param name="namespaceFormat"></param>
@@ -274,7 +293,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     .Concat(triggering.PublishedEvents
                         .ToMonitoredItems(settings, namespaceFormat, false));
             }
-            return monitoredItems.ToList();
+            return monitoredItems
+                .Select(item => item.MonitoringMode == null
+                    ? item with { MonitoringMode = MonitoringMode.Sampling }
+                    : item)
+                .ToList();
         }
 
         /// <summary>

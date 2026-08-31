@@ -76,5 +76,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         /// How many example observations are recorded for diagnosis.
         /// </summary>
         public int MaxExamples { get; init; } = 25;
+
+        /// <summary>
+        /// <para>
+        /// When <c>true</c>, the data source is known to be strictly
+        /// monotonically increasing (e.g. a counter that only ever increments
+        /// by one). In that case a sample that repeats the last observed value
+        /// is definitionally a heartbeat, regardless of whether the
+        /// <c>SourceTimestamp</c> also matches.
+        /// </para>
+        /// <para>
+        /// This stronger rule is sound only for a strictly increasing source
+        /// because a genuinely new sample would always carry a strictly higher
+        /// value. A repeated value can therefore only arise from a watchdog
+        /// heartbeat. For general sources — where a sensor can report the same
+        /// reading twice at different wall-clock instants — a repeated value
+        /// with a new timestamp is a real data update, not a heartbeat, so the
+        /// conservative rule (value <em>and</em> timestamp must both match)
+        /// must be applied instead.
+        /// </para>
+        /// <para>
+        /// Defaults to <c>false</c> so the conservative rule is always active
+        /// unless the caller explicitly opts in.
+        /// </para>
+        /// </summary>
+        public bool MonotonicSource { get; init; }
     }
 }

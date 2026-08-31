@@ -8,15 +8,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Furly.Azure.IoT.Edge;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
-    using Mono.Options;
-    using Newtonsoft.Json;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -49,6 +48,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="args">The specified command line arguments.</param>
         /// <param name="logger"></param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "PublisherConfig.ToOptions() validates configuration via " +
+            "reflection binding; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "PublisherConfig.ToOptions() validates configuration via " +
+            "reflection binding; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
         public CommandLine(string[] args, CommandLineLogger? logger = null)
         {
             _logger = logger ?? new CommandLineLogger();
@@ -60,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             const string LegacyCompatibility = "LegacyCompatibility";
 
             // command line options
-            var options = new Mono.Options.OptionSet
+            var options = new CommandLineOptionParser
             {
                 "",
                 "General",
@@ -112,6 +119,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"doa|disableopenapi:|{PublisherConfig.DisableOpenApiEndpointKey}:",
                     "Disable the OPC Publisher Open API endpoint exposed by the built-in HTTP server.\nDefault: `false` (enabled).\n",
                     (bool? b) => this[PublisherConfig.DisableOpenApiEndpointKey] = b?.ToString() ?? "True" },
+                { $"mcp:|{PublisherConfig.EnableMcpServerKey}:",
+                    "Expose the OPC UA Model Context Protocol (MCP) tool server at the `/mcp` path of the built-in HTTP server so an agent can be pointed at it.\nThe endpoint uses the same port and the same api key authentication as the REST api; no separate port is opened. If no http port is configured one is enabled on the default port.\nThe tools can browse, read, write and call into connected servers, and capture, decode and replay OPC UA traffic. Only enable this on a trusted network.\nDefault: `false` (disabled).\n",
+                    (bool? b) => this[PublisherConfig.EnableMcpServerKey] = b?.ToString() ?? "True" },
 
                 "",
                 "Messaging configuration",
@@ -125,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The format to use when serializing node ids and qualified names containing a namespace uri into a string.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<NamespaceFormat>())}`\nDefault: `{nameof(NamespaceFormat.Expanded)}` if `-c` is specified, otherwise `{nameof(NamespaceFormat.Uri)}` for backwards compatibility.\n",
                     (NamespaceFormat m) => this[PublisherConfig.DefaultNamespaceFormatKey] = m.ToString() },
                 { $"mm|messagingmode=|{PublisherConfig.MessagingModeKey}=",
-                    $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessagingMode>())}`\nDefault: `{nameof(MessagingMode.PubSub)}` if `-c` is specified, otherwise `{nameof(MessagingMode.Samples)}` for backwards compatibility.\n",
+                    $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessagingMode>())}`\nDefault: `{nameof(MessagingMode.PubSub)}`.\n",
                     (MessagingMode m) => this[PublisherConfig.MessagingModeKey] = m.ToString() },
                 { $"ode|optimizeddatasetencoding:|{PublisherConfig.WriteValueWhenDataSetHasSingleEntryKey}:",
                     "When a data set has a single entry the encoder will write only the value of a data set entry and omit the key.\nThis is not compliant with OPC UA Part 14.\nDefault: `false`.\n",
@@ -138,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // TODO: Allow overriding schema
 
                 { $"me|messageencoding=|{PublisherConfig.MessageEncodingKey}=",
-                    $"The message encoding for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessageEncoding>())}`\nDefault: `{nameof(MessageEncoding.Json)}`.\n",
+                    $"The message encoding for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessageEncoding>())}`\nThe `Avro` and `AvroGzip` values were removed in 3.0 and are rejected at startup - the standards compliant PubSub runtime has no Avro encoder. Use `Uadp` for a compact binary encoding, or `Json` with `--ps` for a published schema.\nDefault: `{nameof(MessageEncoding.Json)}`.\n",
                     (MessageEncoding m) => this[PublisherConfig.MessageEncodingKey] = m.ToString() },
                     { $"fm|fullfeaturedmessage=|{PublisherConfig.FullFeaturedMessageKey}=",
                         "The full featured mode for messages (all fields filled in) for backwards compatibilty. \nDefault: `false` for legacy compatibility.\n",
@@ -148,16 +158,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (uint k) => this[PublisherConfig.BatchTriggerIntervalKey] = TimeSpan.FromMilliseconds(k).ToString() },
                     { "si|iothubsendinterval=",
                         "The network message publishing interval in seconds for backwards compatibilty. \nDefault: `10` seconds.\n",
-                        (string k) => this[PublisherConfig.BatchTriggerIntervalKey] = TimeSpan.FromSeconds(int.Parse(k, CultureInfo.CurrentCulture)).ToString(), /* hidden = */ true },
+                        (string k) => this[PublisherConfig.BatchTriggerIntervalKey] = TimeSpan.FromSeconds(int.Parse(k, CultureInfo.InvariantCulture)).ToString(), /* hidden = */ true },
                 { $"bs|batchsize=|{PublisherConfig.BatchSizeKey}=",
-                    $"The number of incoming OPC UA subscription notifications to collect until sending a network messages. When `--bs` (`{PublisherConfig.BatchSizeKey}`) is set to 1 and `--bi` (`{PublisherConfig.BatchTriggerIntervalKey}`) is 0 batching is disabled and messages are sent as soon as notifications arrive.\nDefault: `50`.\n",
-                    (uint i) => this[PublisherConfig.BatchSizeKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    $"Removed in 3.0. The native PubSub runtime emits a message per sample and does not coalesce, so there is nothing to collect into a batch. Accepted and ignored so existing command lines keep working. Use `--bi` (`{PublisherConfig.BatchTriggerIntervalKey}`) to control how often the runtime samples.\nDeprecated, it is scheduled for removal.\n",
+                    (uint i) => this[PublisherConfig.BatchSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"rdb|removedupsinbatch:|{PublisherConfig.RemoveDuplicatesFromBatchKey}:",
-                    "Use this option to remove values with the same node id from batch messages in legacy `Samples` mode. Sends only the latest value as per the value's source timestamp.\nOnly applies to `Samples` mode, otherwise this setting is ignored.\nDefault: `false` (keep all duplicate values).\n",
+                    "Removed in 3.0. This only ever applied to the `Samples` mode, which no longer exists, so the option is accepted and ignored so existing command lines keep working.\nDeprecated, it is scheduled for removal.\n",
                     (bool? b) => this[PublisherConfig.RemoveDuplicatesFromBatchKey] = b?.ToString() ?? "True" },
+                { $"unp|usenativepubsub:|{PublisherConfig.UseNativePubSubKey}:",
+                    "Removed in 3.0. Telemetry is published through the native OPC UA PubSub runtime, and the custom encoder this selected no longer exists, so the option is accepted and ignored to keep existing command lines working.\nDeprecated, it is scheduled for removal.\n",
+                    (bool? b) => this[PublisherConfig.UseNativePubSubKey] = b?.ToString() ?? "True" },
                 { $"ms|maxmessagesize=|iothubmessagesize=|{PublisherConfig.IoTHubMaxMessageSizeKey}=",
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
-                    (uint i) => this[PublisherConfig.IoTHubMaxMessageSizeKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[PublisherConfig.IoTHubMaxMessageSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"qos|{PublisherConfig.DefaultQualityOfServiceKey}=",
                     $"The default quality of service to use for data set messages.\nThis does not apply to metadata messages which are always sent with `AtLeastOnce` semantics.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<QoS>())}`\nDefault: `{nameof(QoS.AtLeastOnce)}`.\n",
                     (QoS q) => this[PublisherConfig.DefaultQualityOfServiceKey] = q.ToString() },
@@ -175,10 +188,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (MessageTimestamp m) => this[PublisherConfig.MessageTimestampKey] = m.ToString() },
                 { $"npd|maxnodesperdataset=|{PublisherConfig.MaxNodesPerDataSetKey}=",
                     "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n",
-                    (uint i) => this[PublisherConfig.MaxNodesPerDataSetKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[PublisherConfig.MaxNodesPerDataSetKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"kfc|keyframecount=|{PublisherConfig.DefaultKeyFrameCountKey}=",
                     "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
-                    (uint i) => this[PublisherConfig.DefaultKeyFrameCountKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[PublisherConfig.DefaultKeyFrameCountKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"ka|sendkeepalives:|{PublisherConfig.EnableDataSetKeepAlivesKey}:",
                     "Enables sending keep alive messages triggered by writer subscription's keep alive notifications. This setting can be used to enable the messaging profile's support for keep alive messages.\nIf the chosen messaging profile does not support keep alive messages this setting is ignored.\nDefault: `false` (to save bandwidth).\n",
                     (bool? b) => this[PublisherConfig.EnableDataSetKeepAlivesKey] = b?.ToString() ?? "True" },
@@ -203,16 +216,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     { $"asj|preferavro:|{PublisherConfig.PreferAvroOverJsonSchemaKey}:",
                         "Publish Avro schema even for Json encoded messages. Automatically enables publishing schemas as if `--ps` was set.\nDefault: `false`.\n",
                         (bool? b) => this[PublisherConfig.PreferAvroOverJsonSchemaKey] = b?.ToString() ?? "True" },
-                    { $"daf|disableavrofiles:|{Configuration.AvroWriter.DisableKey}:",
-                        "Disable writing avro files and instead dump messages and schema as zip files using the filesystem transport.\nDefault: `false`.\n",
-                        (bool? b) => this[Configuration.AvroWriter.DisableKey] = b?.ToString() ?? "True" },
                 { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
-                    $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
+                    $"The maximum number of messages to buffer on the send path before the publisher applies backpressure to the subscription. A larger queue rides out a longer broker outage; a smaller one pushes back sooner.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
                     (uint i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
                     { "maxoutgressmessages|MaxOutgressMessages=", "Deprecated - do not use",
                         (string i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i, /* hidden = */ true },
                 { $"wgp|writergrouppartitions=|{PublisherConfig.DefaultWriterGroupPartitionCountKey}=",
-                    "The number of partitions to split the writer group into. Each partition represents a data flow to the transport sink. The partition is selected by topic hash.\nDefault: `0` (partitioning is disabled)\n",
+                    "Removed in 3.0. The native PubSub runtime publishes a writer group through a single transport connection, so there is nothing to partition. Accepted and ignored so existing command lines keep working.\nDeprecated, it is scheduled for removal.\n",
                     (ushort i) => this[PublisherConfig.DefaultWriterGroupPartitionCountKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"t|dmt=|defaultmessagetransport=|{PublisherConfig.DefaultTransportKey}=",
                     $"The desired transport to use to publish network messages with.\nRequires the transport to be properly configured (see transport settings).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<WriterGroupTransport>())}`\nDefault: `{nameof(WriterGroupTransport.IoTHub)}` or the first configured transport of the allowed value list.\n",
@@ -251,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     p => this[PublisherConfig.HttpServerPortKey] = p },
                 { $"unsecurehttp:|{PublisherConfig.UnsecureHttpServerPortKey}:",
                     $"Allow unsecure access to the REST api of OPC Publisher. A port can be specified if the default port {PublisherConfig.UnsecureHttpServerPortDefault} is not desired.\nDo not enable this in production as it exposes the Api Key on the network.\nDefault: `disabled`, if specified without a port `{PublisherConfig.UnsecureHttpServerPortDefault}` port is used.\n",
-                    (ushort? p) => this[PublisherConfig.UnsecureHttpServerPortKey] = p?.ToString(CultureInfo.CurrentCulture) ?? PublisherConfig.UnsecureHttpServerPortDefault.ToString(CultureInfo.CurrentCulture) },
+                    (ushort? p) => this[PublisherConfig.UnsecureHttpServerPortKey] = p?.ToString(CultureInfo.InvariantCulture) ?? PublisherConfig.UnsecureHttpServerPortDefault.ToString(CultureInfo.InvariantCulture) },
                 { $"rtc|renewtlscert:|{PublisherConfig.RenewTlsCertificateOnStartupKey}:",
                     "If set a new tls certificate is created during startup updating any previously created ones.\nDefault: `false`.\n",
                     (bool? b) => this[PublisherConfig.RenewTlsCertificateOnStartupKey] = b?.ToString() ?? "True" },
@@ -287,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{TelemetryTopic}}`\ncan be used as variables inside the template. \nDefault: `{{TelemetryTopic}}/schema` which means the schema is sent to a sub topic where the telemetry message is sent to.\n",
                     s => this[PublisherConfig.SchemaTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : PublisherConfig.SchemaTopicTemplateDefault },
                 { $"uns|datasetrouting=|{PublisherConfig.DefaultDataSetRoutingKey}=",
-                    $"Configures whether messages should automatically be routed using the browse path of the monitored item inside the address space starting from the RootFolder.\nThe browse path is appended as topic structure to the telemetry topic root which can be configured using `--ttt` (`{PublisherConfig.TelemetryTopicTemplateKey}`). Reserved characters in browse names are escaped with their hex ASCII code.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<DataSetRoutingMode>())}`\nDefault: `{nameof(DataSetRoutingMode.None)}` (Topics must be configured).\n",
+                    $"Removed in 3.0. Messages are no longer routed using the browse path of the monitored item: that topic was built per notification from a path discovered at runtime, which the native PubSub runtime cannot express. The option is accepted and ignored so existing command lines keep working. Configure topics with `--ttt` (`{PublisherConfig.TelemetryTopicTemplateKey}`) or per writer instead.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<DataSetRoutingMode>())}`\nDeprecated, it is scheduled for removal.\n",
                     (DataSetRoutingMode m) => this[PublisherConfig.DefaultDataSetRoutingKey] = m.ToString() },
                 { $"ri|enableroutinginfo:|{PublisherConfig.EnableDataSetRoutingInfoKey}:",
                     $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` from which the particular message is emitted. Disabled if `{PublisherConfig.EnableCloudEventsKey}` is enabled.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
@@ -312,24 +322,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaSubscriptionConfig.EnableImmediatePublishingKey] = b?.ToString() ?? "True" },
                 { $"ska|keepalivecount=|{OpcUaSubscriptionConfig.DefaultKeepAliveCountKey}=",
                     "Specifies the default number of publishing intervals before a keep alive is returned with the next queued publishing response.\nDefault: `auto set based on publishing interval`.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.DefaultKeepAliveCountKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaSubscriptionConfig.DefaultKeepAliveCountKey] = u.ToString(CultureInfo.InvariantCulture) },
                     { "kt|keepalivethreshold=|MaxKeepAliveCount=",
                     "Legacy way of specifying the keep alive counter.\n",
                         (string s) => this[OpcUaSubscriptionConfig.DefaultKeepAliveCountKey] = s, /* hidden = */ true },
                 { $"slt|lifetimecount=|{OpcUaSubscriptionConfig.DefaultLifetimeCountKey}=",
                     "Default subscription lifetime count which is a multiple of the keep alive counter and when reached instructs the server to declare the subscription invalid.\nDefault: `auto set based on publishing interval`.\n",
-                    (uint i) => this[OpcUaSubscriptionConfig.DefaultLifetimeCountKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[OpcUaSubscriptionConfig.DefaultLifetimeCountKey] = i.ToString(CultureInfo.InvariantCulture) },
                     { "MinSubscriptionLifetime=", "Legacy way of specifying the subscription lifetime.",
                         (string s) => this[OpcUaSubscriptionConfig.DefaultLifetimeCountKey] = s, /* hidden = */ true },
                 { $"fd|fetchdisplayname:|{OpcUaSubscriptionConfig.FetchOpcNodeDisplayNameKey}:",
                     "Fetches the displayname for the monitored items subscribed if a display name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `false` (disabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.FetchOpcNodeDisplayNameKey] = b?.ToString() ?? "True" },
                 { $"fp|fetchpathfromroot:|{OpcUaSubscriptionConfig.FetchOpcBrowsePathFromRootKey}:",
-                    "(Experimental) Explicitly disable or enable retrieving relative paths from root for monitored items.\nDefault: `false` (disabled).\n",
+                    "(Experimental) Explicitly disable or enable retrieving relative paths from root for monitored items.\nNote: the only consumer of these paths was the automatic topic routing removed in 3.0, so enabling this now costs browse calls at startup without changing what is published.\nDefault: `false` (disabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.FetchOpcBrowsePathFromRootKey] = b?.ToString() ?? "True" },
                 { $"qs|queuesize=|{OpcUaSubscriptionConfig.DefaultQueueSizeKey}=",
                     "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.DefaultQueueSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaSubscriptionConfig.DefaultQueueSizeKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"aq|autosetqueuesize:|{OpcUaSubscriptionConfig.AutoSetQueueSizesKey}:",
                     "(Experimental) Automatically calculate queue sizes for monitored items using the subscription publishing interval and the item's sampling rate as max(configured queue size, roundup(publishinginterval / samplinginterval)).\nNote that the server might revise the queue size down if it cannot handle the calculated size.\nDefault: `false` (disabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.AutoSetQueueSizesKey] = b?.ToString() ?? "True" },
@@ -341,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (DataChangeTriggerType t) => this[OpcUaSubscriptionConfig.DefaultDataChangeTriggerKey] = t.ToString() },
                 { $"mwt|monitoreditemwatchdog=|{OpcUaSubscriptionConfig.DefaultMonitoredItemWatchdogSecondsKey}=",
                     "The subscription and monitored item watchdog timeout in seconds the subscription uses to check on late reporting monitored items unless overridden in the published nodes configuration explicitly.\nDefault: `not set` (watchdog disabled).\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.DefaultMonitoredItemWatchdogSecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaSubscriptionConfig.DefaultMonitoredItemWatchdogSecondsKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"mwc|monitoreditemwatchdogcondition=|{OpcUaSubscriptionConfig.DefaultMonitoredItemWatchdogConditionKey}=",
                     $"The default condition when to run the action configured as the watchdog behavior. The condition can be overridden in the published nodes configuration.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MonitoredItemWatchdogCondition>())}`\nDefault: `{nameof(MonitoredItemWatchdogCondition.WhenAllAreLate)}` (if enabled).\n",
                     (MonitoredItemWatchdogCondition b) => this[OpcUaSubscriptionConfig.DefaultMonitoredItemWatchdogConditionKey] = b.ToString() },
@@ -367,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaSubscriptionConfig.DefaultSamplingUsingCyclicReadKey] = b?.ToString() ?? "True" },
                 { $"xmi|maxmonitoreditems=|{OpcUaSubscriptionConfig.MaxMonitoredItemPerSubscriptionKey}=",
                     "Max monitored items per subscription until the subscription is split.\nThis is used if the server does not provide limits in its server capabilities.\nDefault: `not set`.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.MaxMonitoredItemPerSubscriptionKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaSubscriptionConfig.MaxMonitoredItemPerSubscriptionKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"da|deferredacks:|{OpcUaSubscriptionConfig.UseDeferredAcknoledgementsKey}:",
                     "(Experimental) Acknoledge subscription notifications only when the data has been successfully published.\nDefault: `false`.\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.UseDeferredAcknoledgementsKey] = b?.ToString() ?? "True" },
@@ -379,22 +389,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaSubscriptionConfig.EnableSequentialPublishingKey] = b?.ToString() ?? "True" },
                 { $"smi|subscriptionmanagementinterval=|{OpcUaSubscriptionConfig.SubscriptionManagementIntervalSecondsKey}=",
                     "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `0` (only on configuration change).\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.SubscriptionManagementIntervalSecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaSubscriptionConfig.SubscriptionManagementIntervalSecondsKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"bnr|badnoderetrydelay=|{OpcUaSubscriptionConfig.BadMonitoredItemRetryDelaySecondsKey}=",
                     $"The delay in seconds after which nodes that were rejected by the server while added or updating a subscription or while publishing, are re-applied to a subscription.\nSet to 0 to disable retrying.\nDefault: `{OpcUaSubscriptionConfig.BadMonitoredItemRetryDelayDefaultSec}` seconds.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.BadMonitoredItemRetryDelaySecondsKey] = u.ToString(CultureInfo.CurrentCulture)  },
+                    (uint u) => this[OpcUaSubscriptionConfig.BadMonitoredItemRetryDelaySecondsKey] = u.ToString(CultureInfo.InvariantCulture)  },
                 { $"inr|invalidnoderetrydelay=|{OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelaySecondsKey}=",
                     $"The delay in seconds after which the publisher attempts to re-apply nodes that were incorrectly configured to a subscription.\nSet to 0 to disable retrying.\nDefault: `{OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelayDefaultSec}` seconds.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelaySecondsKey] = u.ToString(CultureInfo.CurrentCulture)  },
+                    (uint u) => this[OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelaySecondsKey] = u.ToString(CultureInfo.InvariantCulture)  },
                 { $"bmd|badnoderetrymaxdelay=|{OpcUaSubscriptionConfig.BadMonitoredItemRetryDelayMaxSecondsKey}=",
                     $"The max delay in seconds between retrying nodes that were rejected by the server while added or updating a subscription or while publishing.\nWhen set an exponential retry policy is used with the `--bmr` (`{OpcUaSubscriptionConfig.BadMonitoredItemRetryDelaySecondsKey}`) value as the starting delay.\nDefault: `not set`.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.BadMonitoredItemRetryDelayMaxSecondsKey] = u.ToString(CultureInfo.CurrentCulture)  },
+                    (uint u) => this[OpcUaSubscriptionConfig.BadMonitoredItemRetryDelayMaxSecondsKey] = u.ToString(CultureInfo.InvariantCulture)  },
                 { $"imd|invalidnoderetrymaxdelay=|{OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelayMaxSecondsKey}=",
                     $"The max  delay in seconds between retrying nodes that were incorrectly configured in the a subscription.\nWhen set an exponential retry policy is used with the `--inr` (`{OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelaySecondsKey}`) value as the starting delay.\nDefault: `not set`.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelayMaxSecondsKey] = u.ToString(CultureInfo.CurrentCulture)  },
+                    (uint u) => this[OpcUaSubscriptionConfig.InvalidMonitoredItemRetryDelayMaxSecondsKey] = u.ToString(CultureInfo.InvariantCulture)  },
                 { $"ser|subscriptionerrorretrydelay=|{OpcUaSubscriptionConfig.SubscriptionErrorRetryDelaySecondsKey}=",
                     $"The delay in seconds between attempts to create a subscription in a session.\nSet to 0 to disable retrying.\nDefault: `{OpcUaSubscriptionConfig.SubscriptionErrorRetryDelayDefaultSec}` seconds.\n",
-                    (uint u) => this[OpcUaSubscriptionConfig.SubscriptionErrorRetryDelaySecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaSubscriptionConfig.SubscriptionErrorRetryDelaySecondsKey] = u.ToString(CultureInfo.InvariantCulture) },
 
                 { $"urc|usereverseconnect:|{PublisherConfig.DefaultUseReverseConnectKey}:",
                     "(Experimental) Use reverse connect for all endpoints in the published nodes configuration unless otherwise configured.\nDefault: `false`.\n",
@@ -427,83 +437,83 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaClientConfig.RejectUnknownRevocationStatusKey] = b?.ToString() ?? "True" },
                 { $"ct|createsessiontimeout=|{OpcUaClientConfig.CreateSessionTimeoutKey}=",
                     $"Amount of time in seconds to wait until a session is connected.\nDefault: `{OpcUaClientConfig.CreateSessionTimeoutDefaultSec}` seconds.\n",
-                    (uint u) => this[OpcUaClientConfig.CreateSessionTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.CreateSessionTimeoutKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"mr|reconnectperiod=|{OpcUaClientConfig.MinReconnectDelayKey}=",
                     $"The minimum amount of time in milliseconds to wait reconnection of session is attempted again.\nDefault: `{OpcUaClientConfig.MinReconnectDelayDefault}` milliseconds.\n",
-                    (uint i) => this[OpcUaClientConfig.MinReconnectDelayKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[OpcUaClientConfig.MinReconnectDelayKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"xr|maxreconnectperiod=|{OpcUaClientConfig.MaxReconnectDelayKey}=",
                     $"The maximum amount of time in millseconds to wait between reconnection attempts of the session.\nDefault: `{OpcUaClientConfig.MaxReconnectDelayDefault}` milliseconds.\n",
-                    (uint i) => this[OpcUaClientConfig.MaxReconnectDelayKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[OpcUaClientConfig.MaxReconnectDelayKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"sto|sessiontimeout=|{OpcUaClientConfig.DefaultSessionTimeoutKey}=",
                     $"Maximum amount of time in seconds that a session should remain open by the OPC server without any activity (session timeout). Requested from the OPC server at session creation.\nDefault: `{OpcUaClientConfig.DefaultSessionTimeoutDefaultSec}` seconds.\n",
-                    (uint u) => this[OpcUaClientConfig.DefaultSessionTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.DefaultSessionTimeoutKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"ki|keepaliveinterval=|{OpcUaClientConfig.KeepAliveIntervalKey}=",
                     $"The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nDefault: `{OpcUaClientConfig.KeepAliveIntervalDefaultSec}` seconds.\n",
-                    (uint i) => this[OpcUaClientConfig.KeepAliveIntervalKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint i) => this[OpcUaClientConfig.KeepAliveIntervalKey] = i.ToString(CultureInfo.InvariantCulture) },
                 { $"sct|servicecalltimeout=|{OpcUaClientConfig.DefaultServiceCallTimeoutKey}=",
                     $"Maximum amount of time in seconds that a service call should take before it is being cancelled.\nThis value can be overridden in the request header.\nDefault: `{OpcUaClientConfig.DefaultServiceCallTimeoutDefaultSec}` seconds.\n",
-                    (uint u) => this[OpcUaClientConfig.DefaultServiceCallTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.DefaultServiceCallTimeoutKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"cto|connecttimeout=|{OpcUaClientConfig.DefaultConnectTimeoutKey}=",
                     "Maximum amount of time in seconds that a service call should wait for a connected session to be used.\nThis value can be overridden in the request header.\nDefault: `not set` (in this case the default service call timeout value is used).\n",
-                    (uint u) => this[OpcUaClientConfig.DefaultConnectTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.DefaultConnectTimeoutKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"ot|operationtimeout=|{OpcUaClientConfig.OperationTimeoutKey}=",
                     $"The operation service call timeout of individual service requests to the server in milliseconds. As opposed to the `--sct` ({OpcUaClientConfig.DefaultServiceCallTimeoutKey}) timeout, this is the timeout hint provided to the server in every request.\nThis value can be overridden in the request header.\nDefault: `{OpcUaClientConfig.OperationTimeoutDefault}` milliseconds.\n",
-                    (uint u) => this[OpcUaClientConfig.OperationTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.OperationTimeoutKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"cl|clientlinger=|{OpcUaClientConfig.LingerTimeoutSecondsKey}=",
                     "Amount of time in seconds to delay closing a client and underlying session after the a last service call.\nUse this setting to speed up multiple subsequent calls.\nDefault: `0` sec (no linger).\n",
-                    (uint u) => this[OpcUaClientConfig.LingerTimeoutSecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.LingerTimeoutSecondsKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"rcp|reverseconnectport=|{OpcUaClientConfig.ReverseConnectPortKey}=",
                     $"The port to use when accepting inbound reverse connect requests from servers.\nDefault: `{OpcUaClientConfig.ReverseConnectPortDefault}`.\n",
-                    (ushort u) => this[OpcUaClientConfig.ReverseConnectPortKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (ushort u) => this[OpcUaClientConfig.ReverseConnectPortKey] = u.ToString(CultureInfo.InvariantCulture) },
 
                 { $"mnr|maxnodesperread=|{OpcUaClientConfig.MaxNodesPerReadOverrideKey}=",
                     "Limit max number of nodes to read in a single read request when batching reads or the server limit if less.\nDefault: `0` (using server limit).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxNodesPerReadOverrideKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxNodesPerReadOverrideKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"mnb|maxnodesperbrowse=|{OpcUaClientConfig.MaxNodesPerBrowseOverrideKey}=",
                     "Limit max number of nodes per browse request when batching browse operations or the server limit if less.\nDefault: `0` (using server limit).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxNodesPerBrowseOverrideKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxNodesPerBrowseOverrideKey] = u.ToString(CultureInfo.InvariantCulture) },
 
                 { $"ncc|nodecachecapacity=|{OpcUaClientConfig.NodeCacheCapacityKey}=",
                     "The max size of the node caches used in the complex type system.\nThere are caches (values, nodes, references).\nDefault: `4096`.\n",
-                    (uint u) => this[OpcUaClientConfig.NodeCacheCapacityKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.NodeCacheCapacityKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"nct|nodecachetimeout=|{OpcUaClientConfig.NodeCacheTimeoutKey}=",
                     "The timeout of a node cache entries if not used in milliseconds.\nDefault: `3600`.\n",
-                    (uint u) => this[OpcUaClientConfig.NodeCacheTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.NodeCacheTimeoutKey] = u.ToString(CultureInfo.InvariantCulture) },
 
                 { $"mpr|minpublishrequests=|{OpcUaClientConfig.MinPublishRequestsKey}=",
                     $"Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MinPublishRequestsDefault}`.\n",
-                    (uint u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"ppr|percentpublishrequests=|{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey}=",
                     $"Percentage ratio of publish requests per subscriptions in the session in percent up to the number configured using `--xpr` ({OpcUaClientConfig.MaxPublishRequestsKey}).\nDefault: `{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentDefault}`% (1 request per subscription).\n",
-                    (ushort u) => this[OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (ushort u) => this[OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"xpr|maxpublishrequests=|{OpcUaClientConfig.MaxPublishRequestsKey}=",
                     $"Maximum number of publish requests to every queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MaxPublishRequestsDefault}`.\n",
-                    (uint u) => this[OpcUaClientConfig.MaxPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxPublishRequestsKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"dcp|disablecomplextypepreloading:|{OpcUaClientConfig.DisableComplexTypePreloadingKey}:",
                     "Complex types (structures, enumerations) a server exposes are preloaded from the server after the session is connected. In some cases this can cause problems either on the client or server itself. Use this setting to disable pre-loading support.\nNote that since the complex type system is used for meta data messages it will still be loaded at the time the subscription is created, therefore also disable meta data support if you want to ensure the complex types are never loaded for an endpoint.\nDefault: `false`.\n",
                     (bool? b) => this[OpcUaClientConfig.DisableComplexTypePreloadingKey] = b?.ToString() ?? "True" },
 
                 { $"otl|opctokenlifetime=|{OpcUaClientConfig.SecurityTokenLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n",
-                    (uint u) => this[OpcUaClientConfig.SecurityTokenLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.SecurityTokenLifetimeKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"ocl|opcchannellifetime=|{OpcUaClientConfig.ChannelLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Channel lifetime in milliseconds.\nDefault: `300000` (5 min).\n",
-                    (uint u) => this[OpcUaClientConfig.ChannelLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.ChannelLifetimeKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"omb|opcmaxbufferlen=|{OpcUaClientConfig.MaxBufferSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max buffer size.\nDefault: `65535` (64KB -1).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxBufferSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxBufferSizeKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"oml|opcmaxmessagelen=|{OpcUaClientConfig.MaxMessageSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max message size.\nDefault: `4194304` (4 MB).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxMessageSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxMessageSizeKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"oal|opcmaxarraylen=|{OpcUaClientConfig.MaxArrayLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max array length.\nDefault: `65535` (64KB - 1).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxArrayLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxArrayLengthKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"ol|opcmaxstringlen=|{OpcUaClientConfig.MaxStringLengthKey}=",
                     "The max length of a string opc can transmit/receive over the OPC UA secure channel.\nDefault: `130816` (128KB - 256).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxStringLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxStringLengthKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"obl|opcmaxbytestringlen=|{OpcUaClientConfig.MaxByteStringLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max byte string length.\nDefault: `1048576` (1MB).\n",
-                    (uint u) => this[OpcUaClientConfig.MaxByteStringLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[OpcUaClientConfig.MaxByteStringLengthKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"au|appuri=|{OpcUaClientConfig.ApplicationUriKey}=",
                     "Application URI as per OPC UA definition inside the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n",
                     s => this[OpcUaClientConfig.ApplicationUriKey] = s },
@@ -627,7 +637,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (uint i) => this[Configuration.Otel.OtlpExportIntervalMillisecondsKey] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"mms|maxmetricstreams=|{Configuration.Otel.OtlpMaxMetricStreamsKey}=",
                     $"Specifiy the max number of streams to collect in the default view.\nDefault: `{Configuration.Otel.OtlpMaxMetricDefault}`.\n",
-                    (uint u) => this[Configuration.Otel.OtlpMaxMetricStreamsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[Configuration.Otel.OtlpMaxMetricStreamsKey] = u.ToString(CultureInfo.InvariantCulture) },
                 { $"em|enableprometheusendpoint:|{Configuration.Otel.EnableMetricsKey}:",
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
                     (bool? b) => this[Configuration.Otel.EnableMetricsKey] = b?.ToString() ?? "True" },
@@ -716,18 +726,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     _logger.ExitProcess(0);
                     return;
                 case HelpType.EnvVars:
-                    var envVars = options
+                    CommandLineOptionParser.WriteEnvironmentVariableHelp(Console.Out, options
                         .Where(o =>
                             !o.Hidden &&
-                            o.OptionValueType != OptionValueType.None &&
-                            !o.GetNames().Any(n => n.Contains("help", StringComparison.OrdinalIgnoreCase)))
-                        .Select(o => new
-                        {
-                            key = o.GetNames().Last(),
-                            description = o.Description
-                        })
-                        .ToList();
-                    Console.WriteLine(JsonConvert.SerializeObject(envVars, Formatting.Indented));
+                            o.OptionValueType != CommandLineOptionValueType.None &&
+                            !o.GetNames().Any(n => n.Contains("help", StringComparison.OrdinalIgnoreCase))));
                     _logger.ExitProcess(0);
                     return;
                 case HelpType.MessageProfiles:
@@ -780,7 +783,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     this[storeTypeKey] = s;
                     return;
                 }
-                throw new OptionException("Bad store type", optionName);
+                throw new CommandLineOptionException("Bad store type", optionName);
             }
         }
 

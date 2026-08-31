@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,27 +7,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Furly.Azure;
-    using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Mock;
-    using Furly.Azure.IoT.Mock.Services;
-    using Furly.Azure.IoT.Models;
-    using Furly.Extensions.Hosting;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Mqtt.Clients;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Utils;
-    using Furly.Tunnel.Protocol;
+    using Azure.IIoT.OpcUa.Core.AzureSdk;
+    using Azure.IIoT.OpcUa.Core.IoTEdge;
+    using Azure.IIoT.OpcUa.Core.Hosting;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
+    using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
+    using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
+    using Azure.IIoT.OpcUa.Core.Rpc;
+    using Azure.IIoT.OpcUa.Core.Rpc.Protocol;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -90,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Hub container
         /// </summary>
-        public IContainer ClientContainer { get; }
+        public TestContainer ClientContainer { get; }
 
         /// <summary>
         /// Create fixture
@@ -111,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
 
             // Create module identitity
-            deviceId ??= Utils.GetHostName();
+            deviceId ??= CoreUtils.GetHostName();
             moduleId ??= Guid.NewGuid().ToString();
             arguments ??= [];
 
@@ -210,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var register = ClientContainer.Resolve<IEventRegistration<IIoTHubTelemetryHandler>>();
                 _telemetry = new IoTHubTelemetryHandler();
                 _handler1 = register.Register(_telemetry);
-                Target = Furly.Azure.HubResource.Format(null, device.Id, device.ModuleId);
+                Target = HubResource.Format(null, device.Id, device.ModuleId);
             }
             else
             {
@@ -238,22 +235,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .UseContentRoot(".")
                 .UseStartup<ModuleStartup>()
                 .UseConfiguration(_config)
-                .ConfigureServices(services => services
-                    .AddMvc()
-                        .AddApplicationPart(typeof(Startup).Assembly)
-                        .AddControllersAsServices())
+                .ConfigureTestServices(ConfigureTestServices)
                 ;
             base.ConfigureWebHost(builder);
-        }
-
-        /// <inheritdoc/>
-        protected override IHost CreateHost(IHostBuilder builder)
-        {
-            builder
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-                .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
-                ;
-            return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>
@@ -268,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         protected override void ConfigureClient(HttpClient client)
         {
-            var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
+            var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey]?.GetValue<string>();
             base.ConfigureClient(client);
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("ApiKey", apiKey);
@@ -330,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     Try.Op(() => Directory.Delete(CurrentDirectory, true));
                 }
-                ClientContainer.Dispose();
+                await ClientContainer.DisposeAsync();
             }
         }
 
@@ -342,27 +326,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             public string Gateway { get; } = "Gateway";
         }
 
-        /// <inheritdoc/>
-        public void ConfigureContainer(ContainerBuilder builder)
+        /// <summary>
+        /// Configure the module host test services. Mirrors the previous Autofac
+        /// ConfigureContainer test override and runs after the module Startup.
+        /// </summary>
+        /// <param name="services"></param>
+        public void ConfigureTestServices(IServiceCollection services)
         {
             // Register publisher services
-            builder.AddPublisherServices();
-            builder.RegisterType<TestClientConfig>()
-                .AsImplementedInterfaces();
+            services.AddPublisherServices();
+            services.AddTransient<TestClientConfig>();
+            services.AddTransient<IConfigureOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
+            services.AddTransient<IConfigureNamedOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
 
-            builder.RegisterType<IoTEdgeMockIdentity>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            services.AddScoped<IoTEdgeMockIdentity>();
+            services.AddScoped<IIoTEdgeDeviceIdentity>(
+                static provider => provider.GetRequiredService<IoTEdgeMockIdentity>());
             if (_connection.EventClient is IProcessIdentity identity)
             {
-                builder.RegisterInstance(identity);
+                services.AddSingleton(identity);
             }
-            builder.RegisterInstance(_connection.EventClient);
-            builder.RegisterInstance(_connection.RpcServer);
-            builder.RegisterInstance(_connection.Twin);
+            services.AddSingleton(_connection.EventClient);
+            services.AddSingleton(_connection.RpcServer);
+            services.AddSingleton(_connection.Twin);
 
             if (_logFactory != null)
             {
-                builder.RegisterInstance(_logFactory);
+                services.AddSingleton(_logFactory);
             }
 
             // Register transport services
@@ -371,13 +363,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 // Dont just register if the broker is not running or
                 // otherwise the connect hangs during startup.
                 // TODO: Look into this.
-                builder.AddMqttClient(_config);
+                services.AddMqttClient(_config);
             }
             // Override client config
-            builder.RegisterInstance(_config).AsImplementedInterfaces();
+            services.AddSingleton<IConfiguration>(_config);
+            services.AddSingleton<IConfigurationRoot>((IConfigurationRoot)_config);
             // Override process control
-            builder.RegisterType<ExitOverride>()
-                .AsImplementedInterfaces().SingleInstance();
+            services.AddSingleton<ExitOverride>();
+            services.AddSingleton<IProcessControl>(
+                static provider => provider.GetRequiredService<ExitOverride>());
         }
 
         /// <summary>
@@ -386,47 +380,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="output"></param>
         /// <param name="serializerType"></param>
         /// <returns></returns>
-        public IContainer CreateClientScope(ITestOutputHelper output,
+        public TestContainer CreateClientScope(ITestOutputHelper output,
             TestSerializerType serializerType)
         {
-            var builder = new ContainerBuilder();
+            _ = serializerType;
+            var services = new ServiceCollection();
 
-            builder.ConfigureServices(services => services.AddLogging());
-            builder.AddOptions();
+            services.AddLogging();
+            services.AddOptions();
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            builder.RegisterInstance(LogFactory.Create(output, Logging.Config))
-                .AsImplementedInterfaces();
+            services.AddSingleton<ILoggerFactory>(LogFactory.Create(output, Logging.Config));
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
             // Add API
-            builder.Configure<SdkOptions>(options =>
+            services.Configure<SdkOptions>(options =>
                 options.Target = Server.BaseAddress.ToString());
-            builder.RegisterType<NodeServicesRestClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryServicesRestClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<FileSystemServicesRestClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConfigurationServicesRestClient>()
-                .AsImplementedInterfaces();
+            services.AddTransient<NodeServicesRestClient>();
+            services.AddTransient<INodeServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<NodeServicesRestClient>());
+            services.AddTransient<HistoryServicesRestClient>();
+            services.AddTransient<IHistoryServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<HistoryServicesRestClient>());
+            services.AddTransient<FileSystemServicesRestClient>();
+            services.AddTransient<IFileSystemServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<FileSystemServicesRestClient>());
+            services.AddTransient<ConfigurationServicesRestClient>();
+            services.AddTransient<IConfigurationServices>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
+            services.AddTransient<IAssetConfiguration<Stream>>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
+            services.AddTransient<IAssetConfiguration<byte[]>>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
+            services.AddTransient<IAssetConfiguration<System.Text.Json.Nodes.JsonNode>>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
 
-            switch (serializerType)
-            {
-                case TestSerializerType.NewtonsoftJson:
-                    builder.AddNewtonsoftJsonSerializer();
-                    break;
-                case TestSerializerType.Json:
-                    builder.AddDefaultJsonSerializer();
-                    break;
-                case TestSerializerType.MsgPack:
-                    builder.AddMessagePackSerializer();
-                    break;
-            }
-
-            // Register http client factory
-            builder.RegisterInstance(this)
-                .As<IHttpClientFactory>().ExternallyOwned(); // Do not dispose
-            return builder.Build();
+            // Register http client factory (owned by the fixture, do not dispose)
+            services.AddSingleton<IHttpClientFactory>(this);
+            return new TestContainer(services.BuildServiceProvider());
         }
 
         /// <summary>
@@ -437,43 +427,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="devices"></param>
         /// <param name="mqttVersion"></param>
         /// <returns></returns>
-        private IContainer CreateIoTHubSdkClientContainer(IMessageSink messageSink = null,
+        private TestContainer CreateIoTHubSdkClientContainer(IMessageSink messageSink = null,
             ITestOutputHelper testOutputHelper = null, IEnumerable<DeviceTwinModel> devices = null,
             MqttVersion? mqttVersion = null)
         {
-            var builder = new ContainerBuilder();
+            var services = new ServiceCollection();
 
-            builder.AddNewtonsoftJsonSerializer();
-            builder.Configure<SdkOptions>(options => options.Target = Target);
-            builder.ConfigureServices(services =>
+            services.Configure<SdkOptions>(options => options.Target = Target);
+            services.AddHttpClient();
+            services.AddLogging(logging =>
             {
-                services.AddHttpClient();
-                services.AddLogging(logging =>
+                if (messageSink != null)
                 {
-                    if (messageSink != null)
-                    {
-                        // logging.AddXunit(messageSink); // TODO
-                    }
-                    if (testOutputHelper != null)
-                    {
-                        logging.AddXunit(testOutputHelper);
-                    }
-                    else
-                    {
-                        logging.AddConsole();
-                    }
-                });
-            });
-
-            builder.Configure<IoTHubServiceOptions>(option =>
-            {
-                option.ConnectionString = ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
+                    // logging.AddXunit(messageSink); // TODO
+                }
+                if (testOutputHelper != null)
+                {
+                    logging.AddXunit(testOutputHelper);
+                }
+                else
+                {
+                    logging.AddConsole();
+                }
             });
 
             // Configure mqtt
-            builder.ConfigureMqtt(options =>
+            services.Configure<MqttOptions>(options =>
             {
                 options.AllowUntrustedCertificates = true;
                 options.UseTls = false;
@@ -493,42 +472,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             if (devices != null)
             {
-                builder.Register(ctx => IoTHubMock.Create(devices, ctx.Resolve<IJsonSerializer>()))
-                   .AsImplementedInterfaces().SingleInstance();
+                services.AddSingleton(_ => IoTHubMock.Create(devices));
             }
             else
             {
-                builder.RegisterType<IoTHubMock>()
-                    .AsImplementedInterfaces().SingleInstance();
+                services.AddSingleton<IoTHubMock>();
             }
+            services.AddSingleton<IIoTHubTwinServices>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IIoTHubEventProcessor>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IEventRegistration<IIoTHubTelemetryHandler>>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IIoTHub>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<Azure.IIoT.OpcUa.Core.Rpc.IRpcClient>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
 
             if (mqttVersion != null)
             {
                 // Override the iothub rpcclient with an mqtt server implementation
-                builder.AddMqttServer();
+                services.AddMqttServer();
             }
 
-            builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherApiClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<TwinApiClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryApiClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryApiClient>()
-                .AsImplementedInterfaces();
+            services.AddTransient<ChunkMethodClient>();
+            services.AddTransient<IMethodClient>(
+                static provider => provider.GetRequiredService<ChunkMethodClient>());
+            services.AddTransient<PublisherApiClient>();
+            services.AddTransient<IPublisherApi>(
+                static provider => provider.GetRequiredService<PublisherApiClient>());
+            services.AddTransient<TwinApiClient>();
+            services.AddTransient<ITwinApi>(
+                static provider => provider.GetRequiredService<TwinApiClient>());
+            services.AddTransient<HistoryApiClient>();
+            services.AddTransient<IHistoryApi>(
+                static provider => provider.GetRequiredService<HistoryApiClient>());
+            services.AddTransient<DiscoveryApiClient>();
+            services.AddTransient<IDiscoveryApi>(
+                static provider => provider.GetRequiredService<DiscoveryApiClient>());
 
-            builder.RegisterType<PublisherApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<TwinApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryApiAdapter>()
-                .AsImplementedInterfaces();
+            services.AddTransient<PublisherApiAdapter>();
+            services.AddTransient<ICertificateServices<EndpointModel>>(
+                static provider => provider.GetRequiredService<PublisherApiAdapter>());
+            services.AddTransient<TwinApiAdapter>();
+            services.AddTransient<INodeServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<TwinApiAdapter>());
+            services.AddTransient<HistoryApiAdapter>();
+            services.AddTransient<IHistoryServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<HistoryApiAdapter>());
+            services.AddTransient<DiscoveryApiAdapter>();
+            services.AddTransient<INetworkDiscovery>(
+                static provider => provider.GetRequiredService<DiscoveryApiAdapter>());
+            services.AddTransient<IServerDiscovery>(
+                static provider => provider.GetRequiredService<DiscoveryApiAdapter>());
 
-            return builder.Build();
+            return new TestContainer(services.BuildServiceProvider());
         }
 
         /// <summary>
@@ -609,8 +607,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
         }
 
-        public override void ConfigureContainer(ContainerBuilder builder)
+        protected override void ConfigurePublisherServices(IServiceCollection services)
         {
+            // Intentionally left empty: the test fixture registers its own
+            // transports and publisher services via ConfigureTestServices so the
+            // production transport wiring must be suppressed here.
         }
     }
 }

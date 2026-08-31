@@ -45,7 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             {
                 var diagnostics = _response.ResponseHeader.ServiceDiagnostics;
                 var stringTable = _response.ResponseHeader.StringTable;
-                return StatusCode.CreateResultModel(diagnostics, stringTable);
+                return StatusCode.CreateResultModel(diagnostics,
+                    new List<string>(stringTable.ToArray() ?? []));
             }
         }
 
@@ -70,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="requested"></param>
         internal ServiceResponse(IServiceResponse response,
             IEnumerable<TResult>? results, Func<TResult, StatusCode> statusCode,
-            DiagnosticInfoCollection? diagnostics = null,
+            List<DiagnosticInfo>? diagnostics = null,
             IEnumerable<TRequest>? requested = null)
         {
             _response = response;
@@ -253,7 +254,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 get
                 {
                     var stringTable = _outer._response.ResponseHeader.StringTable;
-                    return StatusCode.CreateResultModel(DiagnosticInfo, stringTable);
+                    return StatusCode.CreateResultModel(DiagnosticInfo,
+                        new List<string>(stringTable.ToArray() ?? []));
                 }
             }
 

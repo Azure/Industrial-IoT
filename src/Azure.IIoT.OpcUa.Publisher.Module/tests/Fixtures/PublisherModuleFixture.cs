@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
-    using Autofac;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using System;
     using Xunit.Abstractions;
 
     public sealed class PublisherModuleMqttv5Fixture : IDisposable
     {
-        public IContainer SdkContainer => _publisher.ClientContainer;
+        public TestContainer SdkContainer => _publisher.ClientContainer;
 
         /// <summary>
         /// Create fixture
@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageSink"></param>
         public PublisherModuleMqttv5Fixture(IMessageSink messageSink)
         {
-            _publisher = new PublisherModule(messageSink, version: Furly.Extensions.Mqtt.MqttVersion.v5);
+            _publisher = new PublisherModule(messageSink, version: MqttVersion.v5);
         }
 
         /// <inheritdoc/>
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
     public sealed class PublisherModuleMqttv311Fixture : IDisposable
     {
-        public IContainer SdkContainer => _publisher.ClientContainer;
+        public TestContainer SdkContainer => _publisher.ClientContainer;
 
         /// <summary>
         /// Create fixture
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageSink"></param>
         public PublisherModuleMqttv311Fixture(IMessageSink messageSink)
         {
-            _publisher = new PublisherModule(messageSink, version: Furly.Extensions.Mqtt.MqttVersion.v311);
+            _publisher = new PublisherModule(messageSink, version: MqttVersion.v311);
         }
 
         /// <inheritdoc/>
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
     public sealed class PublisherModuleFixture : IDisposable
     {
-        public IContainer SdkContainer => _publisher.ClientContainer;
+        public TestContainer SdkContainer => _publisher.ClientContainer;
 
         /// <summary>
         /// Create fixture
@@ -72,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="output"></param>
         /// <param name="serializerType"></param>
         /// <returns></returns>
-        public IContainer CreateRestClientContainer(ITestOutputHelper output,
+        public TestContainer CreateRestClientContainer(ITestOutputHelper output,
             TestSerializerType serializerType)
         {
             return _publisher.CreateClientScope(output, serializerType);

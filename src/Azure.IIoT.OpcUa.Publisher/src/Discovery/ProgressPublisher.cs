@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -28,16 +28,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// Create listener
         /// </summary>
         /// <param name="events"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
-        public ProgressPublisher(IEnumerable<IEventClient> events, IJsonSerializer serializer,
+        public ProgressPublisher(IEnumerable<IEventClient> events,
             IOptions<PublisherOptions> options, ILogger<ProgressPublisher> logger,
             TimeProvider? timeProvider = null)
             : base(logger, timeProvider)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options;
 
@@ -113,8 +111,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     try
                     {
                         await events.SendEventAsync(eventsTopic,
-                            _serializer.SerializeToMemory(progress with { DiscovererId = events.Identity }),
-                            _serializer.MimeType, Encoding.UTF8.WebName,
+                            Json.SerializeToMemory(progress with { DiscovererId = events.Identity },
+                                Json.GetTypeInfo<DiscoveryProgressModel>()),
+                            Json.MimeType, Encoding.UTF8.WebName,
                             eventMessage =>
                             {
                                 if (_options.Value.EnableCloudEvents == true)
@@ -143,7 +142,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         }
 
         private readonly ILogger _logger;
-        private readonly IJsonSerializer _serializer;
         private readonly Task _sender;
         private readonly Channel<DiscoveryProgressModel> _channel;
         private readonly IOptions<PublisherOptions> _options;

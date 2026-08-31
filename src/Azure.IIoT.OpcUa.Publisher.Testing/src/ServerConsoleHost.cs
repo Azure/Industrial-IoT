@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Configuration;
@@ -49,11 +49,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
-        public ServerConsoleHost(IServerFactory factory, ILogger<ServerConsoleHost> logger)
+        /// <param name="lockTimeout"></param>
+        public ServerConsoleHost(IServerFactory factory, ILogger<ServerConsoleHost> logger,
+            TimeSpan? lockTimeout = null)
         {
             _instance = Guid.NewGuid().ToString();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _lockTimeout = lockTimeout ?? kDefaultLockTimeout;
         }
 
         /// <inheritdoc/>
@@ -61,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (_server != null)
             {
-                await _lock.WaitAsync().ConfigureAwait(false);
+                await WaitForLockAsync().ConfigureAwait(false);
                 try
                 {
 #pragma warning disable CA1508 // Avoid dead conditional code
@@ -70,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.StoppingServer(this);
                         try
                         {
-                            _server.Stop();
+                            await _server.StopAsync().AsTask().WaitAsync(kServerStopTimeout)
+                                .ConfigureAwait(false);
                         }
                         catch (OperationCanceledException) { }
                         catch (Exception se)
@@ -98,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task AddReverseConnectionAsync(Uri client, int maxSessionCount)
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await WaitForLockAsync().ConfigureAwait(false);
             try
             {
                 if (_server is ReverseConnectServer server)
@@ -109,6 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.AddReverseConnectionError(ex, this);
+                throw;
             }
             finally
             {
@@ -119,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RemoveReverseConnectionAsync(Uri client)
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await WaitForLockAsync().ConfigureAwait(false);
             try
             {
                 if (_server is ReverseConnectServer server)
@@ -130,6 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.RemoveReverseConnectionError(ex, this);
+                throw;
             }
             finally
             {
@@ -140,16 +146,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task StartAsync(IEnumerable<int> ports)
         {
+            var requestedPorts = ports?.ToArray() ??
+                throw new ArgumentNullException(nameof(ports));
+            if (requestedPorts.Length == 0 || requestedPorts.Any(port => port is < 1 or > 65535))
+            {
+                throw new ArgumentOutOfRangeException(nameof(ports),
+                    "At least one valid TCP port is required.");
+            }
             if (_server == null)
             {
-                await _lock.WaitAsync().ConfigureAwait(false);
+                await WaitForLockAsync().ConfigureAwait(false);
                 try
                 {
 #pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server == null)
                     {
-                        await StartServerInternalAsync(ports).ConfigureAwait(false);
-                        _ports = ports.ToArray();
+                        await StartServerInternalAsync(requestedPorts).ConfigureAwait(false);
+                        _ports = requestedPorts;
                         return;
                     }
 #pragma warning restore CA1508 // Avoid dead conditional code
@@ -172,17 +185,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RestartAsync(Func<Task> predicate)
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await WaitForLockAsync().ConfigureAwait(false);
             try
             {
                 if (_server != null)
                 {
-                    _server.Stop();
+                    await _server.StopAsync().AsTask().WaitAsync(kServerStopTimeout)
+                        .ConfigureAwait(false);
                     _server.Dispose();
 
                     if (predicate != null)
                     {
-                        await predicate().ConfigureAwait(false);
+                        await predicate().WaitAsync(kRestartTimeout).ConfigureAwait(false);
                     }
 
                     _logger.Restarting(this);
@@ -200,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void Dispose()
         {
-            StopAsync().WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
+            StopAsync().WaitAsync(kServerStopTimeout).GetAwaiter().GetResult();
             _lock.Dispose();
         }
 
@@ -208,6 +222,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override string ToString()
         {
             return _instance;
+        }
+
+        private async Task WaitForLockAsync()
+        {
+            if (!await _lock.WaitAsync(_lockTimeout).ConfigureAwait(false))
+            {
+                throw new TimeoutException(
+                    $"Timed out waiting for the server lifecycle lock after {_lockTimeout}.");
+            }
         }
 
         /// <summary>
@@ -232,47 +255,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             config = ApplicationInstance.FixupAppConfig(config);
 
             _logger.ValidatingConfig(this);
-            await config.ValidateAsync(config.ApplicationType).ConfigureAwait(false);
+            await config.ValidateAsync(config.ApplicationType).WaitAsync(kConfigurationTimeout)
+                .ConfigureAwait(false);
 
             _logger.InitializingCertValidation(this);
-            var application = new ApplicationInstance(config);
+            // The 2.0 stack cert-store/CertificateManager creation requires an
+            // ITelemetryContext; the obsolete ApplicationInstance(config) ctor passes
+            // null telemetry and NREs in CertificateManagerFactory.Create. Supply the
+            // telemetry from the configured message context (also used below).
+            var telemetry = config.CreateMessageContext().Telemetry;
+            var application = new ApplicationInstance(config, telemetry);
 
             // check the application certificate.
             var hasAppCertificate = await application.CheckApplicationInstanceCertificatesAsync(
-                silent: true).ConfigureAwait(false);
+                silent: true).AsTask().WaitAsync(kCertificateTimeout).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
                 _logger.CertValidationError(this);
                 throw new InvalidConfigurationException("Application instance certificate invalid!");
             }
 
-            config.CertificateValidator.CertificateValidation += (v, e) =>
+            config.CertificateManager.AcceptError = (certificate, error) =>
             {
-                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+                if (error.StatusCode == StatusCodes.BadCertificateUntrusted)
                 {
-                    e.Accept = AutoAccept;
+                    var accept = AutoAccept;
                     _logger.CertificateAction(this,
-                        e.Accept ? "Accepted" : "Rejected", e.Certificate.Subject);
+                        accept ? "Accepted" : "Rejected", certificate.Subject);
+                    return accept;
                 }
+                return false;
             };
 
-            await config.CertificateValidator.UpdateAsync(config).ConfigureAwait(false);
-
             // Set Certificate
-            try
-            {
-                // just take the public key
-                Certificate = X509CertificateLoader.LoadCertificate(
-                    config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
-            }
-            catch
-            {
-                Certificate = config.SecurityConfiguration.ApplicationCertificate.Certificate;
-            }
+            var appCertificate = await CertificateIdentifierResolver.ResolveAsync(
+                config.SecurityConfiguration.ApplicationCertificate,
+                registry: null,
+                needPrivateKey: false,
+                applicationUri: null,
+                telemetry: telemetry).WaitAsync(kCertificateTimeout).ConfigureAwait(false);
+            Certificate = appCertificate == null
+                ? null
+                : X509CertificateLoader.LoadCertificate(appCertificate.RawData);
 
             _logger.StartingServer();
             // start the server.
-            await application.StartAsync(_server).ConfigureAwait(false);
+            await application.StartAsync(_server).WaitAsync(kServerStartTimeout)
+                .ConfigureAwait(false);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses)
             {
@@ -298,6 +327,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly IServerFactory _factory;
         private readonly SemaphoreSlim _lock = new(1, 1);
+        private static readonly TimeSpan kDefaultLockTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kConfigurationTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kCertificateTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kServerStartTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kServerStopTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kRestartTimeout = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _lockTimeout;
         private ServerBase _server;
         private int[] _ports;
     }

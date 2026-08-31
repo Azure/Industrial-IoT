@@ -59,6 +59,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                     ? heartbeatInterval : publishingInterval;
                 _earliestHeartbeat = heartbeatInterval + grace;
             }
+            //
+            // The early-heartbeat check compares the heartbeat's MessageTimestamp
+            // against the preceding value's SourceTimestamp, not its
+            // MessageTimestamp. The SourceTimestamp is set by the OPC UA server at
+            // the instant the value was produced; in an in-process test the server
+            // and publisher share the same clock, so SourceTimestamp ≈ T_recv —
+            // the exact instant the publisher armed the heartbeat timer. Using it
+            // as the reference eliminates the batching-delay bias: the WriterGroup
+            // stamps MessageTimestamps at batch time (up to one publishing interval
+            // after receipt), which made the old MessageTimestamp-based gap appear
+            // shorter than the real elapsed time and produced false positives.
+            // The heartbeat's MessageTimestamp is still a WriterGroup batch time,
+            // so the measured gap is EffectiveDeadline + hb_skew (hb_skew ≥ 0),
+            // which is never less than EffectiveDeadline. A genuine defect
+            // (grace period removed) shrinks EffectiveDeadline from
+            // heartbeatInterval + grace to heartbeatInterval, making the measured
+            // gap roughly heartbeatInterval + hb_skew, which falls below the
+            // threshold for roughly half of all heartbeats and is therefore
+            // reliably detectable over a multi-second run.
         }
 
         /// <summary>
@@ -73,19 +92,81 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 return;
             }
 
+            if (!_nodes.TryGetValue(sample.NodeId, out var state))
+            {
+                _nodes.Add(sample.NodeId, state = new NodeState());
+            }
+
+            //
+            // Key-frame messages republish a snapshot of all current field values
+            // unconditionally. A key-frame that repeats both the counter value and
+            // the SourceTimestamp of the last observed sample for this node is a
+            // snapshot confirmation, not a new event. Skip it so it does not affect
+            // gap, ordering, or heartbeat metrics.
+            //
+            // When MonotonicSource is active, matching the SourceTimestamp is not
+            // required: for a strictly increasing source the same value always
+            // denotes the same logical sample regardless of timestamp. A WatchdogLKV
+            // heartbeat may have already advanced state.LastSampleTimestamp away from
+            // the server's original timestamp, so the timestamp comparison would fail
+            // to suppress the key-frame even though it carries no new information.
+            //
+            if (sample.IsKeyFrame && state.HasSample
+                && sample.Value == state.LastSampleValue
+                && (sample.SourceTimestamp == state.LastSampleTimestamp
+                    || _options.MonotonicSource))
+            {
+                return;
+            }
+
             _totalSamples++;
-            if (sample.IsHeartbeat)
+
+            // Infer whether this sample is a heartbeat even when the wire indicator
+            // (sample.IsHeartbeat) is absent. The wire indicator is authoritative when
+            // present, preserving correct behaviour for 2.9-shaped messages. For
+            // 3.0-shaped messages, which are published through the standards-compliant
+            // OPC UA Part 14 encoder and carry no Heartbeat member, a heartbeat is
+            // detected structurally: a WatchdogLKV heartbeat resends the last known
+            // value unchanged with its original SourceTimestamp.
+            //
+            // This comparison must precede the state update below; after the update,
+            // state.LastSampleValue and state.LastSampleTimestamp reflect the current
+            // sample and the comparison would always be true for consecutive samples.
+            //
+            // Two inference paths are available:
+            //
+            // Conservative (default, MonotonicSource = false):
+            //   Both the value AND the SourceTimestamp must match the previous sample.
+            //   This is correct for any source, but cannot detect
+            //   HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps heartbeats, which
+            //   advance the SourceTimestamp on each resend. Those heartbeats will be
+            //   counted as UnflaggedRepeats unless the wire indicator is present.
+            //
+            // Monotonic (MonotonicSource = true):
+            //   A repeated value alone is sufficient evidence of a heartbeat,
+            //   regardless of what the SourceTimestamp does. This stronger rule is
+            //   sound only for a strictly increasing source: a genuinely new sample
+            //   would always carry a strictly higher value, so a repeated value cannot
+            //   be a real data update. It correctly identifies both WatchdogLKV and
+            //   WatchdogLKVWithUpdatedTimestamps heartbeats.
+            //
+            // Key-frame repeats with the same value and source timestamp are silently
+            // dropped above before reaching this point, so structural inference here
+            // only fires for delta-frame repeats, which are genuine heartbeat resends.
+            //
+            var isHeartbeat = sample.IsHeartbeat
+                || (state.HasSample
+                    && sample.Value == state.LastSampleValue
+                    && (sample.SourceTimestamp == state.LastSampleTimestamp
+                        || _options.MonotonicSource));
+
+            if (isHeartbeat)
             {
                 _heartbeatSamples++;
             }
             else
             {
                 _valueSamples++;
-            }
-
-            if (!_nodes.TryGetValue(sample.NodeId, out var state))
-            {
-                _nodes.Add(sample.NodeId, state = new NodeState());
             }
 
             if (sample.SourceTimestamp == null)
@@ -108,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                     AddExample(
                         $"{sample.NodeId}: message source timestamp distance {delta} " +
                         $"(value {state.LastSampleValue} -> {sample.Value}, " +
-                        $"heartbeat={sample.IsHeartbeat})");
+                        $"heartbeat={isHeartbeat})");
                 }
                 //
                 // A source timestamp that moves backwards is symptom (d) as
@@ -132,18 +213,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 if (sample.Value < state.LastSampleValue)
                 {
                     _outOfOrderIncludingHeartbeats++;
-                    if (!sample.IsHeartbeat)
+                    if (!isHeartbeat)
                     {
                         _outOfOrderValues++;
                     }
                     AddExample(
                         $"{sample.NodeId}: value went backwards {state.LastSampleValue} -> " +
-                        $"{sample.Value} (heartbeat={sample.IsHeartbeat})");
+                        $"{sample.Value} (heartbeat={isHeartbeat})");
                 }
                 else if (sample.Value == state.LastSampleValue)
                 {
                     _repeatedValues++;
-                    if (sample.IsHeartbeat)
+                    if (isHeartbeat)
                     {
                         _repeatedValuesFromHeartbeat++;
                     }
@@ -160,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             state.LastSampleValue = sample.Value;
             state.LastSampleTimestamp = sample.SourceTimestamp;
 
-            if (sample.IsHeartbeat)
+            if (isHeartbeat)
             {
                 AnalyzeHeartbeat(sample, state);
                 return;
@@ -181,7 +262,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                         $"{sample.NodeId}: {gap} value(s) missing between " +
                         $"{state.LastValue} and {sample.Value}");
                 }
-                if (state.LastValueTimestamp != null && sample.SourceTimestamp != null)
+                //
+                // The value interval check requires a reliable SourceTimestamp
+                // baseline. The very first real sample a node delivers in an
+                // analysis window cannot be confirmed as a genuine value versus
+                // a WatchdogLKVWithUpdatedTimestamps heartbeat that was treated
+                // as real because state.HasSample was still false: such a
+                // heartbeat carries a publisher-shifted SourceTimestamp, not the
+                // original server-stamped one. Using a shifted timestamp as the
+                // baseline causes a false violation for the very next real value.
+                //
+                // state.HasTwoValues is set after the second real value has been
+                // processed, so the interval check only runs from the second
+                // transition onward — at which point the baseline (set by the
+                // second real value) is guaranteed to come from a sample whose
+                // state.HasSample was already true and could therefore be inferred
+                // as a heartbeat if applicable.
+                //
+                if (state.HasTwoValues && state.LastValueTimestamp != null
+                    && sample.SourceTimestamp != null)
                 {
                     var delta = sample.SourceTimestamp.Value - state.LastValueTimestamp.Value;
                     if (!IsExpectedDistance(delta, sample.Value - state.LastValue))
@@ -197,6 +296,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
 
             if (!state.HasValue || sample.Value > state.LastValue)
             {
+                if (state.HasValue)
+                {
+                    // After the second real value we have a reliable baseline.
+                    state.HasTwoValues = true;
+                }
                 state.HasValue = true;
                 state.LastValue = sample.Value;
                 state.LastValueTimestamp = sample.SourceTimestamp;
@@ -318,10 +422,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 return;
             }
 
-            if (_earliestHeartbeat != null && state.LastValueMessageTimestamp != null)
+            if (_earliestHeartbeat != null && state.LastValueTimestamp != null)
             {
+                // Use the value's SourceTimestamp as the reference rather than its
+                // MessageTimestamp. The SourceTimestamp reflects when the server
+                // produced the value (≈ T_recv in the in-process soak tests), so
+                // sinceValue ≈ EffectiveDeadline + hb_skew (always ≥ EffectiveDeadline).
+                // The MessageTimestamp-based reference carried a val_queue_delay bias
+                // that could make a legitimate heartbeat appear early and, when
+                // compensated by widening the tolerance, made real defects invisible.
                 var sinceValue = sample.MessageTimestamp.Value -
-                    state.LastValueMessageTimestamp.Value;
+                    state.LastValueTimestamp.Value;
                 if (sinceValue + _heartbeatTolerance < _earliestHeartbeat.Value)
                 {
                     _earlyHeartbeats++;
@@ -406,6 +517,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             var heartbeat = IsHeartbeat(dataSetMessage);
             var timestamp = ReadTimestamp(dataSetMessage);
             //
+            // Key-frame messages republish all current field values regardless
+            // of whether they changed. A key-frame that repeats the last known
+            // value is a snapshot, not a WatchdogLKV heartbeat, so structural
+            // heartbeat inference must be suppressed for those samples.
+            //
+            var isKeyFrame = dataSetMessage.TryGetProperty("MessageType", out var mt) &&
+                mt.ValueKind == JsonValueKind.String &&
+                mt.GetString() == "ua-keyframe";
+            //
             // A data set message carries one sequence number for all of its
             // fields, so it can only be used to deduplicate when the data set
             // holds a single field.
@@ -417,7 +537,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 if (TryReadDataValue(field.Value, out var counter, out var sourceTimestamp))
                 {
                     Add(new TelemetrySample(field.Name, counter, sourceTimestamp, heartbeat,
-                        timestamp, sequenceNumber));
+                        timestamp, sequenceNumber, isKeyFrame));
                 }
             }
         }
@@ -462,7 +582,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             {
                 inner = body;
             }
-            return inner.ValueKind == JsonValueKind.Number && inner.TryGetInt64(out value);
+            if (inner.ValueKind == JsonValueKind.Number)
+            {
+                return inner.TryGetInt64(out value);
+            }
+            //
+            // The 3.0 native PubSub stack encodes UInt64 (and Int64) as JSON
+            // strings because their range exceeds the IEEE-754 double that
+            // JSON numbers normally carry. Accept a string representation of
+            // any integer the counter can produce.
+            //
+            if (inner.ValueKind == JsonValueKind.String)
+            {
+                var s = inner.GetString();
+                if (long.TryParse(s, out value))
+                {
+                    return true;
+                }
+                // Also accept unsigned values that fit a signed long.
+                if (ulong.TryParse(s, out var u) && u <= (ulong)long.MaxValue)
+                {
+                    value = (long)u;
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -531,6 +675,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             public long LastSampleValue { get; set; }
             public DateTime? LastSampleTimestamp { get; set; }
             public bool HasValue { get; set; }
+            /// <summary>
+            /// True once this node has delivered at least two real values so
+            /// that <see cref="LastValueTimestamp"/> is a reliable interval
+            /// baseline (set by the second real value, which was processed
+            /// when <see cref="HasSample"/> was already true and heartbeat
+            /// inference was therefore active).
+            /// </summary>
+            public bool HasTwoValues { get; set; }
             public long LastValue { get; set; }
             public DateTime? LastValueTimestamp { get; set; }
             public DateTime? LastValueMessageTimestamp { get; set; }

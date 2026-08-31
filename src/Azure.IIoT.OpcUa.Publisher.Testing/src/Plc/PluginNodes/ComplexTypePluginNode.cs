@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -38,7 +38,6 @@ namespace Plc.PluginNodes
 
         public void Dispose()
         {
-            _node.Dispose();
             _nodeGenerator.Dispose();
         }
 
@@ -162,7 +161,7 @@ namespace Plc.PluginNodes
         /// <param name="method"></param>
         /// <param name="inputArguments"></param>
         /// <param name="outputArguments"></param>
-        private ServiceResult OnHeaterOnCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnHeaterOnCall(ISystemContext context, MethodState method, ArrayOf<Variant> inputArguments, List<Variant> outputArguments)
         {
             _node.PlcStatus.Value.HeaterState = PlcHeaterStateType.On;
             Logger.LogDebug("OnHeaterOnCall method called");
@@ -176,7 +175,7 @@ namespace Plc.PluginNodes
         /// <param name="method"></param>
         /// <param name="inputArguments"></param>
         /// <param name="outputArguments"></param>
-        private ServiceResult OnHeaterOffCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnHeaterOffCall(ISystemContext context, MethodState method, ArrayOf<Variant> inputArguments, List<Variant> outputArguments)
         {
             _node.PlcStatus.Value.HeaterState = PlcHeaterStateType.Off;
             Logger.LogDebug("OnHeaterOffCall method called");

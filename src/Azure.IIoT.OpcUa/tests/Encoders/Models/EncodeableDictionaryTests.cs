@@ -6,156 +6,118 @@
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
     using Opc.Ua;
-    using System.IO;
+    using Opc.Ua.Extensions;
+    using System;
     using Xunit;
 
-    public class EncodeableDictionaryTests
+    public sealed class EncodeableDictionaryTests
     {
         [Fact]
-        public void WriteReadKeyDataValuePairs()
+        public void EncodingIds_ReturnDeclaredIds()
         {
-            const string expectedKey1 = "Key1";
-            const string expectedKey2 = "Key2";
-            const string expectedKey3 = "Key3";
-            var expectedValue1 = new DataValue(new Variant(123));
-            var expectedValue2 = new DataValue(new Variant(456));
-            var expectedValue3 = new DataValue(new Variant(789));
+            var dictionary = new EncodeableDictionary();
 
-            var encodeableDictionary = new EncodeableDictionary {
-                new KeyDataValuePair { Key = expectedKey1, Value = expectedValue1 },
-                new KeyDataValuePair { Key = expectedKey2, Value = expectedValue2 },
-                new KeyDataValuePair { Key = expectedKey3, Value = expectedValue3 }
-            };
-
-            byte[] buffer;
-            var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream())
-            {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject))
-                {
-                    encodeableDictionary.Encode(encoder);
-                }
-
-                // Encoder must be closed before getting buffer.
-                buffer = stream.ToArray();
-            }
-
-            using (var stream = new MemoryStream(buffer))
-            {
-                using var decoder = new JsonDecoderEx(stream, context);
-                var actual = new EncodeableDictionary();
-                actual.Decode(decoder);
-                Assert.Equal(3, actual.Count);
-                Assert.Equal(expectedKey1, actual[0].Key);
-                Assert.Equal(expectedValue1, actual[0].Value);
-                Assert.Equal(expectedKey2, actual[1].Key);
-                Assert.Equal(expectedValue2, actual[1].Value);
-                Assert.Equal(expectedKey3, actual[2].Key);
-                Assert.Equal(expectedValue3, actual[2].Value);
-                var eof = decoder.ReadDataValue(null);
-                Assert.Null(eof);
-            }
+            Assert.Equal((ExpandedNodeId)"s=EncodeableDictionary", dictionary.TypeId);
+            Assert.Equal((ExpandedNodeId)"s=EncodeableDictionary_Encoding_DefaultBinary",
+                dictionary.BinaryEncodingId);
+            Assert.Equal((ExpandedNodeId)"s=EncodeableDictionary_Encoding_DefaultXml",
+                dictionary.XmlEncodingId);
+            Assert.Equal((ExpandedNodeId)"s=EncodeableDictionary_Encoding_DefaultJson",
+                dictionary.JsonEncodingId);
         }
 
         [Fact]
-        public void WriteReadNoKeyDataValuePairs()
+        public void Constructors_CreateEmptyCapacityAndCollectionInstances()
         {
-            var encodeableDictionary = new EncodeableDictionary();
+            var pair = new KeyDataValuePair("field", CreateDataValue(1));
 
-            byte[] buffer;
-            var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream())
-            {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject))
-                {
-                    encodeableDictionary.Encode(encoder);
-                }
+            var empty = new EncodeableDictionary();
+            var withCapacity = new EncodeableDictionary(2);
+            var withCollection = new EncodeableDictionary([pair]);
 
-                // Encoder must be closed before getting buffer.
-                buffer = stream.ToArray();
-            }
-
-            using (var stream = new MemoryStream(buffer))
-            {
-                using var decoder = new JsonDecoderEx(stream, context);
-                var actual = new EncodeableDictionary();
-                actual.Decode(decoder);
-                Assert.Empty(actual);
-                var eof = decoder.ReadDataValue(null);
-                Assert.Null(eof);
-            }
+            Assert.Empty(empty);
+            Assert.Empty(withCapacity);
+            Assert.Same(pair, Assert.Single(withCollection));
         }
 
         [Fact]
-        public void WriteReadEmptyKeyDataValuePairs()
+        public void Encode_Json_WritesValidEntriesAndSkipsInvalidEntries()
         {
-            var value = new DataValue(new Variant(123));
-
-            var encodeableDictionary = new EncodeableDictionary {
-                new KeyDataValuePair { Key = string.Empty, Value = value },
-                new KeyDataValuePair { Key = string.Empty, Value = value },
-                new KeyDataValuePair { Key = string.Empty, Value = value }
+            var dictionary = new EncodeableDictionary
+            {
+                new("valid", CreateDataValue(1)),
+                new(string.Empty, CreateDataValue(2)),
+                new("nullValue", null),
+                new("localizedTextWithoutContent", new DataValue(new Variant(new LocalizedText((string?)null, (string?)null))))
             };
 
-            byte[] buffer;
-            var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream())
-            {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject))
-                {
-                    encodeableDictionary.Encode(encoder);
-                }
+            var json = dictionary.AsJson(new ServiceMessageContext());
 
-                // Encoder must be closed before getting buffer.
-                buffer = stream.ToArray();
-            }
-
-            using (var stream = new MemoryStream(buffer))
-            {
-                using var decoder = new JsonDecoderEx(stream, context);
-                var actual = new EncodeableDictionary();
-                actual.Decode(decoder);
-                Assert.Empty(actual);
-                var eof = decoder.ReadDataValue(null);
-                Assert.Null(eof);
-            }
+            Assert.Contains("valid", json, StringComparison.Ordinal);
+            Assert.DoesNotContain("nullValue", json, StringComparison.Ordinal);
+            Assert.DoesNotContain("localizedTextWithoutContent", json, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void WriteReadNoNullKeyDataValuePairs()
+        public void Decode_ThrowsNotSupportedException()
         {
-            const string expectedKey1 = "Key1";
-            const string expectedKey2 = "Key2";
-            const string expectedKey3 = "Key3";
+            var dictionary = new EncodeableDictionary();
 
-            var encodeableDictionary = new EncodeableDictionary {
-                new KeyDataValuePair { Key = expectedKey1, Value = null },
-                new KeyDataValuePair { Key = expectedKey2, Value = null },
-                new KeyDataValuePair { Key = expectedKey3, Value = null }
+            var exception = Assert.Throws<NotSupportedException>(() =>
+            {
+                using var decoder = new JsonDecoder("{}", new ServiceMessageContext());
+                dictionary.Decode(decoder);
+            });
+            Assert.Equal("EncodeableDictionary decoding is deferred to Phase 5.",
+                exception.Message);
+        }
+
+        [Fact]
+        public void IsEqual_SameReference_ReturnsTrue()
+        {
+            var dictionary = new EncodeableDictionary();
+
+            Assert.True(dictionary.IsEqual(dictionary));
+        }
+
+        [Fact]
+        public void IsEqual_NonDictionary_ReturnsFalse()
+        {
+            var dictionary = new EncodeableDictionary();
+
+            Assert.False(dictionary.IsEqual(new KeyDataValuePair()));
+        }
+
+        [Fact]
+        public void IsEqual_DifferentEntries_ReturnsFalse()
+        {
+            var left = new EncodeableDictionary
+            {
+                new("field", CreateDataValue(1))
+            };
+            var right = new EncodeableDictionary
+            {
+                new("field", CreateDataValue(2))
             };
 
-            byte[] buffer;
-            var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream())
-            {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject))
-                {
-                    encodeableDictionary.Encode(encoder);
-                }
+            Assert.False(left.IsEqual(right));
+        }
 
-                // Encoder must be closed before getting buffer.
-                buffer = stream.ToArray();
-            }
+        [Fact]
+        public void Clone_CreatesNewListWithSameEntries()
+        {
+            var pair = new KeyDataValuePair("field", CreateDataValue(1));
+            var dictionary = new EncodeableDictionary([pair]);
 
-            using (var stream = new MemoryStream(buffer))
-            {
-                using var decoder = new JsonDecoderEx(stream, context);
-                var actual = new EncodeableDictionary();
-                actual.Decode(decoder);
-                Assert.Empty(actual);
-                var eof = decoder.ReadDataValue(null);
-                Assert.Null(eof);
-            }
+            var clone = Assert.IsType<EncodeableDictionary>(dictionary.Clone());
+
+            Assert.NotSame(dictionary, clone);
+            Assert.Same(pair, Assert.Single(clone));
+        }
+
+        private static DataValue CreateDataValue(object value)
+        {
+            return new DataValue(new Variant(value));
         }
     }
 }

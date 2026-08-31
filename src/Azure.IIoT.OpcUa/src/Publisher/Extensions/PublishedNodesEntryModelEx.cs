@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 DisableSubscriptionTransfer =
                     model.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null,
                 MessageEncoding = MessageEncoding.Json,
-                MessagingMode = MessagingMode.FullSamples,
+                MessagingMode = MessagingMode.FullNetworkMessages,
                 OpcNodes = []
             };
         }

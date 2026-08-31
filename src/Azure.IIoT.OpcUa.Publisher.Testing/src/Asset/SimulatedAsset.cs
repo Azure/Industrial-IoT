@@ -1,7 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
+
+extern alias Quickstarts;
 
 #nullable enable
 
@@ -11,8 +13,7 @@ namespace Asset
     using System;
     using System.Collections.Concurrent;
     using System.Threading;
-    using System.Xml;
-    using TestData;
+    using TestData = Quickstarts::TestData;
 
     public sealed class SimulatedAsset : IAsset
     {
@@ -115,7 +116,7 @@ namespace Asset
             public ServiceResult Read(ref object? value)
             {
                 var dataType = Tag.Form.GetDataTypeId();
-                if (NodeId.IsNull(dataType))
+                if ((dataType).IsNull)
                 {
                     return ServiceResult.Create(StatusCodes.BadDataTypeIdUnknown, "Bad payload");
                 }
@@ -135,10 +136,10 @@ namespace Asset
                         Opc.Ua.DataTypes.Float => _generator.GetRandomArray<float>(),
                         Opc.Ua.DataTypes.Double => _generator.GetRandomArray<double>(),
                         Opc.Ua.DataTypes.String => _generator.GetRandomArray<string>(),
-                        Opc.Ua.DataTypes.DateTime => _generator.GetRandomArray<DateTime>(),
+                        Opc.Ua.DataTypes.DateTime => GetRandomDateTimeArray(),
                         Opc.Ua.DataTypes.Guid => _generator.GetRandomArray<Guid>(),
-                        Opc.Ua.DataTypes.ByteString => _generator.GetRandomArray<byte[]>(),
-                        Opc.Ua.DataTypes.XmlElement => _generator.GetRandomArray<XmlElement>(),
+                        Opc.Ua.DataTypes.ByteString => GetRandomByteStringArray(),
+                        Opc.Ua.DataTypes.XmlElement => GetRandomXmlElementArray(),
                         Opc.Ua.DataTypes.NodeId => _generator.GetRandomArray<NodeId>(),
                         Opc.Ua.DataTypes.ExpandedNodeId => _generator.GetRandomArray<ExpandedNodeId>(),
                         Opc.Ua.DataTypes.QualifiedName => _generator.GetRandomArray<QualifiedName>(),
@@ -169,16 +170,16 @@ namespace Asset
                     Opc.Ua.DataTypes.Float => _generator.GetRandom<float>(),
                     Opc.Ua.DataTypes.Double => _generator.GetRandom<double>(),
                     Opc.Ua.DataTypes.String => _generator.GetRandom<string>(),
-                    Opc.Ua.DataTypes.DateTime => _generator.GetRandom<DateTime>(),
+                    Opc.Ua.DataTypes.DateTime => (DateTimeUtc)_generator.GetRandom<DateTime>(),
                     Opc.Ua.DataTypes.Guid => _generator.GetRandom<Guid>(),
-                    Opc.Ua.DataTypes.ByteString => _generator.GetRandom<byte[]>(),
-                    Opc.Ua.DataTypes.XmlElement => _generator.GetRandom<XmlElement>(),
+                    Opc.Ua.DataTypes.ByteString => ByteString.From(_generator.GetRandomByteString()),
+                    Opc.Ua.DataTypes.XmlElement => GetRandomXmlElement(),
                     Opc.Ua.DataTypes.NodeId => _generator.GetRandom<NodeId>(),
                     Opc.Ua.DataTypes.ExpandedNodeId => _generator.GetRandom<ExpandedNodeId>(),
                     Opc.Ua.DataTypes.QualifiedName => _generator.GetRandom<QualifiedName>(),
                     Opc.Ua.DataTypes.LocalizedText => _generator.GetRandom<LocalizedText>(),
                     Opc.Ua.DataTypes.StatusCode => _generator.GetRandom<StatusCode>(),
-                    Opc.Ua.DataTypes.BaseDataType => _generator.GetRandomVariant().Value,
+                    Opc.Ua.DataTypes.BaseDataType => _generator.GetRandomVariant(),
                     Opc.Ua.DataTypes.Structure => GetRandomStructure(),
                     Opc.Ua.DataTypes.Enumeration => _generator.GetRandom<int>(),
                     Opc.Ua.DataTypes.Number => _generator.GetRandom(BuiltInType.Number),
@@ -203,7 +204,7 @@ namespace Asset
                 {
                     if (_generator.GetRandomBoolean())
                     {
-                        var scalar = new ScalarValueDataType
+                        var scalar = new TestData.ScalarStructureDataType
                         {
                             BooleanValue = _generator.GetRandom<bool>(),
                             SByteValue = _generator.GetRandom<sbyte>(),
@@ -219,8 +220,8 @@ namespace Asset
                             StringValue = _generator.GetRandom<string>(),
                             DateTimeValue = _generator.GetRandom<DateTime>(),
                             GuidValue = _generator.GetRandom<Uuid>(),
-                            ByteStringValue = _generator.GetRandom<byte[]>(),
-                            XmlElementValue = _generator.GetRandom<XmlElement>(),
+                            ByteStringValue = (ByteString)_generator.GetRandom<byte[]>(),
+                            XmlElementValue = GetRandomXmlElement(),
                             NodeIdValue = _generator.GetRandom<NodeId>(),
                             ExpandedNodeIdValue = _generator.GetRandom<ExpandedNodeId>(),
                             QualifiedNameValue = _generator.GetRandom<QualifiedName>(),
@@ -230,7 +231,7 @@ namespace Asset
                         };
                         return new ExtensionObject(scalar);
                     }
-                    var array = new ArrayValueDataType
+                    var array = new TestData.ArrayValueDataType
                     {
                         BooleanValue = _generator.GetRandomArray<bool>(10),
                         SByteValue = _generator.GetRandomArray<sbyte>(10),
@@ -244,10 +245,10 @@ namespace Asset
                         FloatValue = _generator.GetRandomArray<float>(10),
                         DoubleValue = _generator.GetRandomArray<double>(10),
                         StringValue = _generator.GetRandomArray<string>(10),
-                        DateTimeValue = _generator.GetRandomArray<DateTime>(10),
+                        DateTimeValue = GetRandomDateTimeArray(10),
                         GuidValue = _generator.GetRandomArray<Uuid>(10),
-                        ByteStringValue = _generator.GetRandomArray<byte[]>(10),
-                        XmlElementValue = _generator.GetRandomArray<XmlElement>(10),
+                        ByteStringValue = GetRandomByteStringArray(10),
+                        XmlElementValue = GetRandomXmlElementArray(10),
                         NodeIdValue = _generator.GetRandomArray<NodeId>(10),
                         ExpandedNodeIdValue = _generator.GetRandomArray<ExpandedNodeId>(10),
                         QualifiedNameValue = _generator.GetRandomArray<QualifiedName>(10),
@@ -256,12 +257,52 @@ namespace Asset
                     };
 
                     var values = _generator.GetRandomArray<object>(10);
-                    for (var i = 0; values != null && i < values.Length; i++)
+                    var variants = new Variant[values.Length];
+                    for (var i = 0; i < values.Length; i++)
                     {
-                        array.VariantValue.Add(new Variant(values[i]));
+                        variants[i] = VariantHelper.CastFrom(values[i]);
                     }
+                    array.VariantValue = variants;
 
                     return new ExtensionObject(array.TypeId, array);
+                }
+
+                Opc.Ua.XmlElement GetRandomXmlElement()
+                {
+                    return Opc.Ua.XmlElement.From(_generator.GetRandomXmlElement());
+                }
+
+                ArrayOf<DateTimeUtc> GetRandomDateTimeArray(int length = 100)
+                {
+                    var values = _generator.GetRandomArray<DateTime>(length);
+                    var result = new DateTimeUtc[values.Length];
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        result[i] = values[i];
+                    }
+                    return result;
+                }
+
+                ArrayOf<ByteString> GetRandomByteStringArray(int length = 100)
+                {
+                    var values = _generator.GetRandomArray<byte[]>(length);
+                    var result = new ByteString[values.Length];
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        result[i] = ByteString.From(values[i]);
+                    }
+                    return result;
+                }
+
+                ArrayOf<Opc.Ua.XmlElement> GetRandomXmlElementArray(int length = 100)
+                {
+                    var values = _generator.GetRandomArray<System.Xml.XmlElement>(length);
+                    var result = new Opc.Ua.XmlElement[values.Length];
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        result[i] = Opc.Ua.XmlElement.From(values[i]);
+                    }
+                    return result;
                 }
             }
 

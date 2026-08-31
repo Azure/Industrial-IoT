@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!--
+      A source generator is a build time tool that is loaded into the compiler process, so it
+      must stay AnyCPU regardless of what the consuming project targets. Without this the
+      consumer's RuntimeIdentifier flows into this reference and produces an architecture
+      specific assembly, which the compiler cannot load when the host and target architectures
+      differ - for example publishing linux-arm64 from an x64 host. That surfaces as a CS8034
+      warning followed by hard CS0246 errors for every generated type, so pin it explicitly.
+    -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"
+                      VersionOverride="4.14.0"
+                      PrivateAssets="all" />
+  </ItemGroup>
+</Project>

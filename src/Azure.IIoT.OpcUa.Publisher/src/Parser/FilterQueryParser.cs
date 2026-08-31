@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Parser
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Irony.Parsing;
     using System.Threading;
     using System.Threading.Tasks;
@@ -20,12 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         /// <summary>
         /// Create parser
         /// </summary>
-        /// <param name="serializer"></param>
-        public FilterQueryParser(IJsonSerializer serializer)
-        {
-            _serializer = serializer;
-        }
-
         /// <inheritdoc/>
         public async Task<EventFilterModel> ParseEventFilterAsync(string query,
             IFilterParserContext context, CancellationToken ct)
@@ -40,10 +33,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
 
             // Build event filter from syntax tree
             return await FilterModelBuilder.BuildEventFilterAsync(
-                syntaxTree, context, _serializer, ct).ConfigureAwait(false);
+                syntaxTree, context, ct).ConfigureAwait(false);
         }
 
-        private readonly IJsonSerializer _serializer;
         private readonly FilterQueryGrammar _grammar = new();
     }
 }

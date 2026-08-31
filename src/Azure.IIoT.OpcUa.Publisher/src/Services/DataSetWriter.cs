@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,14 +6,12 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
@@ -23,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -90,11 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? true;
 
             /// <summary>
-            /// Resolved routing
-            /// </summary>
-            public DataSetRoutingMode Routing { get; }
-
-            /// <summary>
             /// Full cloned configuration
             /// </summary>
             public DataSetWriterModel Writer { get; }
@@ -125,7 +119,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public static IEnumerable<DataSetWriter> GetDataSetWriters(WriterGroupDataSource group,
                 DataSetWriterModel dataSetWriter)
             {
-                var options = group._options.Value;
+                return Expand(group._options.Value, group._writerGroup, group.Id, dataSetWriter!)
+                    .Select(writer => new DataSetWriter(group, writer));
+            }
+
+            /// <summary>
+            /// Split a writer into the writers its publish settings call for,
+            /// as models.
+            /// </summary>
+            /// <remarks>
+            /// A dataset yields one writer per distinct destination. It used
+            /// to yield one per published item when a routing mode was set,
+            /// which 3.0 removes.
+            ///
+            /// The expansion is shared rather than done inside the data source
+            /// because anything that needs to know what writers exist has to
+            /// agree with what actually runs - the native PubSub host
+            /// registers a data set source per writer and discards
+            /// notifications from writers it was never told about.
+            /// </remarks>
+            /// <param name="options"></param>
+            /// <param name="writerGroup"></param>
+            /// <param name="writerGroupId"></param>
+            /// <param name="dataSetWriter"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentException"></exception>
+            public static IEnumerable<DataSetWriterModel> Expand(PublisherOptions options,
+                WriterGroupModel writerGroup, string writerGroupId,
+                DataSetWriterModel dataSetWriter)
+            {
                 if (dataSetWriter?.DataSet?.DataSetSource == null)
                 {
                     throw new ArgumentException("DataSet source missing", nameof(dataSetWriter));
@@ -133,17 +155,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 var dataset = dataSetWriter.DataSet;
                 var source = dataset.DataSetSource;
-                var routing = dataset.Routing ?? options.DefaultDataSetRouting
-                    ?? DataSetRoutingMode.None;
 
                 var dataSetClassId = dataset.DataSetMetaData?.DataSetClassId
                     ?? Guid.Empty;
                 var escWriterName = TopicFilter.Escape(
                     dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
                 var escWriterGroup = TopicFilter.Escape(
-                    group._writerGroup.Name ?? Constants.DefaultWriterGroupName);
+                    writerGroup.Name ?? Constants.DefaultWriterGroupName);
                 var escPublisherId = TopicFilter.Escape(
-                    group._writerGroup.PublisherId ?? options.PublisherId
+                    writerGroup.PublisherId ?? options.PublisherId
                         ?? Constants.DefaultPublisherId);
                 var escDataSetTopicPath = escWriterName;
                 var escDataSetName = escWriterName;
@@ -173,64 +193,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     [PublisherConfig.DataSetTopicPathVariableName] = escDataSetTopicPath,
                     [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
                     [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
-                    [PublisherConfig.WriterGroupIdVariableName] = group.Id,
+                    [PublisherConfig.WriterGroupIdVariableName] = writerGroupId,
                     [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
                     [PublisherConfig.WriterGroupVariableName] = escWriterGroup
                     // ...
                 };
 
-                // No auto routing - group variables and events by publish settings
+                //
+                // Grouped by publish settings. A dataset yields one writer per
+                // distinct destination; it never yields one per published item.
+                // That was the automatic routing mode, which 3.0 removes - see
+                // Resolve for why.
+                //
                 var data = source.PublishedVariables?.PublishedData?
-                    .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
-                            d.Publishing, d.Id, routing, variables));
+                    .GroupBy(d => Resolve(options, writerGroup, dataSetWriter,
+                            d.Publishing, d.Id, variables));
                 if (data != null)
                 {
-                    if (routing == DataSetRoutingMode.None)
+                    foreach (var items in data)
                     {
-                        foreach (var items in data)
-                        {
-                            var id = dataSetWriter.Id;
-                            yield return CreateDataSetWriter(id, items.Key, items.ToList());
-                        }
-                    }
-                    else
-                    {
-                        foreach (var (p, item) in data.SelectMany(d => d.Select(i => (d.Key, i))))
-                        {
-                            var id = $"{dataSetWriter.Id}_{item.Id
-                                ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
-                            yield return CreateDataSetWriter(id, p, new[] { item });
-                        }
+                        yield return CreateDataSetWriter(dataSetWriter.Id, items.Key,
+                            items.ToList());
                     }
                 }
                 var evts = source.PublishedEvents?.PublishedData?
-                    .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
-                            d.Publishing, d.Id, routing, variables));
+                    .GroupBy(d => Resolve(options, writerGroup, dataSetWriter,
+                            d.Publishing, d.Id, variables));
                 if (evts != null)
                 {
-                    if (routing == DataSetRoutingMode.None)
+                    foreach (var items in evts)
                     {
-                        foreach (var items in evts)
-                        {
-                            var id = dataSetWriter.Id;
-                            yield return CreateEventWriter(id, items.Key, items.ToList());
-                        }
-                    }
-                    else
-                    {
-                        foreach (var (p, item) in evts.SelectMany(d => d.Select(i => (d.Key, i))))
-                        {
-                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
-                            yield return CreateEventWriter(id, p, new[] { item });
-                        }
+                        yield return CreateEventWriter(dataSetWriter.Id, items.Key,
+                            items.ToList());
                     }
                 }
 
-                DataSetWriter CreateDataSetWriter(string id,
+                DataSetWriterModel CreateDataSetWriter(string id,
                     (PublishingQueueSettingsModel? Metadata, PublishingQueueSettingsModel? Messages) publishSettings,
                     IReadOnlyList<PublishedDataSetVariableModel> data)
                 {
-                    return new DataSetWriter(group, routing, dataSetWriter with
+                    return dataSetWriter with
                     {
                         Id = id,
                         MetaData = publishSettings.Metadata,
@@ -250,14 +252,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 }
                             }
                         }
-                    });
+                    };
                 }
 
-                DataSetWriter CreateEventWriter(string id,
+                DataSetWriterModel CreateEventWriter(string id,
                     (PublishingQueueSettingsModel? Metadata, PublishingQueueSettingsModel? Messages) publishSettings,
                     IReadOnlyList<PublishedDataSetEventModel> data)
                 {
-                    return new DataSetWriter(group, routing, dataSetWriter with
+                    return dataSetWriter with
                     {
                         Id = id,
                         MetaData = publishSettings.Metadata,
@@ -277,14 +279,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 PublishedVariables = null
                             }
                         }
-                    });
+                    };
                 }
 
                 // Resolve the publish queue settings with the data set writer provided settings.
                 static (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) Resolve(
                     PublisherOptions options, WriterGroupModel group, DataSetWriterModel dataSetWriter,
                     PublishingQueueSettingsModel? settings, string? fieldId,
-                    DataSetRoutingMode routing, Dictionary<string, string> variables)
+                    Dictionary<string, string> variables)
                 {
                     var builder = new TopicBuilder(options, group.MessageType,
                         new TopicTemplatesOptions
@@ -301,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     var telemetryTopic = builder.TelemetryTopic;
                     var metadataTopic = builder.DataSetMetaDataTopic;
-                    if (string.IsNullOrWhiteSpace(metadataTopic) || routing != DataSetRoutingMode.None)
+                    if (string.IsNullOrWhiteSpace(metadataTopic))
                     {
                         metadataTopic = telemetryTopic;
                     }
@@ -370,13 +372,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Create id from a DataSetWriterModel template
             /// </summary>
             /// <param name="group"></param>
-            /// <param name="routing"></param>
             /// <param name="dataSetWriter"></param>
-            private DataSetWriter(WriterGroupDataSource group, DataSetRoutingMode routing,
+            private DataSetWriter(WriterGroupDataSource group,
                 DataSetWriterModel dataSetWriter)
             {
                 Writer = dataSetWriter;
-                Routing = routing;
 
                 PublishingInterval =
                     group._options.Value.IgnoreConfiguredPublishingIntervals == true
@@ -396,8 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     writer.MetadataTopic == MetadataTopic &&
                     writer.MetadataQos == MetadataQos &&
                     writer.MetadataTtl == MetadataTtl &&
-                    writer.MetadataRetain == MetadataRetain &&
-                    writer.Routing == Routing)
+                    writer.MetadataRetain == MetadataRetain)
                 {
                     return true;
                 }
@@ -415,8 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Topic,
                     HashCode.Combine(Qos, Ttl, Retain),
                     MetadataTopic,
-                    HashCode.Combine(MetadataQos, MetadataTtl, MetadataRetain),
-                    Routing);
+                    HashCode.Combine(MetadataQos, MetadataTtl, MetadataRetain));
             }
 
             /// <inheritdoc/>
@@ -517,10 +515,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._options.Value.DefaultNamespaceFormat ??
                     NamespaceFormat.Uri;
                 MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat);
-                _extensionFields = new ExtensionFields(_group._serializer,
+                _extensionFields = new ExtensionFields(
                     _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
-                    _writer.Routing != DataSetRoutingMode.None,
+                    null,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
                 _connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
             }
@@ -543,6 +541,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 writer.Subscription = await group._clients.CreateSubscriptionAsync(
                     writer._connection.Connection, writer._template, writer, ct).ConfigureAwait(false);
+                await writer.ReloadMetadataIfStartedAsync(ct).ConfigureAwait(false);
 
                 writer.InitializeMetaDataTrigger();
                 writer.InitializeKeepAlive();
@@ -578,10 +577,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._options.Value.DefaultNamespaceFormat ??
                     NamespaceFormat.Uri;
                 MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat);
-                _extensionFields = new ExtensionFields(_group._serializer,
+                _extensionFields = new ExtensionFields(
                     _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
-                    _writer.Routing != DataSetRoutingMode.None,
+                    null,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
                 var connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
 
@@ -596,6 +595,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     //
                     Subscription = await _group._clients.CreateSubscriptionAsync(
                         _connection.Connection, _template, this, ct).ConfigureAwait(false);
+                    await ReloadMetadataIfStartedAsync(ct).ConfigureAwait(false);
 
                     _logger.RecreatedSubscription(Id, _group.Id);
                 }
@@ -606,7 +606,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     _logger.UpdatedMonitoredItems(Id, _group.Id);
                 }
-
                 _frameCount = 0;
                 InitializeMetaDataTrigger();
                 InitializeKeepAlive();
@@ -872,6 +871,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
+            private async Task ReloadMetadataIfStartedAsync(CancellationToken ct)
+            {
+                if (!_metaDataLoader.IsValueCreated)
+                {
+                    return;
+                }
+                _metaDataLoader.Value.Reload();
+                var timeout = _group._options.Value.AsyncMetaDataLoadTimeout ??
+                    TimeSpan.FromMinutes(1);
+                if (timeout != TimeSpan.Zero)
+                {
+                    await _metaDataLoader.Value.BlockUntilLoadedAsync(timeout, ct)
+                        .ConfigureAwait(false);
+                }
+            }
+
             /// <summary>
             /// Fired when metadata time elapsed
             /// </summary>
@@ -1043,7 +1058,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     WriterGroup = writerGroup,
                     Schema = networkMessageSchema,
                     CloudEvent = GetCloudEventHeader(writerGroup, notification, isMetadata),
-                    Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
+                    Topic = topic,
                     Retain = retain,
                     Ttl = ttl,
                     Qos = qos
@@ -1081,27 +1096,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Source = source,
                         Subject = _writer.Writer.DataSet?.Subject
                     };
-                }
-
-                static string GetTopic(DataSetRoutingMode routing, string topic, Opc.Ua.RelativePath? subpath)
-                {
-                    if (subpath == null || routing == DataSetRoutingMode.None)
-                    {
-                        return topic;
-                    }
-                    // Append subpath to topic (use browse names with namespace index if requested
-                    var sb = new StringBuilder().Append(topic);
-                    foreach (var path in subpath.Elements)
-                    {
-                        sb.Append('/');
-                        if (path.TargetName.NamespaceIndex != 0 &&
-                            routing == DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex)
-                        {
-                            sb.Append(path.TargetName.NamespaceIndex).Append(':');
-                        }
-                        sb.Append(TopicFilter.Escape(path.TargetName.Name));
-                    }
-                    return sb.ToString();
                 }
             }
 
@@ -1167,7 +1161,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Current meta data
                 /// </summary>
-                public PublishedDataSetMessageSchemaModel? MetaData { get; private set; }
+                public PublishedDataSetMessageSchemaModel? MetaData =>
+                    Volatile.Read(ref _metaData);
 
                 /// <summary>
                 /// Create loader
@@ -1176,7 +1171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MetaDataLoader(DataSetWriterSubscription subscription)
                 {
                     _writer = subscription;
-                    _tcs = new TaskCompletionSource();
+                    _tcs = CreateCompletion();
                     _loader = Task.Factory.StartNew(() => StartAsync(_cts.Token),
                         default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
                 }
@@ -1201,6 +1196,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// </summary>
                 public void Reload()
                 {
+                    lock (_completionLock)
+                    {
+                        _requestedVersion++;
+                        Volatile.Write(ref _metaData, null);
+                        if (_tcs.Task.IsCompleted)
+                        {
+                            _tcs = CreateCompletion();
+                        }
+                    }
                     _trigger.Set();
                 }
 
@@ -1213,7 +1217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        return _tcs.Task.Wait(timeout);
+                        return GetCompletionTask().Wait(timeout);
                     }
                     catch
                     {
@@ -1231,7 +1235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        await _tcs.Task.WaitAsync(timeout, ct).ConfigureAwait(false);
+                        await GetCompletionTask().WaitAsync(timeout, ct).ConfigureAwait(false);
                         return true;
                     }
                     catch
@@ -1247,26 +1251,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <returns></returns>
                 private async Task StartAsync(CancellationToken ct)
                 {
+                    var first = true;
                     while (!ct.IsCancellationRequested)
                     {
+                        if (!first)
+                        {
+                            await _trigger.WaitAsync(ct).ConfigureAwait(false);
+                        }
+                        first = false;
+                        long version;
+                        lock (_completionLock)
+                        {
+                            version = _requestedVersion;
+                        }
+                        Exception? error = null;
+                        var canceled = false;
+                        PublishedDataSetMessageSchemaModel? metadata = null;
                         try
                         {
-                            await UpdateMetaDataAsync(ct).ConfigureAwait(false);
-                            _tcs.TrySetResult();
+                            metadata = await BuildMetaDataAsync(ct).ConfigureAwait(false);
                             Interlocked.Increment(ref _writer._group._metadataLoadSuccess);
                         }
                         catch (OperationCanceledException)
                         {
-                            _tcs.TrySetCanceled(ct);
+                            canceled = true;
                         }
                         catch (Exception ex)
                         {
                             _writer._logger.FailedToGetMetadata(_writer._writer, ex.Message);
-                            _tcs.TrySetException(ex);
+                            error = ex;
                             Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
-                        Interlocked.Exchange(ref _tcs, new TaskCompletionSource());
-                        await _trigger.WaitAsync(ct).ConfigureAwait(false);
+                        lock (_completionLock)
+                        {
+                            if (version != _requestedVersion)
+                            {
+                                continue;
+                            }
+                            if (canceled)
+                            {
+                                _tcs.TrySetCanceled(ct);
+                            }
+                            else if (error != null)
+                            {
+                                _tcs.TrySetException(error);
+                            }
+                            else
+                            {
+                                Volatile.Write(ref _metaData, metadata);
+                                _tcs.TrySetResult();
+                            }
+                        }
+                    }
+                }
+
+                private Task GetCompletionTask()
+                {
+                    lock (_completionLock)
+                    {
+                        return _tcs.Task;
                     }
                 }
 
@@ -1275,7 +1318,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// </summary>
                 /// <param name="ct"></param>
                 /// <returns></returns>
-                internal async Task UpdateMetaDataAsync(CancellationToken ct = default)
+                private async Task<PublishedDataSetMessageSchemaModel?> BuildMetaDataAsync(
+                    CancellationToken ct = default)
                 {
                     var dataSetName = _writer._writer.Writer.DataSet?.Name
                         ?? _writer._writer.Writer.DataSetWriterName
@@ -1287,8 +1331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (dataSetMetaData == null || subscription == null || dataSetName == null)
                     {
                         // Metadata disabled
-                        MetaData = null;
-                        return;
+                        return null;
                     }
 
                     //
@@ -1312,7 +1355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
-                    MetaData = new PublishedDataSetMessageSchemaModel
+                    return new PublishedDataSetMessageSchemaModel
                     {
                         Id = id,
                         MetaData = metaData with
@@ -1325,10 +1368,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     };
                 }
 
+                private static TaskCompletionSource CreateCompletion()
+                {
+                    return new TaskCompletionSource(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
+                }
+
+                private PublishedDataSetMessageSchemaModel? _metaData;
                 private TaskCompletionSource _tcs;
+                private long _requestedVersion;
                 private readonly Task _loader;
                 private readonly CancellationTokenSource _cts = new();
                 private readonly AsyncAutoResetEvent _trigger = new();
+                private readonly Lock _completionLock = new();
                 private readonly DataSetWriterSubscription _writer;
             }
 
@@ -1380,14 +1432,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Create extension fields
                 /// </summary>
-                /// <param name="serializer"></param>
-                /// <param name="extensionFields"></param>
+                        /// <param name="extensionFields"></param>
                 /// <param name="dataSetFieldContentMask"></param>
-                public ExtensionFields(IJsonSerializer serializer,
+                public ExtensionFields(
                     IReadOnlyList<ExtensionFieldModel>? extensionFields,
                     DataSetFieldContentFlags? dataSetFieldContentMask)
                 {
-                    _serializer = serializer;
                     _fieldMask = dataSetFieldContentMask ?? 0;
                     _extensionFields = extensionFields;
                     _data = GenerateExtensionFieldData();
@@ -1441,7 +1491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Name = field.DataSetFieldName,
                             Id = field.DataSetClassFieldId,
                             Description = field.DataSetFieldDescription,
-                            ValueRank = (int)(field.Value.IsArray ?
+                            ValueRank = (int)(field.Value is JsonArray ?
                                  NodeValueRank.OneDimension : NodeValueRank.Scalar),
                             ArrayDimensions = null,
                             MaxStringLength = 0,
@@ -1466,8 +1516,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return Array.Empty<(string, Opc.Ua.DataValue?)>();
                     }
                     var extensions = new List<(string, Opc.Ua.DataValue?)>();
-                    var encoder = new JsonVariantEncoder(new Opc.Ua.ServiceMessageContext(),
-                        _serializer);
+                    var encoder = new JsonVariantEncoder(new Opc.Ua.ServiceMessageContext());
                     foreach (var field in extensionFields)
                     {
                         extensions.Add((field.DataSetFieldName,
@@ -1477,29 +1526,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return extensions;
                 }
 
-                private static byte GetBuiltInType(VariantValue value)
+                private static byte GetBuiltInType(JsonNode? value)
                 {
-                    return value.GetTypeCode() switch
+                    if (value is JsonArray array)
                     {
-                        TypeCode.Empty => 0,
-                        TypeCode.Boolean => 1,
-                        TypeCode.SByte => 2,
-                        TypeCode.Byte => 3,
-                        TypeCode.Int16 => 4,
-                        TypeCode.UInt16 => 5,
-                        TypeCode.Int32 => 6,
-                        TypeCode.UInt32 => 7,
-                        TypeCode.Int64 => 8,
-                        TypeCode.UInt64 => 9,
-                        TypeCode.Single => 10,
-                        TypeCode.Double => 11,
-                        TypeCode.String or TypeCode.Char => 12,
-                        TypeCode.DateTime => 13,
-                        _ => 24
-                    };
+                        value = array.FirstOrDefault();
+                    }
+                    if (value is null)
+                    {
+                        return 0; // Null
+                    }
+                    if (value is JsonValue jv)
+                    {
+                        switch (jv.GetValueKind())
+                        {
+                            case System.Text.Json.JsonValueKind.True:
+                            case System.Text.Json.JsonValueKind.False:
+                                return 1; // Boolean
+                            case System.Text.Json.JsonValueKind.String:
+                                return 12; // String
+                            case System.Text.Json.JsonValueKind.Number:
+                                // JsonNode does not preserve the exact CLR numeric
+                                // type; map integral values to Int64 and the rest
+                                // to Double.
+                                return jv.TryGetValue<long>(out _) ? (byte)8 : (byte)11;
+                        }
+                    }
+                    return 24; // Fall back to Variant
                 }
 
-                private readonly IJsonSerializer _serializer;
                 private readonly DataSetFieldContentFlags _fieldMask;
                 private readonly IReadOnlyList<ExtensionFieldModel>? _extensionFields;
                 private readonly IReadOnlyList<(string, Opc.Ua.DataValue?)> _data;
