@@ -385,6 +385,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             return value.Length > 1 && value[0] == '-' && value != "--";
         }
 
+        /// <summary>
+        /// Convert an option's argument to its target type. Command line
+        /// arguments are machine facing configuration, so every conversion is
+        /// invariant: the host locale must not decide whether "1.5" means one
+        /// and a half or fifteen.
+        /// </summary>
         private static T ParseValue<T>(string? value, string prototype)
         {
             try
@@ -404,26 +410,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 if (type == typeof(uint))
                 {
-                    return (T)(object)uint.Parse(value!, CultureInfo.CurrentCulture);
+                    return (T)(object)uint.Parse(value!, CultureInfo.InvariantCulture);
                 }
                 if (type == typeof(ushort))
                 {
-                    return (T)(object)ushort.Parse(value!, CultureInfo.CurrentCulture);
+                    return (T)(object)ushort.Parse(value!, CultureInfo.InvariantCulture);
                 }
                 if (type == typeof(ushort?))
                 {
                     return value is null ? default! :
-                        (T)(object)ushort.Parse(value, CultureInfo.CurrentCulture);
+                        (T)(object)ushort.Parse(value, CultureInfo.InvariantCulture);
                 }
                 if (type == typeof(TimeSpan))
                 {
-                    return (T)(object)TimeSpan.Parse(value!, CultureInfo.CurrentCulture);
+                    return (T)(object)TimeSpan.Parse(value!, CultureInfo.InvariantCulture);
                 }
                 if (type.IsEnum)
                 {
                     return (T)Enum.Parse(type, value!, true);
                 }
-                var result = Convert.ChangeType(value, type, CultureInfo.CurrentCulture);
+                var result = Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
                 return result is null ? default! : (T)result;
             }
             catch (Exception ex) when (ex is ArgumentException or FormatException or

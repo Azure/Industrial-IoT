@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     using FluentAssertions;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using Xunit;
 
@@ -321,6 +322,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.Equal(TimeSpan.FromSeconds(3), timeSpanValue);
             Assert.Equal(DayOfWeek.Friday, enumValue);
             Assert.Equal(1.5d, doubleValue);
+        }
+
+        [Theory]
+        [InlineData("en-US")]
+        [InlineData("de-DE")]
+        [InlineData("fr-FR")]
+        public void ValuesParseIdenticallyUnderAnyHostCulture(string culture)
+        {
+            // Command line arguments are machine facing configuration, so a
+            // host whose decimal separator is ',' must still read "1.5" as one
+            // and a half. Parsing under CultureInfo.CurrentCulture read it as
+            // fifteen, silently multiplying the configured value by ten.
+            var original = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
+
+                double? doubleValue = null;
+                TimeSpan? timeSpanValue = null;
+                uint? uintValue = null;
+                var parser = new CommandLineOptionParser
+                {
+                    { "double=", "Fallback conversion.\n", (double value) => doubleValue = value },
+                    { "timespan=", "Time span.\n", (TimeSpan value) => timeSpanValue = value },
+                    { "uint=", "Unsigned int.\n", (uint value) => uintValue = value }
+                };
+
+                parser.Parse([
+                    "--double=1.5",
+                    "--timespan=00:00:03",
+                    "--uint=4294967295"
+                ]).Should().BeEmpty();
+
+                Assert.Equal(1.5d, doubleValue);
+                Assert.Equal(TimeSpan.FromSeconds(3), timeSpanValue);
+                Assert.Equal(4294967295u, uintValue);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = original;
+            }
         }
 
         [Fact]
