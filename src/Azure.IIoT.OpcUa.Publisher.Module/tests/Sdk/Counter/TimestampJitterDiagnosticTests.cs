@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             {
                 var args = new List<string>
                 {
-                    "--mm=FullSamples", "--me=Json", "--bs=50", "--bi=10000"
+                    "--mm=FullNetworkMessages", "--me=Json", "--bs=50", "--bi=10000"
                 };
                 if (heartbeatBehavior != null)
                 {
