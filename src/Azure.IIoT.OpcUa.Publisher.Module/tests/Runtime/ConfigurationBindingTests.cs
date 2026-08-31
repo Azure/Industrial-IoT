@@ -238,12 +238,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             var options = new FileSystemRpcServerOptions();
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
-                [Configuration.FileSystem.InitFilePathKey] = @"C:\requests\requests.http"
+                [Configuration.FileSystem.InitFilePathKey] = TestPaths.Rooted("requests", "requests.http")
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\requests\requests.http", options.RequestFilePath);
+            Assert.Equal(TestPaths.Rooted("requests", "requests.http"), options.RequestFilePath);
         }
 
         // When options.RequestFilePath is already set, the ??= operator skips the config
@@ -253,16 +253,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         {
             var options = new FileSystemRpcServerOptions
             {
-                RequestFilePath = @"C:\preset\requests.http"
+                RequestFilePath = TestPaths.Rooted("preset", "requests.http")
             };
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
-                [Configuration.FileSystem.InitFilePathKey] = @"C:\other\requests.http"
+                [Configuration.FileSystem.InitFilePathKey] = TestPaths.Rooted("other", "requests.http")
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\preset\requests.http", options.RequestFilePath);
+            Assert.Equal(TestPaths.Rooted("preset", "requests.http"), options.RequestFilePath);
         }
 
         // When options.ResponseFilePath is already set, the ??= operator skips both
@@ -272,19 +272,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         {
             var options = new FileSystemRpcServerOptions
             {
-                ResponseFilePath = @"C:\preset\log.txt"
+                ResponseFilePath = TestPaths.Rooted("preset", "log.txt")
             };
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
                 [PublisherConfig.PublishedNodesFileKey] =
-                    @"C:\publisher\publishednodes.json",
-                [Configuration.FileSystem.InitFilePathKey] = @"C:\publisher\requests.http",
-                [Configuration.FileSystem.InitLogFileKey] = @"C:\other\log.txt"
+                    TestPaths.Rooted("publisher", "publishednodes.json"),
+                [Configuration.FileSystem.InitFilePathKey] = TestPaths.Rooted("publisher", "requests.http"),
+                [Configuration.FileSystem.InitLogFileKey] = TestPaths.Rooted("other", "log.txt")
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\preset\log.txt", options.ResponseFilePath);
+            Assert.Equal(TestPaths.Rooted("preset", "log.txt"), options.ResponseFilePath);
         }
 
         // OutputFolder already set → ??= operator skips config lookup.
@@ -293,16 +293,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         {
             var options = new FileSystemEventClientOptions
             {
-                OutputFolder = @"C:\preset\output"
+                OutputFolder = TestPaths.Rooted("preset", "output")
             };
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
-                [Configuration.FileSystem.OutputRootKey] = @"C:\other\output"
+                [Configuration.FileSystem.OutputRootKey] = TestPaths.Rooted("other", "output")
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\preset\output", options.OutputFolder);
+            Assert.Equal(TestPaths.Rooted("preset", "output"), options.OutputFolder);
         }
 
         // ─── MqttBroker ──────────────────────────────────────────────────────────
@@ -1117,7 +1117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             var options = new FileSystemRpcServerOptions();
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
-                [Configuration.FileSystem.InitFilePathKey] = @"C:\publisher\requests.http",
+                [Configuration.FileSystem.InitFilePathKey] = TestPaths.Rooted("publisher", "requests.http"),
                 [Configuration.FileSystem.InitLogFileKey] = "mylog.txt"
             }));
 
@@ -1134,12 +1134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             var options = new FileSystemRpcServerOptions();
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
-                [Configuration.FileSystem.InitFilePathKey] = @"C:\publisher\requests.http"
+                [Configuration.FileSystem.InitFilePathKey] = TestPaths.Rooted("publisher", "requests.http")
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\publisher\requests.http.log", options.ResponseFilePath);
+            Assert.Equal(TestPaths.Rooted("publisher", "requests.http.log"), options.ResponseFilePath);
         }
 
         // ─── IoTEdge with IOTEDGE_DEVICEID env var ────────────────────────────────

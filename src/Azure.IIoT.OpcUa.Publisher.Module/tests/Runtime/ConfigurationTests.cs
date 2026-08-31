@@ -339,23 +339,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
                 [PublisherConfig.PublishedNodesFileKey] =
-                    @"C:\publisher\config\publishednodes.json",
+                    TestPaths.Rooted("publisher", "config", "publishednodes.json"),
                 [Configuration.FileSystem.InitFilePathKey] = "requests.http",
                 [Configuration.FileSystem.InitLogFileKey] = "responses.log"
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\publisher\config\requests.http", options.RequestFilePath);
-            Assert.Equal(@"C:\publisher\config\responses.log", options.ResponseFilePath);
+            Assert.Equal(TestPaths.Rooted("publisher", "config", "requests.http"), options.RequestFilePath);
+            Assert.Equal(TestPaths.Rooted("publisher", "config", "responses.log"), options.ResponseFilePath);
 
             var eventOptions = new FileSystemEventClientOptions();
             new Configuration.FileSystem(CreateConfiguration(new()
             {
-                [Configuration.FileSystem.OutputRootKey] = @"C:\publisher\out"
+                [Configuration.FileSystem.OutputRootKey] = TestPaths.Rooted("publisher", "out")
             })).Configure(null, eventOptions);
 
-            Assert.Equal(@"C:\publisher\out", eventOptions.OutputFolder);
+            Assert.Equal(TestPaths.Rooted("publisher", "out"), eventOptions.OutputFolder);
         }
 
         [Fact]
@@ -365,15 +365,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             var configurator = new Configuration.FileSystem(CreateConfiguration(new()
             {
                 [PublisherConfig.PublishedNodesFileKey] =
-                    @"C:\publisher\config\publishednodes.json",
+                    TestPaths.Rooted("publisher", "config", "publishednodes.json"),
                 [Configuration.FileSystem.InitFilePathKey] = " "
             }));
 
             configurator.Configure(null, options);
 
-            Assert.Equal(@"C:\publisher\config\publishednodes.init",
+            Assert.Equal(TestPaths.Rooted("publisher", "config", "publishednodes.init"),
                 options.RequestFilePath);
-            Assert.Equal(@"C:\publisher\config\publishednodes.init.log",
+            Assert.Equal(TestPaths.Rooted("publisher", "config", "publishednodes.init.log"),
                 options.ResponseFilePath);
         }
 
