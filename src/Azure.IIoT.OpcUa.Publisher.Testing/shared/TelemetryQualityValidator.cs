@@ -444,6 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 SourceTimestampRegressions = _sourceTimestampRegressions,
                 SamplesWithoutSourceTimestamp = _samplesWithoutSourceTimestamp,
                 HeartbeatsWithChangedTimestamp = _heartbeatsWithChangedTimestamp,
+                HeartbeatsComparedToLastValue = _heartbeatsComparedToLastValue,
                 EarlyHeartbeats = _earlyHeartbeats,
                 HeartbeatCadenceViolations = _heartbeatCadenceViolations,
                 MinHeartbeatsPerNode = minHeartbeats,
@@ -465,14 +466,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         {
             state.Heartbeats++;
 
+            //
+            // Only a heartbeat that follows a real value for the same node can
+            // be compared against the timestamp it is supposed to be resending.
+            // A heartbeat that arrives before this node has ever delivered a
+            // value has nothing to compare against, so it is counted on neither
+            // side of that ratio. That happens during subscription warm up:
+            // monitored items are created over several publish cycles, and a
+            // node whose watchdog deadline elapses before its first value
+            // reaches the analysis window contributes exactly one such sample.
+            //
             if (state.HasValue && state.LastValueTimestamp != null &&
-                sample.SourceTimestamp != null &&
-                sample.SourceTimestamp != state.LastValueTimestamp)
+                sample.SourceTimestamp != null)
             {
-                _heartbeatsWithChangedTimestamp++;
-                AddExample(
-                    $"{sample.NodeId}: heartbeat source timestamp {sample.SourceTimestamp} " +
-                    $"differs from the value it resends ({state.LastValueTimestamp})");
+                _heartbeatsComparedToLastValue++;
+                if (sample.SourceTimestamp != state.LastValueTimestamp)
+                {
+                    _heartbeatsWithChangedTimestamp++;
+                    AddExample(
+                        $"{sample.NodeId}: heartbeat source timestamp {sample.SourceTimestamp} " +
+                        $"differs from the value it resends ({state.LastValueTimestamp})");
+                }
             }
 
             if (sample.MessageTimestamp == null)
@@ -769,6 +783,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         private long _sourceTimestampRegressions;
         private long _samplesWithoutSourceTimestamp;
         private long _heartbeatsWithChangedTimestamp;
+        private long _heartbeatsComparedToLastValue;
         private long _earlyHeartbeats;
         private long _heartbeatCadenceViolations;
         private long _duplicateDeliveries;
