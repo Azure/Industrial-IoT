@@ -167,6 +167,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         public long HeartbeatsWithChangedTimestamp { get; init; }
 
         /// <summary>
+        /// <para>
+        /// Heartbeats that could be compared against the value they resend,
+        /// i.e. that followed a real value carrying a source timestamp for the
+        /// same node. This is the denominator
+        /// <see cref="HeartbeatsWithChangedTimestamp"/> belongs to.
+        /// </para>
+        /// <para>
+        /// It is not the same as <see cref="HeartbeatSamples"/>. A heartbeat
+        /// that fires before its node ever delivered a value has nothing to
+        /// compare against, which happens during subscription warm up because
+        /// monitored items are created over several publish cycles. Comparing
+        /// the changed count against <see cref="HeartbeatSamples"/> therefore
+        /// reports a shortfall of roughly one per node on a run that is
+        /// entirely correct.
+        /// </para>
+        /// </summary>
+        public long HeartbeatsComparedToLastValue { get; init; }
+
+        /// <summary>
         /// Heartbeats that arrived earlier after the preceding value than the
         /// watchdog grace period allows. A watchdog may only report a node
         /// silent once the heartbeat interval plus one publishing interval
@@ -224,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
                 .AppendLine(CultureInfo.InvariantCulture, $"(d) repeated values : {RepeatedValues} ({RepeatedValuesFromHeartbeat} heartbeat, {UnflaggedRepeats} unflagged)")
                 .AppendLine(CultureInfo.InvariantCulture, $"    no timestamp    : {SamplesWithoutSourceTimestamp}")
                 .AppendLine(CultureInfo.InvariantCulture, $"    heartbeats/node : {MinHeartbeatsPerNode} min, {MaxHeartbeatsPerNode} max")
-                .AppendLine(CultureInfo.InvariantCulture, $"    hb timestamp    : {HeartbeatsWithChangedTimestamp} changed")
+                .AppendLine(CultureInfo.InvariantCulture, $"    hb timestamp    : {HeartbeatsWithChangedTimestamp} changed of {HeartbeatsComparedToLastValue} comparable")
                 .AppendLine(CultureInfo.InvariantCulture, $"    hb too early    : {EarlyHeartbeats}")
                 .AppendLine(CultureInfo.InvariantCulture, $"    hb cadence      : {HeartbeatCadenceViolations} violations")
                 .AppendLine(CultureInfo.InvariantCulture, $"    redelivered     : {DuplicateDeliveries}");

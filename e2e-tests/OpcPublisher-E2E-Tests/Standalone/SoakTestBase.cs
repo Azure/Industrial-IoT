@@ -10,9 +10,8 @@ namespace OpcPublisherAEE2ETests.Standalone
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Testing.Telemetry;
     using Azure.Messaging.EventHubs.Consumer;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.Devices;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -91,11 +90,10 @@ namespace OpcPublisherAEE2ETests.Standalone
             TimeoutToken = _timeoutTokenSource.Token;
 
             WriterId = Guid.NewGuid().ToString();
-            _serializer = new NewtonsoftJsonSerializer();
             _consumer = Context.GetEventHubConsumerClient(consumerGroup);
 
             Deployment = new IoTHubPublisherDeployment(Context,
-                OpcPublisherAEE2ETests.MessagingMode.Samples,
+                OpcPublisherAEE2ETests.MessagingMode.PubSub,
                 moduleName: moduleName,
                 deploymentName: deploymentName,
                 publishedNodesFile: TestConstants.PublishedNodesFolder + "/published_nodes_" + moduleName + ".json",
@@ -186,7 +184,13 @@ namespace OpcPublisherAEE2ETests.Standalone
                     {
                         return;
                     }
-                    validator.AddSamplesMessage(message);
+                    //
+                    // 3.0 publishes OPC UA PubSub network messages. The samples
+                    // encoding this used to read was the MonitoredItemMessage
+                    // format, which was removed with the Samples messaging mode
+                    // because it has no representation in Part 14.
+                    //
+                    validator.AddPubSubMessage(message);
                 },
                 onFirstMessage: json => _output.WriteLine("First message:" +
                     Environment.NewLine + json),
@@ -218,14 +222,14 @@ namespace OpcPublisherAEE2ETests.Standalone
         protected async Task PublishNodesAsync(string json, CancellationToken ct)
         {
             await UnpublishAllNodesAsync(ct).ConfigureAwait(false);
-            var entries = _serializer.Deserialize<PublishedNodesEntryModel[]>(json);
+            var entries = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
             foreach (var entry in entries)
             {
                 var result = await CallMethodAsync(
                     new MethodParameterModel
                     {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
-                        JsonPayload = _serializer.SerializeToString(entry)
+                        JsonPayload = JsonConvert.SerializeObject(entry)
                     }, ct).ConfigureAwait(false);
 
                 await AssertMethodStatusOkAsync(result, "PublishNodes", ct).ConfigureAwait(false);
@@ -239,7 +243,7 @@ namespace OpcPublisherAEE2ETests.Standalone
 
             await AssertMethodStatusOkAsync(configured, "GetConfiguredEndpoints", ct)
                 .ConfigureAwait(false);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(
+            var response = JsonConvert.DeserializeObject<GetConfiguredEndpointsResponseModel>(
                 configured.JsonPayload);
             Assert.Equal(entries.Length, response.Endpoints.Count);
         }
@@ -335,7 +339,6 @@ namespace OpcPublisherAEE2ETests.Standalone
         /// </summary>
         private static readonly TimeSpan kOverhead = TimeSpan.FromMinutes(45);
         private readonly ITestOutputHelper _output;
-        private readonly ISerializer _serializer;
         private readonly ServiceClient _iotHubClient;
         private readonly EventHubConsumerClient _consumer;
         private readonly CancellationTokenSource _timeoutTokenSource;

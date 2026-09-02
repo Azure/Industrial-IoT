@@ -331,6 +331,74 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
             Assert.Equal(1, report.HeartbeatSamples);
             Assert.Equal(0, report.UnflaggedRepeats);
             Assert.Equal(1, report.HeartbeatsWithChangedTimestamp);
+            Assert.Equal(1, report.HeartbeatsComparedToLastValue);
+        }
+
+        [Fact]
+        public void HeartbeatBeforeTheFirstValueIsNotCountedAsComparable()
+        {
+            // A node whose watchdog deadline elapses before its first value
+            // reaches the analysis window emits a heartbeat with nothing to
+            // compare against. Counting it in the denominator made a correct
+            // 500 node soak look like the timestamp shift had stopped running
+            // for a few hundred samples, and failed the nightly run 18 times
+            // out of 20 on telemetry that was entirely intact.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            // Heartbeat first, before this node ever delivered a value.
+            validator.Add(Heartbeat(1, kEpoch.AddSeconds(2), kEpoch.AddSeconds(2)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.HeartbeatSamples);
+            Assert.Equal(0, report.HeartbeatsComparedToLastValue);
+            Assert.Equal(0, report.HeartbeatsWithChangedTimestamp);
+        }
+
+        [Fact]
+        public void OnlyHeartbeatsFollowingAValueAreCompared()
+        {
+            // The mixed case the soak actually sees: one warm up heartbeat that
+            // cannot be compared, then a value, then two heartbeats that can.
+            // The shifted-timestamp ratio must be 2 of 2, not 2 of 3.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            // Resends a value this validator never observed, because the
+            // analysis window opened after the publisher had already read it.
+            validator.Add(Heartbeat(5, kEpoch.AddSeconds(10), kEpoch.AddSeconds(10)));
+            // Value() derives its source timestamp from the counter, so this
+            // carries a different value and timestamp and is a real update.
+            validator.Add(Value(6, messageTimestamp: kEpoch.AddSeconds(12)));
+            validator.Add(Heartbeat(6, kEpoch.AddSeconds(24), kEpoch.AddSeconds(24)));
+            validator.Add(Heartbeat(6, kEpoch.AddSeconds(36), kEpoch.AddSeconds(36)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(3, report.HeartbeatSamples);
+            Assert.Equal(2, report.HeartbeatsComparedToLastValue);
+            Assert.Equal(2, report.HeartbeatsWithChangedTimestamp);
+        }
+
+        [Fact]
+        public void ComparableHeartbeatRepeatingItsTimestampIsNotCountedAsChanged()
+        {
+            // The WatchdogLKV counterpart: the heartbeat resends the value with
+            // its original source timestamp, so it is comparable but unchanged.
+            // Without this, a denominator that merely tracked the numerator
+            // would satisfy the soak's positive control vacuously.
+            var validator = Create(kTwoSeconds, nodes: 1,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                heartbeatTolerance: TimeSpan.FromSeconds(1));
+
+            validator.Add(Value(1, messageTimestamp: kEpoch.AddSeconds(2)));
+            validator.Add(Heartbeat(1, kEpoch.AddSeconds(2), kEpoch.AddSeconds(14)));
+
+            var report = validator.CreateReport();
+            Assert.Equal(1, report.HeartbeatSamples);
+            Assert.Equal(1, report.HeartbeatsComparedToLastValue);
+            Assert.Equal(0, report.HeartbeatsWithChangedTimestamp);
         }
 
         [Fact]
