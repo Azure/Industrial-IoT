@@ -1300,8 +1300,18 @@ namespace OpcPublisherAEE2ETests
             var exception = e;
             while (exception != null)
             {
-                outputHelper.WriteLine(exception.Message);
-                outputHelper.WriteLine(exception.StackTrace);
+                //
+                // Exception.StackTrace is null for an exception that was
+                // constructed but never thrown, which happens routinely for
+                // the inner exceptions of an aggregate produced by a cancelled
+                // HTTP call. ITestOutputHelper.WriteLine rejects null, so
+                // passing it straight through replaces the exception being
+                // reported with an ArgumentNullException raised inside the
+                // reporter - the failure then names this method instead of the
+                // direct method call that actually failed.
+                //
+                outputHelper.WriteLine(exception.Message ?? "(no message)");
+                outputHelper.WriteLine(exception.StackTrace ?? "(no stack trace)");
                 outputHelper.WriteLine("");
                 exception = exception.InnerException;
             }
