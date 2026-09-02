@@ -97,6 +97,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
         /// 3.0 neither profile carries it, so that distinction buys nothing and
         /// the plain profile remains the more useful control.
         /// </para>
+        /// <para>
+        /// PubSub is also the 3.0 default, so it is the profile most
+        /// deployments will actually run. It carries a smaller header set than
+        /// FullNetworkMessages - no data set message Timestamp, DataSetWriterId
+        /// or SequenceNumber - which means the validator cannot fall back on
+        /// the message timestamp or deduplicate by sequence number here. The
+        /// value stream properties this arm asserts are derived from the source
+        /// timestamps and the counter values, both of which the plain profile
+        /// still carries.
+        /// </para>
         /// </summary>
         [SkippableFact]
         public async Task PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync()
@@ -104,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             SkipUnlessEnabled();
             var report = await RunScenarioAsync(
                 nameof(PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync),
-                MessagingMode.FullNetworkMessages, NodeCount, kInterval, kInterval, kInterval,
+                MessagingMode.PubSub, NodeCount, kInterval, kInterval, kInterval,
                 kQueueSize, (int)kInterval.TotalSeconds, RunDuration).ConfigureAwait(false);
 
             AssertClean(report);
@@ -329,10 +339,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             // Positive control: without this the assertions below would hold
             // vacuously on a build where the shift silently stopped running.
             //
-            Assert.True(report.HeartbeatsWithChangedTimestamp == report.HeartbeatSamples,
-                $"only {report.HeartbeatsWithChangedTimestamp} of {report.HeartbeatSamples} " +
-                $"heartbeat(s) carried a shifted source timestamp, so the shift under test " +
-                $"did not run for all of them.\n{report}");
+            // The denominator is the heartbeats that could be compared against
+            // the value they resend, not every heartbeat. A heartbeat that
+            // fires before its node delivered its first value has nothing to
+            // compare against; monitored items are created over several publish
+            // cycles, so a correct 500 node run produces a few hundred such
+            // samples and comparing against HeartbeatSamples failed the run
+            // over telemetry that was entirely intact.
+            //
+            Assert.True(report.HeartbeatsComparedToLastValue > 0,
+                $"no heartbeat could be compared against the value it resends, so the " +
+                $"shift under test was never exercised.\n{report}");
+            Assert.True(
+                report.HeartbeatsWithChangedTimestamp == report.HeartbeatsComparedToLastValue,
+                $"only {report.HeartbeatsWithChangedTimestamp} of " +
+                $"{report.HeartbeatsComparedToLastValue} comparable heartbeat(s) carried a " +
+                $"shifted source timestamp, so the shift under test did not run for all of " +
+                $"them.\n{report}");
 
             //
             // Whatever the shift does to the timestamps, the value stream

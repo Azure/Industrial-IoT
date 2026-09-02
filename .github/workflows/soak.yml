@@ -3,12 +3,12 @@ name: Soak
 # ----------------------------------------------------------------------------
 # Long running telemetry quality soak.
 #
-# Reproduces the customer scenario of thousands of variables
-# published with a two second publishing interval, a two second sampling
-# interval, a queue size larger than one and a two second heartbeat, in samples
-# encoding. The counter test server makes the expected stream decidable -- every
-# variable counts up from zero by exactly one every update interval, so the
-# value carries its own sequence number and its own expected source timestamp.
+# Reproduces the customer scenario of thousands of variables published with a
+# two second publishing interval, a two second sampling interval, a queue size
+# larger than one and a two second heartbeat. The counter test server makes the
+# expected stream decidable -- every variable counts up from zero by exactly one
+# every update interval, so the value carries its own sequence number and its
+# own expected source timestamp.
 #
 # The run fails when any of the four symptoms the customer reported reappears:
 #   (a) a counter value is lost
@@ -21,6 +21,13 @@ name: Soak
 # ----------------------------------------------------------------------------
 
 on:
+  push:
+    # preview carries the 3.0 line, where the telemetry path was rewritten onto
+    # the native PubSub runtime. Soak every push there rather than waiting for
+    # the nightly, because that is the branch whose telemetry behaviour is still
+    # moving. Not a pull request trigger: this is eight parallel jobs of 30
+    # minutes each and it gates nothing, so it runs after the merge.
+    branches: [preview]
   schedule:
     # Nightly at 02:00 UTC, well clear of the 10:00 UTC CI build.
     - cron: '0 2 * * *'
@@ -62,8 +69,8 @@ jobs:
       fail-fast: false
       matrix:
         scenario:
-          - name: Samples
-            test: SamplesModeStreamIsCompleteOrderedAndEvenlySpacedAsync
+          - name: FullNetworkMessages
+            test: FullNetworkMessagesStreamIsCompleteOrderedAndEvenlySpacedAsync
           - name: PubSub
             test: PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync
           - name: QueuedValues
