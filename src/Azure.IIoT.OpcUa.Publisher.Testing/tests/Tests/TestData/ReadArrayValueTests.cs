@@ -487,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsDouble());
+            Assert.True(result.Value[0].IsDouble(), $"First is {result.Value}");
             Assert.Equal("Double", result.DataType);
         }
 
