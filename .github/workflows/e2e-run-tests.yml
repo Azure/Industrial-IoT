@@ -233,10 +233,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p e2e-tests/results
+          #
+          # No --blame-hang-timeout here. The blame detector measures the time
+          # between test completions, and a single telemetry quality soak
+          # legitimately observes the stream for soak_minutes (30 by default)
+          # before it finishes, while an A&E test waits for events from the
+          # deployed module. A fixed short inactivity window therefore kills
+          # healthy runs, and it kills them in the worst possible way: the run
+          # is reported as "Test host process crashed" with the results file
+          # listing only the tests that had already passed, so the failure
+          # names no test and carries no assertion. Every E2E test bounds
+          # itself with its own cancellation token (SoakTestBase uses
+          # Duration + 45 minutes) and the job timeout is the outer backstop,
+          # so a genuine hang is still caught -- and caught with a diagnostic.
+          #
           dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
             --configuration Release --no-build \
             --filter "${{ inputs.filter_name }}=${{ inputs.filter_value }}" \
-            --blame-hang-timeout 10m --blame-hang-dump-type none \
             --logger "trx;LogFileName=${{ inputs.result_label }}.trx" \
             --logger "console;verbosity=detailed" \
             --results-directory e2e-tests/results
