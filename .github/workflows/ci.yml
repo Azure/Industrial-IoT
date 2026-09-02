@@ -764,16 +764,22 @@ jobs:
             /p:ContinuousIntegrationBuild=true
       - name: Validate produced packages
         shell: bash
-        # The three projects that override common.props IsPackable=false:
+        # The two projects that override common.props IsPackable=false:
         #   - Azure.IIoT.OpcUa.Publisher.Models
         #   - Azure.IIoT.OpcUa.Publisher.Sdk
-        #   - Azure.IIoT.OpcUa.Publisher.Testing.Servers
+        #
+        # Azure.IIoT.OpcUa.Publisher.Testing.Servers was packable up to 2.9 and
+        # is deliberately not packable in 3.0. It consumes the Quickstarts
+        # servers through an `Aliases="Quickstarts"` extern alias, and an extern
+        # alias is a compile time construct that does not travel with a package:
+        # a consumer would resolve an unaliased transitive dependency and hit
+        # exactly the type collisions the alias exists to prevent. It would also
+        # make a sample package part of our public dependency graph.
         run: |
           set -euo pipefail
           expected=(
             'Azure.IIoT.OpcUa.Publisher.Models'
             'Azure.IIoT.OpcUa.Publisher.Sdk'
-            'Azure.IIoT.OpcUa.Publisher.Testing.Servers'
           )
           echo "Produced packages:"
           ls -la ./nupkgs
@@ -852,7 +858,16 @@ jobs:
       (github.event_name == 'workflow_dispatch' && inputs.run_e2e)
     uses: ./.github/workflows/e2e-standalone.yml
     with:
-      image_tag: ${{ needs.version.outputs.simple_version }}
+      # The NuGet version, not the simple version. images_push tags every image
+      # with both, but the simple version is just major.minor.patch and is
+      # therefore reused by every prerelease build of the same version: on
+      # preview it is 3.0.0 for all of them. A second push landing while this
+      # run deploys would move that tag, and E2E would silently validate a
+      # different build than the one that triggered it. The NuGet version
+      # carries the prerelease height (3.0.0-rc-0007), so it identifies this
+      # commit's image. When the two are equal images_push pushes the single
+      # tag, and this still resolves.
+      image_tag: ${{ needs.version.outputs.nuget_version }}
       image_registry: ghcr.io
       image_namespace: azure
       region: ${{ github.event_name == 'workflow_dispatch' && inputs.e2e_region || 'northeurope' }}
