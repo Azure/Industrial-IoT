@@ -137,7 +137,7 @@ namespace OpcPublisherAEE2ETests
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task RestartStandalonePublisherAsync(
-            MessagingMode messagingMode = MessagingMode.Samples, bool fullRedeploy = false,
+            MessagingMode messagingMode = MessagingMode.PubSub, bool fullRedeploy = false,
             CancellationToken ct = default)
         {
             var publisher = new IoTHubPublisherDeployment(_context, messagingMode);
@@ -164,7 +164,7 @@ namespace OpcPublisherAEE2ETests
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task<string> DeployStandalonePublisherAsync(
-            MessagingMode messagingMode = MessagingMode.Samples,
+            MessagingMode messagingMode = MessagingMode.PubSub,
             CancellationToken ct = default)
         {
             // Create base edge deployment.
