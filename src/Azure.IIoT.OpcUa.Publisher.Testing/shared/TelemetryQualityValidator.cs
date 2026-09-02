@@ -81,6 +81,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Telemetry
         }
 
         /// <summary>
+        /// Enumerate the counter samples a message carries, accepting either a
+        /// PubSub network message or a bare data set message.
+        /// </summary>
+        /// <remarks>
+        /// Exposed so tests that analyse samples differently - comparing them
+        /// against what the server recorded stamping, rather than scoring
+        /// stream quality - decode the wire the same way this validator does.
+        /// The decoding is not obvious: a field is a bare number under raw
+        /// encoding, an object under DataValue encoding, wrapped once more in a
+        /// Type/Body variant under reversible encoding, and a 64 bit integer
+        /// arrives as a JSON string because its range exceeds an IEEE-754
+        /// double. A second, independent parser would get some of that wrong.
+        /// </remarks>
+        /// <param name="message"></param>
+        public static IEnumerable<(string NodeId, long Value, DateTime? SourceTimestamp)>
+            ReadCounterSamples(JsonElement message)
+        {
+            if (message.ValueKind != JsonValueKind.Object)
+            {
+                yield break;
+            }
+            if (message.TryGetProperty("Messages", out var messages) &&
+                messages.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var dataSetMessage in messages.EnumerateArray())
+                {
+                    foreach (var sample in ReadDataSetSamples(dataSetMessage))
+                    {
+                        yield return sample;
+                    }
+                }
+                yield break;
+            }
+            foreach (var sample in ReadDataSetSamples(message))
+            {
+                yield return sample;
+            }
+        }
+
+        private static IEnumerable<(string, long, DateTime?)> ReadDataSetSamples(
+            JsonElement dataSetMessage)
+        {
+            if (dataSetMessage.ValueKind != JsonValueKind.Object ||
+                !dataSetMessage.TryGetProperty("Payload", out var payload) ||
+                payload.ValueKind != JsonValueKind.Object)
+            {
+                yield break;
+            }
+            foreach (var field in payload.EnumerateObject())
+            {
+                if (TryReadDataValue(field.Value, out var value, out var sourceTimestamp))
+                {
+                    yield return (field.Name, value, sourceTimestamp);
+                }
+            }
+        }
+
+        /// <summary>
         /// Add a sample to the analysis.
         /// </summary>
         /// <param name="sample"></param>

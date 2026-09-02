@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Telemetry;
     using Azure.IIoT.OpcUa.Core.Logging;
     using Microsoft.Extensions.Logging;
     using System;
@@ -203,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
             {
                 var arguments = new List<string>
                 {
-                    "--mm=FullSamples", "--me=Json", "--bs=50", "--bi=10000"
+                    "--mm=FullNetworkMessages", "--me=Json", "--bs=50", "--bi=10000"
                 };
                 if (heartbeatBehavior != null)
                 {
@@ -226,22 +227,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
                     {
                         return;
                     }
-                    if (!message.TryGetProperty("NodeId", out var n) ||
-                        n.ValueKind != JsonValueKind.String ||
-                        !message.TryGetProperty("Value", out var dv) ||
-                        !dv.TryGetProperty("SourceTimestamp", out var ts) ||
-                        !ts.TryGetDateTime(out var parsed) ||
-                        !dv.TryGetProperty("Value", out var raw) ||
-                        !raw.TryGetInt64(out var value))
+                    //
+                    // 3.0 emits OPC UA PubSub network messages. The counter
+                    // value and its source timestamp live in each data set
+                    // message's payload, keyed by the field name, rather than
+                    // in the flat NodeId/Value shape the removed Samples mode
+                    // produced. Decoding is shared with TelemetryQualityValidator
+                    // so both read the wire identically.
+                    //
+                    foreach (var (id, value, sourceTimestamp) in
+                        TelemetryQualityValidator.ReadCounterSamples(message))
                     {
-                        return;
+                        if (sourceTimestamp == null)
+                        {
+                            continue;
+                        }
+                        if (!received.TryGetValue(id, out var list))
+                        {
+                            received.Add(id, list = []);
+                        }
+                        list.Add((value, sourceTimestamp.Value));
                     }
-                    var id = n.GetString()!;
-                    if (!received.TryGetValue(id, out var list))
-                    {
-                        received.Add(id, list = []);
-                    }
-                    list.Add((value, parsed.ToUniversalTime()));
                 }, Ct).ConfigureAwait(false);
 
                 var report = Evaluate(label, received, server, slotSlip, interval);
