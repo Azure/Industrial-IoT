@@ -130,8 +130,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing
         /// <summary>
         /// Whether the node is a floating point number.
         /// </summary>
+        /// <remarks>
+        /// JSON has no literal for the non finite values, so OPC UA Part 6
+        /// encodes them as the strings "NaN", "Infinity" and "-Infinity". A
+        /// Double or Float field therefore arrives as a number or as one of
+        /// those three strings, and both are the value being asked about. The
+        /// static test arrays are randomly generated and do contain non finite
+        /// values -- the write tests set them deliberately -- so treating only
+        /// a JSON number as a float made the array read assertions fail
+        /// whenever a non finite value happened to land first.
+        /// </remarks>
         public static bool IsDouble(this JsonNode? node)
-            => node?.GetValueKind() == JsonValueKind.Number;
+            => node?.GetValueKind() == JsonValueKind.Number || node.IsNonFiniteNumber();
+
+        /// <summary>
+        /// Whether the node carries one of the three JSON string forms OPC UA
+        /// Part 6 uses for the non finite floating point values.
+        /// </summary>
+        public static bool IsNonFiniteNumber(this JsonNode? node)
+        {
+            if (node?.GetValueKind() != JsonValueKind.String)
+            {
+                return false;
+            }
+            return node.GetValue<string>() is "NaN" or "Infinity" or "-Infinity";
+        }
 
         /// <summary>
         /// Whether the node is a floating point number.
