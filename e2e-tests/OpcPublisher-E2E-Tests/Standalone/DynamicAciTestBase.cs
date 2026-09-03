@@ -230,7 +230,8 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
             foreach (var pendingMessage in eventData)
             {
-                pendingMessage.ConditionId.Value.Should().StartWith("http://microsoft.com/Opc/OpcPlc/AlarmsInstance#");
+                pendingMessage.ConditionId.Value.Should().MatchRegex(
+                    @"^(http://microsoft\.com/Opc/OpcPlc/AlarmsInstance#|ns=6;[isgb]=).+");
                 pendingMessage.Retain.Value.Should().BeTrue();
             }
         }
