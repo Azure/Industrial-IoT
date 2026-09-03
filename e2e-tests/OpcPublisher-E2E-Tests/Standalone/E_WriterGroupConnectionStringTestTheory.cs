@@ -15,6 +15,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -114,17 +115,16 @@ namespace OpcPublisherAEE2ETests.Standalone
                         new JProperty("Id", "ns=0;i=2258"), // Server CurrentTime, changes every second
                         new JProperty("OpcSamplingInterval", 1000),
                         new JProperty("OpcPublishingInterval", 1000))));
-            await PublishNodesAsync(pnJson, _timeoutToken);
-
-            // Assert - telemetry reaches IoT Hub attributed to the child device identity.
-            string deviceId;
             using var telemetryTimeout =
                 CancellationTokenSource.CreateLinkedTokenSource(_timeoutToken);
             telemetryTimeout.CancelAfter(TimeSpan.FromMinutes(3));
+            IReadOnlyList<string> deviceIds;
             try
             {
-                deviceId = await _consumer.ReadConnectionDeviceIdForWriterIdAsync(
-                    _writerId, _context, telemetryTimeout.Token);
+                deviceIds = await TestHelper.ReadAfterAsync(
+                    ReadDeviceIdAsync,
+                    token => PublishNodesAsync(pnJson, token),
+                    telemetryTimeout.Token);
             }
             catch
             {
@@ -138,9 +138,21 @@ namespace OpcPublisherAEE2ETests.Standalone
                     $"{Environment.NewLine}{diagnostics}");
                 throw;
             }
+
+            // Assert - telemetry reaches IoT Hub attributed to the child device identity.
+            var deviceId = Assert.Single(deviceIds);
             Assert.Equal(_childDeviceId, deviceId);
 
             await UnpublishAllNodesAsync(_timeoutToken);
+
+            async IAsyncEnumerable<string> ReadDeviceIdAsync(
+                [EnumeratorCancellation] CancellationToken token)
+            {
+                yield return await _consumer
+                    .ReadConnectionDeviceIdForWriterIdAsync(
+                        _writerId, _context, token)
+                    .ConfigureAwait(false);
+            }
         }
 
         [Fact, PriorityOrder(998)]
