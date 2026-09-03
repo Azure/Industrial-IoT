@@ -220,9 +220,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         public async Task CanSendEventToIoTHubTestFullFeaturedMessageAsync(bool useCurrentTime)
         {
             // Arrange
+            var testName = nameof(CanSendEventToIoTHubTestFullFeaturedMessageAsync) +
+                (useCurrentTime ? "CurrentTime" : "PublishTime");
             // Act
             var messages = await ProcessMessagesAsync(
-                nameof(CanSendEventToIoTHubTestFullFeaturedMessageAsync), "./Resources/SimpleEvents.json",
+                testName, "./Resources/SimpleEvents.json",
                 TimeSpan.FromMinutes(2), 1, GetSimpleEventNetworkMessage,
                 messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--fm=true",
