@@ -1247,13 +1247,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var sources = provider.GetRequiredService<ManagedPubSubDataSetSourceRegistry>();
             Assert.True(sources.TryGetSource("data", out var nativeSource));
             var managedSource = Assert.IsType<ManagedPubSubDataSetSource>(nativeSource);
-            await WaitUntilAsync(() => managedSource.PendingCount == 1);
+            await WaitUntilAsync(() => managedSource.PendingCount == 1 ||
+                client.Events.Count != 0);
             var priorEvents = client.Events.Count;
 
             await provider.GetRequiredService<IPubSubKeyFrameControl>()
                 .ForceKeyFrameAsync("group", "writer");
-            Assert.Equal(1, managedSource.PendingCount);
-            await WaitUntilAsync(() => client.Events.Count > priorEvents);
+            await WaitUntilAsync(() => client.Events
+                .Skip(priorEvents)
+                .Any(IsKeyFrameWithPayload));
             await hosted.StopAsync(default);
 
             var published = client.Events.Skip(priorEvents).ToList();
@@ -1261,7 +1263,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 CreateManagedWriterGroup(MessageEncoding.JsonGzip));
             Assert.True(published.Any(captured => captured.Topic == expectedTopic),
                 string.Join(", ", published.Select(captured => captured.Topic)));
-            var publication = published.Single(captured => captured.Topic == expectedTopic);
+            var publication = published.First(captured =>
+                captured.Topic == expectedTopic && IsKeyFrameWithPayload(captured));
             Assert.Equal("gzip", publication.ContentEncoding);
             var decoded = Decompress(publication.Payload);
             Assert.Contains("\"payload\"", Encoding.UTF8.GetString(decoded),
@@ -1269,6 +1272,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             using var _ = JsonDocument.Parse(decoded);
             Assert.Equal(1, ((IPubSubShadowRuntimeStateProvider)provider.GetRequiredService<
                 IPubSubShadowRuntimeStateProvider>()).State.StartCount);
+
+            static bool IsKeyFrameWithPayload(CapturedEvent captured)
+            {
+                if (captured.ContentEncoding != "gzip")
+                {
+                    return false;
+                }
+                var json = Encoding.UTF8.GetString(Decompress(captured.Payload));
+                return json.Contains("\"MessageType\":\"ua-keyframe\"",
+                    StringComparison.Ordinal) &&
+                    json.Contains("\"payload\"", StringComparison.Ordinal);
+            }
         }
 
         private static EventClientPubSubTransport CreateTransport(

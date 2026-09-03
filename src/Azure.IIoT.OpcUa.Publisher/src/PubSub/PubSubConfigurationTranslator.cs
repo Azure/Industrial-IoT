@@ -446,12 +446,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <summary>
         /// Interval used to express immediate publishing. The native runtime
         /// publishes on a timer and rejects an interval of zero, so immediate
-        /// becomes a short interval. It is not made shorter than this because
-        /// the timer fires whether or not data is pending, and a very small
-        /// value floods the broker with empty network messages.
+        /// becomes a short interval. Empty native messages are suppressed by
+        /// the encoders, so this interval can sustain one queued occurrence per
+        /// data source at 100 Hz without flooding the transport while idle.
         /// </summary>
         internal static readonly TimeSpan ImmediatePublishingInterval =
-            TimeSpan.FromMilliseconds(100);
+            TimeSpan.FromMilliseconds(10);
 
         private readonly TimeSpan _defaultPublishingInterval;
         private readonly string? _publisherId;

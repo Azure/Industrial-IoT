@@ -92,8 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public void ImmediatePublishingInterval_IsPositiveAndShort()
         {
             var interval = PubSubConfigurationTranslator.ImmediatePublishingInterval;
-            Assert.True(interval > TimeSpan.Zero);
-            Assert.True(interval <= TimeSpan.FromSeconds(1));
+            Assert.Equal(TimeSpan.FromMilliseconds(10), interval);
         }
 
         // ── Translate — argument validation ───────────────────────────────────
@@ -271,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             var sut = new PubSubConfigurationTranslator();
             var tx = CreateIdTransaction();
-            var configured = TimeSpan.FromMilliseconds(50);
+            var configured = TimeSpan.FromMilliseconds(5);
 
             var group = new WriterGroupModel
             {
@@ -550,4 +549,3 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
     }
 }
-
