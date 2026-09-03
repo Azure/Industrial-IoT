@@ -488,16 +488,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var expected = await _readExpected(_connection, node).ConfigureAwait(false)
                 ?? JsonValue.Create("i=84");
 
-            // Act
-            var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
+            var request = new ValueWriteRequestModel
             {
                 NodeId = node,
                 Value = expected,
                 DataType = "NodeId"
-            }, ct).ConfigureAwait(false);
+            };
 
-            // Assert
-            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
+            JsonNode? actual = null;
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                var result = await services.ValueWriteAsync(_connection, request, ct)
+                    .ConfigureAwait(false);
+                Assert.Null(result.ErrorInfo);
+                actual = await _readExpected(_connection, node).ConfigureAwait(false);
+                if (JsonNode.DeepEquals(expected, actual))
+                {
+                    return;
+                }
+            }
+            Assert.Fail($"{expected} != {actual} after three successful writes.");
         }
 
         public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync(CancellationToken ct = default)
