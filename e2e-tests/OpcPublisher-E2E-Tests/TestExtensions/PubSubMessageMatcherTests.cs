@@ -193,6 +193,33 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         }
 
         [Fact]
+        public void ConditionLocalizedTextFieldsUseTheirTextValue()
+        {
+            var payload = JsonConvert.DeserializeObject<ConditionTypePayload>(
+                """
+                {
+                  "Comment": {
+                    "Value": {"Text":"Comment","Locale":"en-US"}
+                  },
+                  "EnabledState": {
+                    "Value": {"Text":"Enabled","Locale":"en-US"}
+                  },
+                  "EnabledState/EffectiveDisplayName": {
+                    "Value": {
+                      "Text":"Active | Unacknowledged",
+                      "Locale":"en-US"
+                    }
+                  }
+                }
+                """);
+
+            Assert.Equal("Comment", payload.Comment.Value);
+            Assert.Equal("Enabled", payload.EnabledState.Value);
+            Assert.Equal("Active | Unacknowledged",
+                payload.EnabledStateEffectiveDisplayName.Value);
+        }
+
+        [Fact]
         public async Task ReadAfterStartsReaderBeforeTriggerAsync()
         {
             var readerStarted = new TaskCompletionSource(
