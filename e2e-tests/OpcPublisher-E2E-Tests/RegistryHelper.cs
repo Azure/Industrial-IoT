@@ -154,6 +154,11 @@ namespace OpcPublisherAEE2ETests
             {
             	await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync("[]", _context, ct);
                 await TestHelper.RestartAsync(_context, publisher.ModuleName, ct);
+                await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct)
+                    .ConfigureAwait(false);
+                await WaitForIIoTModulesConnectedAsync(
+                    _context.DeviceConfig.DeviceId, ct, [publisher.ModuleName])
+                    .ConfigureAwait(false);
             }
         }
 
@@ -179,7 +184,6 @@ namespace OpcPublisherAEE2ETests
             _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
 
             await WaitForEdgeHubReadyAsync(ct).ConfigureAwait(false);
-            await RestartStandalonePublisherAsync(messagingMode, false, ct);
             await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context, ct);
 
