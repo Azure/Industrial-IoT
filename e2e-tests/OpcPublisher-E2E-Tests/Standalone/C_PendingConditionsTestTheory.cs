@@ -41,10 +41,15 @@ namespace OpcPublisherAEE2ETests.Standalone
             // item is created, so the Event Hubs read must already be pending.
             var payloads = await TestHelper.ReadAfterAsync(
                 token => _consumer
-                    .ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(
-                        _writerId, 1, token,
-                        _context.IoTHubPublisherDeployment.ModuleName, _context)
-                    .Select(v => v.Payload),
+                    .ReadMessagesFromWriterIdAsync(
+                        _writerId, -1, _context,
+                        _context.IoTHubPublisherDeployment.ModuleName, token)
+                    .Where(message =>
+                        message.payload["ConditionId"] is not null &&
+                        message.payload["Retain"] is not null)
+                    .Select(message =>
+                        message.payload.ToObject<ConditionTypePayload>())
+                    .Take(1),
                 token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
                     pnJson, _context, token),
                 _timeoutToken);

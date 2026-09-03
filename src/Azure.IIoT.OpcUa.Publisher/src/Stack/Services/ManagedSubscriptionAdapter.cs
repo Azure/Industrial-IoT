@@ -4480,7 +4480,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 clause.AttributeId == Attributes.NodeId)
                             {
                                 condition.ConditionIdIndex = index;
-                                fields.Add(null);
+                                fields.Add(GetFieldName(eventTemplate, clause, index,
+                                    messageContext) ?? "ConditionId");
                                 continue;
                             }
                             if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
@@ -4488,7 +4489,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 clause.BrowsePath[0] == BrowseNames.Retain)
                             {
                                 condition.RetainIndex = index;
-                                fields.Add(null);
+                                fields.Add(GetFieldName(eventTemplate, clause, index,
+                                    messageContext) ?? BrowseNames.Retain);
                                 continue;
                             }
                         }

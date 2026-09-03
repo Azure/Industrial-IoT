@@ -417,7 +417,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendPendingConditionsToIoTHubTestAsync), "./Resources/PendingAlarms.json", GetAlarmCondition,
+                nameof(CanSendPendingConditionsToIoTHubTestAsync),
+                "./Resources/PendingAlarms.json", GetPendingCondition,
                 messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=False"]);
 
             // Assert
@@ -426,7 +427,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             _output.WriteLine(message.ToJsonString());
 
             Assert.Equal(JsonValueKind.Object, message.ValueKind);
-            Assert.True(message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            var payload = message.GetProperty("Payload");
+            Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
 
             Assert.NotNull(metadata);
         }
@@ -880,6 +885,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     }
                     return node.ValueKind != JsonValueKind.Null;
                 });
+        }
+
+        internal static JsonElement GetPendingCondition(JsonElement jsonElement)
+        {
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element =>
+            {
+                if (!element.TryGetProperty("MessageType", out var type) ||
+                    type.ValueKind != JsonValueKind.String ||
+                    type.GetString() is not ("ua-event" or "ua-condition") ||
+                    !element.TryGetProperty("Payload", out var payload))
+                {
+                    return false;
+                }
+                return payload.TryGetProperty("ConditionId", out _) &&
+                    payload.TryGetProperty("Retain", out _);
+            });
         }
 
         internal static JsonElement GetDataNetworkMessage(JsonElement message)

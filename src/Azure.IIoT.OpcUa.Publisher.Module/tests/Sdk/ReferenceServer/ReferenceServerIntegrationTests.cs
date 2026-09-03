@@ -295,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendPendingConditionsToIoTHubTestAsync), "./Resources/PendingAlarms.json",
-                BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
+                BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
@@ -389,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data");
+                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data");
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
@@ -496,7 +496,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data");
+                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data");
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
@@ -570,6 +570,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal(JsonValueKind.Object, message.ValueKind);
             var payload = message.GetProperty("Payload");
             Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
         }
 
         private static void AssertDeadband<T>(IEnumerable<JsonElement> payloads, string fieldName,

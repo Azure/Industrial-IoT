@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var result = await PublisherApi.PublishNodesAsync(testInput[0], Ct);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(GetAlarmCondition);
+                var messages = await WaitForMessagesAsync(GetPendingCondition);
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
                 AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
@@ -250,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var result = await PublisherApi.PublishNodesAsync(testInput[0], Ct);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(GetAlarmCondition);
+                var messages = await WaitForMessagesAsync(GetPendingCondition);
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
@@ -331,6 +331,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var payload = message.GetProperty("Payload");
             Assert.True(payload.GetProperty("SourceNode").ValueKind != JsonValueKind.Null);
             Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
             if (message.TryGetProperty("DataSetWriterName", out var writerName))
             {
                 Assert.True(writerName.GetString()?.EndsWith("|PendingAlarms", StringComparison.Ordinal),
@@ -357,17 +360,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             return default;
         }
 
-        private static JsonElement GetAlarmCondition(JsonElement jsonElement)
+        private static JsonElement GetPendingCondition(JsonElement jsonElement)
         {
-            //
-            // Deliberately the shared predicate rather than a copy. This class
-            // had its own, and it kept filtering on the legacy ua-condition
-            // message type after the shared one learned that the native
-            // runtime publishes a condition snapshot as the ua-event
-            // occurrence it is, so these tests saw an empty collection.
-            //
             return Sdk.ReferenceServer.BasicPubSubIntegrationTests
-                .GetAlarmCondition(jsonElement);
+                .GetPendingCondition(jsonElement);
         }
 
         private static JsonElement GetSimpleEvent(JsonElement jsonElement)

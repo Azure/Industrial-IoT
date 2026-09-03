@@ -347,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(nameof(CanSendPendingConditionsToMqttBrokerTestAsync),
-                "./Resources/PendingAlarms.json", BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data",
+                "./Resources/PendingAlarms.json", BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--dm=False"], version: MqttVersion.v311);
 
             // Assert
@@ -355,7 +355,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             _output.WriteLine(message.Topic + message.Message.ToJsonString());
 
             Assert.Equal(JsonValueKind.Object, message.Message.ValueKind);
-            Assert.True(message.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            var payload = message.Message.GetProperty("Payload");
+            Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
 
             Assert.NotNull(metadata);
         }

@@ -2486,7 +2486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     SelectClauses = [new SimpleAttributeOperandModel
                     {
-                        DisplayName = "ConditionId"
+                        DisplayName = "Configured"
                     }]
                 }
             }));
@@ -2509,9 +2509,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(MessageType.Condition, notification.MessageType);
             Assert.Equal("opc.tcp://localhost:4840", notification.EndpointUrl);
             Assert.Equal("urn:managed-subscription-tests", notification.ApplicationUri);
-            var value = Assert.IsType<DataValue>(
-                Assert.Single(notification.Notifications).Value);
+            Assert.Equal(3, notification.Notifications.Count);
+            var configured = Assert.Single(notification.Notifications,
+                item => item.DataSetFieldName == "Configured");
+            var value = Assert.IsType<DataValue>(configured.Value);
             Assert.Equal(publishTime, value.SourceTimestamp.ToDateTime());
+            var conditionId = Assert.Single(notification.Notifications,
+                item => item.DataSetFieldName == "ConditionId");
+            Assert.Equal(new Variant(new NodeId(1234u, 2)),
+                Assert.IsType<DataValue>(conditionId.Value).WrappedValue);
+            var retain = Assert.Single(notification.Notifications,
+                item => item.DataSetFieldName == BrowseNames.Retain);
+            Assert.True(Assert.IsType<DataValue>(retain.Value).WrappedValue
+                .TryGetValue(out bool retained));
+            Assert.True(retained);
 
             await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
                 DateTime.UtcNow,
