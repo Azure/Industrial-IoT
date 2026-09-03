@@ -267,6 +267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var messages = new List<JsonMessage>();
+            var unmatched = new List<string>();
 
             JsonMessage? metadata = null;
             TimeSpan? metadataDeadline = null;
@@ -294,14 +295,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     {
                         foreach (var item in element.EnumerateArray())
                         {
-                            Add(messages, item, ref metadata, predicate, messageType, _messageIds,
-                                evt.Topic, evt.ContentType);
+                            Add(messages, item, ref metadata, predicate, messageType,
+                                _messageIds, unmatched, evt.Topic, evt.ContentType);
                         }
                     }
                     else if (element.ValueKind == JsonValueKind.Object)
                     {
-                        Add(messages, element, ref metadata, predicate, messageType, _messageIds,
-                            evt.Topic, evt.ContentType);
+                        Add(messages, element, ref metadata, predicate, messageType,
+                            _messageIds, unmatched, evt.Topic, evt.ContentType);
                     }
                     if (messages.Count >= messageCount)
                     {
@@ -334,11 +335,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
             catch (OperationCanceledException) { }
             _logger.MessagesReceived(messages.Count, stopWatch.Elapsed);
+            if (messages.Count < messageCount && unmatched.Count != 0)
+            {
+                _testOutputHelper.WriteLine(
+                    $"No semantic match after {stopWatch.Elapsed}. " +
+                    $"First {unmatched.Count} unmatched {messageType ?? "message"} " +
+                    $"frame(s):{Environment.NewLine}" +
+                    string.Join(Environment.NewLine, unmatched));
+            }
             return (metadata, messages.Take(messageCount).ToList());
 
             static void Add(List<JsonMessage> messages, JsonElement item, ref JsonMessage? metadata,
                 Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds,
-                string topic, string contentType)
+                List<string> unmatched, string topic, string contentType)
             {
                 if (messageType != null)
                 {
@@ -367,6 +376,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 if (add.ValueKind == JsonValueKind.Object)
                 {
                     messages.Add(new JsonMessage(topic, add, contentType));
+                }
+                else if (predicate != null && unmatched.Count < 5)
+                {
+                    var raw = item.GetRawText();
+                    unmatched.Add(raw.Length <= 1000 ? raw : raw[..1000] + "...");
                 }
             }
         }

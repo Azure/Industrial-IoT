@@ -468,7 +468,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 options.DefaultMethodCallTimeout = TimeSpan.FromSeconds(30);
                 options.MethodCallTimeoutRetries = 1;
                 options.NumberOfClientPartitions = 1;
-                options.Port = Interlocked.Increment(ref _mqttPort);
+                //
+                // MqttServer replaces zero with an OS-selected loopback port
+                // and writes the effective value back before the client is
+                // resolved. A fixed process-local sequence collided with
+                // leaked test hosts and with other jobs on shared runners,
+                // once failing a class fixture and cascading to 30 tests.
+                //
+                options.Port = 0;
             });
 
             if (devices != null)
@@ -590,7 +597,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly Channel<PublisherTelemetry> _channel;
         }
 
-        private static int _mqttPort = 48882;
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;
