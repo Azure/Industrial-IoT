@@ -6,6 +6,7 @@
 namespace OpcPublisherAEE2ETests.TestExtensions
 {
     using Azure.Messaging.EventHubs;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestModels;
     using Xunit;
 
     public sealed class PubSubMessageMatcherTests
@@ -166,6 +168,28 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                 .IsGzipPayload(legacy));
             Assert.True(global::OpcPublisherAEE2ETests.TestHelper
                 .IsGzipPayload(native));
+        }
+
+        [Theory]
+        [InlineData("\"Cycle started\"")]
+        [InlineData("""{"Text":"Cycle started","Locale":"en-US"}""")]
+        public void EventMessageAcceptsLegacyAndLocalizedTextValues(
+            string encodedValue)
+        {
+            var payload = JsonConvert.DeserializeObject<BaseEventTypePayload>(
+                $$"""
+                {
+                  "Message": {
+                    "Value": {{encodedValue}},
+                    "SourceTimestamp": "2026-09-03T12:00:00Z"
+                  }
+                }
+                """);
+
+            Assert.Equal("Cycle started", payload.Message.Value);
+            Assert.Equal(
+                new DateTime(2026, 9, 3, 12, 0, 0, DateTimeKind.Utc),
+                payload.Message.SourceTimestamp);
         }
 
         [Fact]
