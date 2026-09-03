@@ -664,17 +664,16 @@ jobs:
               image="${REGISTRY}/${NAMESPACE}/${repo}"
               echo "::group::Building ${image}  platforms=${platforms}"
 
-              # Tags:
-              #   - :<simple_version>  always
-              #   - :<nuget_version>   always (if differs from simple)
-              #   - :latest            only when pushing from main. Deliberately
-              #     not preview: a pre-release line must never claim the
-              #     floating tag that unpinned consumers resolve to.
-              tag_args=( -t "${image}:${SIMPLE_VERSION}" )
-              if [ "${SIMPLE_VERSION}" != "${NUGET_VERSION}" ]; then
-                # Docker tags cannot contain '+'; nbgv NBGV_NuGetPackageVersion
-                # uses '-rc.N' style for prereleases (no '+'), so it is safe.
-                tag_args+=( -t "${image}:${NUGET_VERSION}" )
+              # Always publish the exact NuGet version. On an unprotected topic
+              # branch Nerdbank.GitVersioning includes -g<sha>, making this tag
+              # immutable and safe for targeted E2E. Never let a diagnostic
+              # branch move preview's public 3.0.0 tag.
+              tag_args=( -t "${image}:${NUGET_VERSION}" )
+              if { [ "${GITHUB_REF}" = "refs/heads/main" ] ||
+                   [ "${GITHUB_REF}" = "refs/heads/preview" ] ||
+                   [[ "${GITHUB_REF}" = refs/heads/release/* ]]; } &&
+                 [ "${SIMPLE_VERSION}" != "${NUGET_VERSION}" ]; then
+                tag_args+=( -t "${image}:${SIMPLE_VERSION}" )
               fi
               if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
                 tag_args+=( -t "${image}:latest" )
