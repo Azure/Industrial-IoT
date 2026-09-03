@@ -1488,7 +1488,9 @@ namespace OpcPublisherAEE2ETests
                     var i = 0;// Retry twice to call with error 500
                     while (true)
                     {
-                        var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                        var methodInfo = new CloudToDeviceMethod(parameters.Name,
+                            kDirectMethodResponseTimeout,
+                            kDirectMethodConnectionTimeout);
                         methodInfo.SetPayloadJson(parameters.JsonPayload);
                         var result = await (string.IsNullOrEmpty(moduleId) ?
                              serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
@@ -1527,6 +1529,10 @@ namespace OpcPublisherAEE2ETests
         private static readonly JsonSerializer kSerializer = new();
         private static readonly TimeSpan kEventHubReaderSettleTime =
             TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan kDirectMethodResponseTimeout =
+            TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan kDirectMethodConnectionTimeout =
+            TimeSpan.FromSeconds(30);
         private const string kConnectionModuleId =
             "iothub-connection-module-id";
         private const int kMessageDiagnosticLimit = 8;
