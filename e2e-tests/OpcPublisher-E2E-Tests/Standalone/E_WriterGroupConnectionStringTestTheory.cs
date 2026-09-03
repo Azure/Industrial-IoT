@@ -118,10 +118,13 @@ namespace OpcPublisherAEE2ETests.Standalone
 
             // Assert - telemetry reaches IoT Hub attributed to the child device identity.
             string deviceId;
+            using var telemetryTimeout =
+                CancellationTokenSource.CreateLinkedTokenSource(_timeoutToken);
+            telemetryTimeout.CancelAfter(TimeSpan.FromMinutes(3));
             try
             {
                 deviceId = await _consumer.ReadConnectionDeviceIdForWriterIdAsync(
-                    _writerId, _context, _timeoutToken);
+                    _writerId, _context, telemetryTimeout.Token);
             }
             catch
             {
