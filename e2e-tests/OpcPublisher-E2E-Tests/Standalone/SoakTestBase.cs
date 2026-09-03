@@ -130,15 +130,35 @@ namespace OpcPublisherAEE2ETests.Standalone
         /// </summary>
         protected async Task DeployPublisherAsync()
         {
-            await Context.RegistryHelper.DeployStandalonePublisherAsync(
-                Deployment, TimeoutToken).ConfigureAwait(false);
+            using var readiness = CancellationTokenSource.CreateLinkedTokenSource(
+                TimeoutToken);
+            readiness.CancelAfter(kOperationTimeout);
+            try
+            {
+                await Context.RegistryHelper.DeployStandalonePublisherAsync(
+                    Deployment, readiness.Token).ConfigureAwait(false);
 
-            //
-            // Reaching IoT Hub "Connected" state does not guarantee the freshly
-            // deployed module is ready to serve direct methods: its handlers
-            // and configuration services may still be initializing.
-            //
-            await WaitUntilPublisherReadyAsync(TimeoutToken).ConfigureAwait(false);
+                //
+                // Reaching IoT Hub "Connected" state does not guarantee the
+                // freshly deployed module is ready to serve direct methods:
+                // its handlers and services may still be initializing.
+                //
+                await WaitUntilPublisherReadyAsync(readiness.Token)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                using var diagnosticTimeout =
+                    new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                var diagnostics =
+                    await TestHelper.GetEdgeRuntimeDiagnosticsAsync(
+                        Context, Deployment.ModuleName,
+                        diagnosticTimeout.Token).ConfigureAwait(false);
+                throw new InvalidOperationException(
+                    $"Publisher {Deployment.ModuleName} did not become ready " +
+                    $"within {kOperationTimeout}.{Environment.NewLine}" +
+                    diagnostics, ex);
+            }
         }
 
         /// <summary>
@@ -207,11 +227,24 @@ namespace OpcPublisherAEE2ETests.Standalone
         /// <summary>
         /// Remove this scenario's simulation container and layered deployment.
         /// </summary>
-        protected async Task CleanupAsync()
+        protected async Task CleanupAsync(CancellationToken ct)
         {
-            await TestHelper.DeleteSimulationContainerAsync(Context, TimeoutToken)
+            await TestHelper.DeleteSimulationContainerAsync(Context, ct)
                 .ConfigureAwait(false);
-            await Deployment.DeleteLayeredDeploymentAsync(TimeoutToken).ConfigureAwait(false);
+            await Deployment.DeleteLayeredDeploymentAsync(ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Remove the published nodes, simulator and publisher deployment under
+        /// a bounded cleanup token rather than the soak observation budget.
+        /// </summary>
+        protected async Task CleanupPublisherAsync()
+        {
+            using var cleanup = CancellationTokenSource.CreateLinkedTokenSource(
+                TimeoutToken);
+            cleanup.CancelAfter(kOperationTimeout);
+            await UnpublishAllNodesAsync(cleanup.Token).ConfigureAwait(false);
+            await CleanupAsync(cleanup.Token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -338,6 +371,8 @@ namespace OpcPublisherAEE2ETests.Standalone
         /// creating the simulation container and tearing both down again.
         /// </summary>
         private static readonly TimeSpan kOverhead = TimeSpan.FromMinutes(45);
+        private static readonly TimeSpan kOperationTimeout =
+            TimeSpan.FromMinutes(10);
         private readonly ITestOutputHelper _output;
         private readonly ServiceClient _iotHubClient;
         private readonly EventHubConsumerClient _consumer;

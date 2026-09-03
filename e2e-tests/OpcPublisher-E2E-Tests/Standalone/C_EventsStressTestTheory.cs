@@ -45,22 +45,27 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _timeoutToken,
                 numInstances: instances);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, -1, _timeoutToken);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
-            var fullData = await messages
-                .TakeWhile(_context, (first, current) => current.EnqueuedTime - first.EnqueuedTime <= FromSeconds(nSecondsTotal))
-
-                // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
-                .ToListAsync(_timeoutToken);
+            // Act
+            var fullData = await TestHelper.ReadAfterAsync(
+                token => _consumer
+                    .ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(
+                        _writerId, -1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .TakeWhile(_context, (first, current) =>
+                        current.EnqueuedTime - first.EnqueuedTime <=
+                            FromSeconds(nSecondsTotal))
+                    // Get time of event attached Server node.
+                    .Select(e => (e.EnqueuedTime,
+                        SourceTimestamp: e.Payload.ReceiveTime.Value)),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert throughput
 

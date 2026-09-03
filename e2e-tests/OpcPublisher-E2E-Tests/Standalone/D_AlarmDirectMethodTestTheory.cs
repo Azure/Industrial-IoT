@@ -33,17 +33,19 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 1, _timeoutToken);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
-            await PublishNodesAsync(pnJson, _timeoutToken);
-
-            // take any message
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            // Act
+            var payloads = await TestHelper.ReadAfterAsync(
+                token => _consumer
+                    .ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => PublishNodesAsync(pnJson, token),
+                _timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert

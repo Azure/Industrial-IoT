@@ -23,7 +23,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     /// </para>
     /// <para>
     /// The long running telemetry quality tests observe a stream for tens of
-    /// minutes, so unlike <see cref="TestHelper.ReadMessagesFromWriterIdAsync(EventHubConsumerClient, string, int, IIoTPlatformTestContext, CancellationToken)"/>
+    /// minutes, so unlike <see cref="TestHelper.ReadMessagesFromWriterIdAsync(EventHubConsumerClient, string, int, IIoTPlatformTestContext, string, CancellationToken)"/>
     /// this reader must not buffer messages, must not write one line of test
     /// output per message, and must understand the legacy samples encoding
     /// (a bare monitored item message) in addition to PubSub network messages.

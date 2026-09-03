@@ -200,8 +200,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         [Fact, PriorityOrder(998)]
         public async Task TestCleanup()
         {
-            await UnpublishAllNodesAsync(TimeoutToken);
-            await CleanupAsync();
+            await CleanupPublisherAsync();
         }
 
         /// <summary>

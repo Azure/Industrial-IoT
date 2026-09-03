@@ -39,23 +39,28 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _timeoutToken,
                 "opc-plc-files/sc001.json");
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 10000, _timeoutToken, _context);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nMessages = 6;
-            var payloads = await messages
-                .Select(e => e.Payload)
-                .Skip(nMessages) // First batch of alarms are from a ConditionRefresh, therefore not in order
-                .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP", StringComparison.Ordinal))
-                .Skip(1)
-                .Take(nMessages)
-                .ToListAsync(_timeoutToken);
+            // Act
+            var payloads = await TestHelper.ReadAfterAsync(
+                token => _consumer
+                    .ReadMessagesFromWriterIdAsync<ConditionTypePayload>(
+                        _writerId, 10000, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(e => e.Payload)
+                    // First batch is ConditionRefresh and is not ordered.
+                    .Skip(nMessages)
+                    .SkipWhile(c => !c.Message.Value.Contains(
+                        "LAST EVENT IN LOOP", StringComparison.Ordinal))
+                    .Skip(1)
+                    .Take(nMessages),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert
 
