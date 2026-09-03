@@ -237,6 +237,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.Contains(services, descriptor =>
                 descriptor.ServiceType == typeof(IEventClient));
             Assert.Contains(services, descriptor =>
+                descriptor.ServiceType == typeof(IoTHubEventClientFactory));
+            Assert.Contains(services, descriptor =>
+                descriptor.ServiceType == typeof(IEventClientFactory));
+            Assert.Contains(services, descriptor =>
                 descriptor.ServiceType == typeof(IEventSubscriber));
             Assert.Contains(services, descriptor =>
                 descriptor.ServiceType == typeof(IRpcServer));

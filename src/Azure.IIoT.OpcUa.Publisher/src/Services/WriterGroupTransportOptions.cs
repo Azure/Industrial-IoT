@@ -64,8 +64,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!factories.TryGetValue(EventClient.Name, out var factory))
             {
                 logger.CustomWriterGroupConfigurationCouldNotBeApplied(
-                    EventClient.Name);
-                return;
+                    writerGroup.Id, EventClient.Name);
+                throw new InvalidOperationException(
+                    $"Transport {EventClient.Name} does not support a custom " +
+                    $"configuration for writer group {writerGroup.Id}.");
             }
             // Create event client with configuration from factory.
             try
@@ -80,7 +82,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             catch (Exception e)
             {
                 logger.CustomWriterGroupConfigurationCouldNotBeAppliedWithError(
-                    EventClient.Name, e.Message);
+                    writerGroup.Id, EventClient.Name, e.Message);
+                throw new InvalidOperationException(
+                    $"Custom configuration for writer group {writerGroup.Id} " +
+                    $"could not be applied to transport {EventClient.Name}.", e);
             }
         }
 
@@ -106,15 +111,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string transport);
 
         [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Warning,
-            Message = "Custom writer group configuration could not be applied to transport {Transport} " +
-            "- using default.")]
+            Message = "Custom configuration for writer group {WriterGroupId} " +
+            "could not be applied to transport {Transport}.")]
         public static partial void CustomWriterGroupConfigurationCouldNotBeApplied(this ILogger logger,
-            string transport);
+            string? writerGroupId, string transport);
 
         [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
-            Message = "Custom writer group configuration could not be applied to transport {Transport} " +
-            "due to bad configuration (Error: {Error}) - using default.")]
+            Message = "Custom configuration for writer group {WriterGroupId} " +
+            "could not be applied to transport {Transport} due to bad configuration " +
+            "(Error: {Error}).")]
         public static partial void CustomWriterGroupConfigurationCouldNotBeAppliedWithError(this ILogger logger,
-            string transport, string error);
+            string? writerGroupId, string transport, string error);
     }
 }

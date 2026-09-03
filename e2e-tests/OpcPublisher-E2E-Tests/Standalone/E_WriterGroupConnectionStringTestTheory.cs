@@ -54,8 +54,8 @@ namespace OpcPublisherAEE2ETests.Standalone
             _timeoutToken = _timeoutTokenSource.Token;
             _consumer = _context.GetEventHubConsumerClient();
             _writerId = Guid.NewGuid().ToString();
-            _writerGroup = Guid.NewGuid().ToString();
-            _childDeviceId = "e2e-writergroup-cs-" + _context.TestingSuffix;
+            _writerGroup = _writerId + "-0";
+            _childDeviceId = "e2e-writergroup-cs-" + _writerId;
 
             // Second publisher identity with dedicated published nodes file and pki folder.
             _deployment = new IoTHubPublisherDeployment(_context, OpcPublisherAEE2ETests.MessagingMode.PubSub,

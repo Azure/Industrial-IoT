@@ -255,13 +255,15 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             public void Dispose()
             {
+                WriterGroupTransportOptions[] selected;
                 lock (_gate)
                 {
-                    foreach (var transport in _selected.Values)
-                    {
-                        transport.Dispose();
-                    }
+                    selected = [.. _selected.Values];
                     _selected.Clear();
+                }
+                foreach (var transport in selected)
+                {
+                    transport.Dispose();
                 }
             }
 

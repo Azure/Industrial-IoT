@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         IAsyncDisposable
     {
         /// <inheritdoc/>
-        public string Name => "IoTEdge";
+        public string Name => "IoTHub";
 
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes { get; } = (256 * 1024) - 4 * 1024;

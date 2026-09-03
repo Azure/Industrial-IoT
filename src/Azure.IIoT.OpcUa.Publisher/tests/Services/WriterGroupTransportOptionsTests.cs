@@ -164,7 +164,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void Ctor_WithTransportConfigAndNoMatchingFactory_KeepsOriginalClient()
+        public void Ctor_IoTHubConnectionStringUsesIoTHubFactory()
+        {
+            var edge = CreateClientMock("IoTHub");
+            var dedicated = CreateClientMock("IoTHub");
+            var scope = new Mock<IDisposable>();
+            var factory = new Mock<IEventClientFactory>();
+            factory.SetupGet(f => f.Name).Returns("IoTHub");
+            factory.Setup(f => f.CreateEventClient(
+                    "device-connection-string",
+                    out It.Ref<IEventClient>.IsAny))
+                .Callback(new CreateEventClientCallback(
+                    (string _, out IEventClient client) =>
+                        client = dedicated.Object))
+                .Returns(scope.Object);
+            var group = new WriterGroupModel
+            {
+                Id = "g1",
+                Transport = WriterGroupTransport.IoTHub,
+                TransportConfiguration = "device-connection-string"
+            };
+
+            using var sut = new WriterGroupTransportOptions(group,
+                [edge.Object],
+                new Dictionary<string, IEventClientFactory>
+                {
+                    ["IoTHub"] = factory.Object
+                },
+                CreateOptions(), NullLogger.Instance);
+
+            Assert.Same(dedicated.Object, sut.EventClient);
+            factory.Verify(f => f.CreateEventClient(
+                "device-connection-string",
+                out It.Ref<IEventClient>.IsAny), Times.Once);
+        }
+
+        [Fact]
+        public void Ctor_WithTransportConfigAndNoMatchingFactory_Throws()
         {
             var original = CreateClientMock("Mqtt");
             var group = new WriterGroupModel
@@ -174,16 +210,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 TransportConfiguration = "conn-string"
             };
 
-            using var sut = new WriterGroupTransportOptions(group,
-                [original.Object],
-                [],
-                CreateOptions(), NullLogger.Instance);
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                new WriterGroupTransportOptions(group, [original.Object], [],
+                    CreateOptions(), NullLogger.Instance));
 
-            Assert.Same(original.Object, sut.EventClient);
+            Assert.Contains("does not support", error.Message,
+                StringComparison.Ordinal);
+            Assert.Contains("g1", error.Message, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void Ctor_WithTransportConfigAndFactoryThrows_KeepsOriginalClient()
+        public void Ctor_WithTransportConfigAndFactoryThrows_Throws()
         {
             var original = CreateClientMock("Mqtt");
             var factory = new Mock<IEventClientFactory>();
@@ -198,12 +235,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 TransportConfiguration = "conn-string"
             };
 
-            using var sut = new WriterGroupTransportOptions(group,
-                [original.Object],
-                new Dictionary<string, IEventClientFactory> { ["Mqtt"] = factory.Object },
-                CreateOptions(), NullLogger.Instance);
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                new WriterGroupTransportOptions(group, [original.Object],
+                    new Dictionary<string, IEventClientFactory>
+                    {
+                        ["Mqtt"] = factory.Object
+                    },
+                    CreateOptions(), NullLogger.Instance));
 
-            Assert.Same(original.Object, sut.EventClient);
+            Assert.Contains("g1", error.Message, StringComparison.Ordinal);
+            Assert.Equal("bad config", error.InnerException?.Message);
         }
 
         // ── Dispose ───────────────────────────────────────────────────────────

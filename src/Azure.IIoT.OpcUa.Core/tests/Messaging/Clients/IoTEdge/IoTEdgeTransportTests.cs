@@ -39,6 +39,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             await using var transport = CreateTransport(new IoTEdgeTestModuleClient(),
                 new IoTEdgeTestIdentity { Gateway = "gateway" });
 
+            Assert.Equal("IoTHub", transport.Name);
             Assert.Equal("device/module", transport.Identity);
             Assert.Equal("gateway", ((IProcessIdentity)transport).Identity);
         }
