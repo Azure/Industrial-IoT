@@ -117,8 +117,24 @@ namespace OpcPublisherAEE2ETests.Standalone
             await PublishNodesAsync(pnJson, _timeoutToken);
 
             // Assert - telemetry reaches IoT Hub attributed to the child device identity.
-            var deviceId = await _consumer.ReadConnectionDeviceIdForWriterIdAsync(
-                _writerId, _context, _timeoutToken);
+            string deviceId;
+            try
+            {
+                deviceId = await _consumer.ReadConnectionDeviceIdForWriterIdAsync(
+                    _writerId, _context, _timeoutToken);
+            }
+            catch
+            {
+                using var diagnosticsCts = new CancellationTokenSource(
+                    TimeSpan.FromMinutes(2));
+                var diagnostics = await TestHelper.GetEdgeRuntimeDiagnosticsAsync(
+                    _context, _deployment.ModuleName, diagnosticsCts.Token)
+                    .ConfigureAwait(false);
+                _context.OutputHelper?.WriteLine(
+                    $"=== {_deployment.ModuleName} telemetry diagnostics ===" +
+                    $"{Environment.NewLine}{diagnostics}");
+                throw;
+            }
             Assert.Equal(_childDeviceId, deviceId);
 
             await UnpublishAllNodesAsync(_timeoutToken);
