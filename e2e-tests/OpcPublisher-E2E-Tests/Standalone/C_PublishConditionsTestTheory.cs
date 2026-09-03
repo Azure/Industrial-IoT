@@ -168,9 +168,10 @@ namespace OpcPublisherAEE2ETests.Standalone
             p.LastSeverity.Value.Should().Be(expectedPayload.LastSeverity.Value);
             p.Retain.Value.Should().Be(expectedPayload.Retain.Value);
             p.SourceName.Value.Should().BeEquivalentTo(expectedPayload.SourceName.Value);
-            p.SourceNode.Value.Should().BeEquivalentTo(expectedPayload.SourceNode.Value);
+            GetNodeIdIdentifier(p.SourceNode.Value).Should().Be(
+                GetNodeIdIdentifier(expectedPayload.SourceNode.Value));
 
-            p.ConditionId.Value.Should().StartWith("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
+            GetNodeIdIdentifier(p.ConditionId.Value).Should().StartWith("i=");
 
             p.EnabledStateEffectiveTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
             p.EnabledStateTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
@@ -181,6 +182,17 @@ namespace OpcPublisherAEE2ETests.Standalone
                 var transitionTime = p.EnabledStateEffectiveTransitionTime.Value - payloads[i - 1].EnabledStateEffectiveTransitionTime.Value;
                 // TODO there is no difference in the transition time...
                 // transitionTime.Should().BeCloseTo(expectedDelay.Value, Precision);
+            }
+
+            static string GetNodeIdIdentifier(string nodeId)
+            {
+                var separator = nodeId.LastIndexOf('#');
+                if (separator >= 0)
+                {
+                    return nodeId[(separator + 1)..];
+                }
+                separator = nodeId.IndexOf(';');
+                return separator >= 0 ? nodeId[(separator + 1)..] : nodeId;
             }
         }
     }

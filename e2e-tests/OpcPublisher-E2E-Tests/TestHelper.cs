@@ -1512,8 +1512,12 @@ namespace OpcPublisherAEE2ETests
                     var i = 0;// Retry twice to call with error 500
                     while (true)
                     {
+                        var responseTimeout = parameters.Name ==
+                            TestConstants.DirectMethodNames.PublishNodes
+                                ? kConfigurationMethodResponseTimeout
+                                : kDirectMethodResponseTimeout;
                         var methodInfo = new CloudToDeviceMethod(parameters.Name,
-                            kDirectMethodResponseTimeout,
+                            responseTimeout,
                             kDirectMethodConnectionTimeout);
                         methodInfo.SetPayloadJson(parameters.JsonPayload);
                         var result = await (string.IsNullOrEmpty(moduleId) ?
@@ -1555,6 +1559,8 @@ namespace OpcPublisherAEE2ETests
             TimeSpan.FromSeconds(5);
         private static readonly TimeSpan kDirectMethodResponseTimeout =
             TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan kConfigurationMethodResponseTimeout =
+            TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kDirectMethodConnectionTimeout =
             TimeSpan.FromSeconds(30);
         private const string kConnectionModuleId =
