@@ -5,6 +5,7 @@
 
 namespace OpcPublisherAEE2ETests.TestExtensions
 {
+    using Azure.Messaging.EventHubs;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -135,6 +136,36 @@ namespace OpcPublisherAEE2ETests.TestExtensions
 
             Assert.Equal(2,
                 PubSubMessageMatcher.EnumerateNetworkMessages(batch).Count());
+        }
+
+        [Fact]
+        public void JsonNetworkMessageDoesNotRequireLegacyContentTypeProperty()
+        {
+            var eventData = new EventData(BinaryData.FromString("{}"))
+            {
+                ContentType = "application/json"
+            };
+            eventData.Properties["$$MessageSchema"] =
+                "application/x-network-message-json-v1";
+
+            Assert.True(global::OpcPublisherAEE2ETests.TestHelper
+                .IsJsonNetworkMessage(eventData));
+            Assert.False(global::OpcPublisherAEE2ETests.TestHelper
+                .IsGzipPayload(eventData));
+        }
+
+        [Fact]
+        public void GzipDetectionSupportsLegacyAndNativeProperties()
+        {
+            var legacy = new EventData(BinaryData.FromString("{}"));
+            legacy.Properties["$$ContentType"] = "application/json+gzip";
+            var native = new EventData(BinaryData.FromString("{}"));
+            native.Properties["encoding"] = "JsonReversibleGzip";
+
+            Assert.True(global::OpcPublisherAEE2ETests.TestHelper
+                .IsGzipPayload(legacy));
+            Assert.True(global::OpcPublisherAEE2ETests.TestHelper
+                .IsGzipPayload(native));
         }
 
         [Fact]

@@ -9,6 +9,7 @@ namespace OpcPublisherAEE2ETests
     using Azure;
     using Azure.Core;
     using Azure.Identity;
+    using Azure.Messaging.EventHubs;
     using Azure.Messaging.EventHubs.Consumer;
     using Azure.ResourceManager;
     using Azure.ResourceManager.ContainerInstance;
@@ -1135,13 +1136,11 @@ namespace OpcPublisherAEE2ETests
                 }
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[
                     MessageSystemPropertyNames.EnqueuedTime];
-                if (!partitionEvent.Data.Properties.TryGetValue(
-                    "$$ContentType", out var contentType))
+                if (!IsJsonNetworkMessage(partitionEvent.Data))
                 {
                     continue;
                 }
-                var isPayloadCompressed =
-                    (string)contentType == "application/json+gzip";
+                var isPayloadCompressed = IsGzipPayload(partitionEvent.Data);
                 var json = await DeserializeEventBodyAsync(partitionEvent,
                     isPayloadCompressed, cancellationToken).ConfigureAwait(false);
                 var matched = false;
@@ -1213,14 +1212,15 @@ namespace OpcPublisherAEE2ETests
                         !partitionEvent.Data.SystemProperties.TryGetValue(
                             MessageSystemPropertyNames.ConnectionDeviceId,
                             out var deviceIdObj) ||
-                        deviceIdObj is not string deviceId ||
-                        !partitionEvent.Data.Properties.TryGetValue(
-                            "$$ContentType", out var contentType))
+                            deviceIdObj is not string deviceId)
                     {
-                        continue;
+                            continue;
                     }
-                    var compressed = contentType is string ct &&
-                        ct == "application/json+gzip";
+                    if (!IsJsonNetworkMessage(partitionEvent.Data))
+                    {
+                            continue;
+                    }
+                    var compressed = IsGzipPayload(partitionEvent.Data);
                     var json = await DeserializeEventBodyAsync(partitionEvent,
                         compressed, cancellationToken).ConfigureAwait(false);
                     foreach (var message in
@@ -1250,6 +1250,30 @@ namespace OpcPublisherAEE2ETests
                 throw;
             }
             return null;
+        }
+
+        internal static bool IsJsonNetworkMessage(EventData eventData)
+        {
+            ArgumentNullException.ThrowIfNull(eventData);
+            return eventData.Properties.TryGetValue(
+                    kMessageSchemaProperty, out var schema) &&
+                schema is string schemaType &&
+            schemaType == kNetworkMessageJsonSchema;
+        }
+
+        internal static bool IsGzipPayload(EventData eventData)
+        {
+            ArgumentNullException.ThrowIfNull(eventData);
+            if (eventData.Properties.TryGetValue("$$ContentType",
+                    out var legacyContentType) &&
+                legacyContentType is string contentType &&
+                contentType == "application/json+gzip")
+            {
+                return true;
+            }
+            return eventData.Properties.TryGetValue("encoding", out var encoding) &&
+                encoding is string encodingName &&
+                encodingName.EndsWith("Gzip", StringComparison.OrdinalIgnoreCase);
         }
 
         private static async Task<JToken> DeserializeEventBodyAsync(
@@ -1535,6 +1559,9 @@ namespace OpcPublisherAEE2ETests
             TimeSpan.FromSeconds(30);
         private const string kConnectionModuleId =
             "iothub-connection-module-id";
+        private const string kMessageSchemaProperty = "$$MessageSchema";
+        private const string kNetworkMessageJsonSchema =
+            "application/x-network-message-json-v1";
         private const int kMessageDiagnosticLimit = 8;
     }
 }

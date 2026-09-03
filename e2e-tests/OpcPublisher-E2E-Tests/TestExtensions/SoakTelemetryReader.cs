@@ -86,8 +86,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                     }
 
                     byte[] body;
-                    if (partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType) &&
-                        contentType is string ct2 && ct2 == "application/json+gzip")
+                    if (TestHelper.IsGzipPayload(partitionEvent.Data))
                     {
                         body = Decompress(Convert.FromBase64String(
                             partitionEvent.Data.EventBody.ToString()));
