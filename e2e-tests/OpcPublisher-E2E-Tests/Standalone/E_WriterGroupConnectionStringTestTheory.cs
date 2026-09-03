@@ -134,13 +134,28 @@ namespace OpcPublisherAEE2ETests.Standalone
 
         private async Task<MethodResultModel> CallMethodAsync(MethodParameterModel parameters, CancellationToken ct)
         {
-            return await TestHelper.CallMethodAsync(
-                _iotHubClient,
-                _context.DeviceConfig.DeviceId,
-                _deployment.ModuleName,
-                parameters,
-                _context,
-                ct).ConfigureAwait(false);
+            try
+            {
+                return await TestHelper.CallMethodAsync(
+                    _iotHubClient,
+                    _context.DeviceConfig.DeviceId,
+                    _deployment.ModuleName,
+                    parameters,
+                    _context,
+                    ct).ConfigureAwait(false);
+            }
+            catch
+            {
+                using var diagnosticsCts = new CancellationTokenSource(
+                    TimeSpan.FromMinutes(2));
+                var diagnostics = await TestHelper.GetEdgeRuntimeDiagnosticsAsync(
+                    _context, _deployment.ModuleName, diagnosticsCts.Token)
+                    .ConfigureAwait(false);
+                _context.OutputHelper?.WriteLine(
+                    $"=== {_deployment.ModuleName} runtime diagnostics ===" +
+                    $"{Environment.NewLine}{diagnostics}");
+                throw;
+            }
         }
 
         /// <summary>
