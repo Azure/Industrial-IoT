@@ -178,6 +178,7 @@ namespace OpcPublisherAEE2ETests
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
 
+            await WaitForEdgeHubReadyAsync(ct).ConfigureAwait(false);
             await RestartStandalonePublisherAsync(messagingMode, false, ct);
             await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context, ct);
@@ -231,6 +232,7 @@ namespace OpcPublisherAEE2ETests
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
 
+            await WaitForEdgeHubReadyAsync(ct).ConfigureAwait(false);
             await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
 
             // Create new layered edge deployment for the second publisher identity.
@@ -249,6 +251,21 @@ namespace OpcPublisherAEE2ETests
                 $"OPC Publisher module {publisher.ModuleName} is up and running.");
 
             return publisher.ModuleName;
+        }
+
+        private async Task WaitForEdgeHubReadyAsync(CancellationToken ct)
+        {
+            await WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId, ct, ["$edgeHub"])
+                .ConfigureAwait(false);
+            //
+            // The registry reports the edgeHub identity connected just before
+            // its local MQTT/AMQP protocol heads finish binding. User modules
+            // connect through those heads, so leave one normal polling interval
+            // before applying their layered deployment.
+            //
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
