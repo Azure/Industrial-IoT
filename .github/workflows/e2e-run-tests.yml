@@ -242,18 +242,26 @@ jobs:
           # failing test, because the results file holds only the tests that
           # had already passed.
           #
-          # It is still worth having. Removing it entirely let a stuck A&E test
-          # occupy the shared IoT Edge gateway for the full ninety minute job
-          # timeout, which starves the soak jobs deployed alongside it -- the
-          # suite's own MaxTestTimeoutMilliseconds token did not stop it.
+          # It is still worth having. Without it a stuck A&E test occupied the
+          # shared IoT Edge gateway for the full job timeout and starved the
+          # soak jobs deployed alongside it.
           #
-          # So: derive the window from the work the job was asked to do. Soak
-          # jobs get their observation window plus headroom for deployment,
-          # warm up and teardown; everything else gets twenty minutes, which is
-          # twice the suite's own per-class budget.
+          # For a soak the window is anchored just under the job timeout rather
+          # than derived from soak_minutes directly. SoakTestBase bounds itself
+          # with Duration + 45 minutes, which at the default is the same 75
+          # minutes an earlier soak_minutes + 45 window produced: the two fired
+          # together and the detector won, so the test never got to report its
+          # own cancellation and the results file came back empty. Sitting five
+          # minutes under the job timeout keeps the detector strictly the last
+          # resort, after the test's own token has had its chance to fail with
+          # a diagnostic.
+          #
+          # Everything else gets twenty minutes, twice the suite's own
+          # per-class budget, so a stuck test there fails quickly instead of
+          # holding the gateway.
           #
           if [ -n "${IIOT_E2E_SOAK_MINUTES:-}" ]; then
-            hang_minutes=$(( IIOT_E2E_SOAK_MINUTES + 45 ))
+            hang_minutes=$(( ${{ inputs.timeout_minutes }} - 5 ))
           else
             hang_minutes=20
           fi
