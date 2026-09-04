@@ -77,9 +77,16 @@ namespace OpcPublisherAEE2ETests.Standalone
         [Fact, PriorityOrder(1)]
         public async Task TestDeployStandalonePublisher()
         {
+            if (RequiresFreshPublisherDeployment)
+            {
+                await _context.RegistryHelper.RestartStandalonePublisherAsync(
+                    OpcPublisherAEE2ETests.MessagingMode.PubSub, true, _timeoutToken);
+            }
             await _context.RegistryHelper.DeployStandalonePublisherAsync(
                 OpcPublisherAEE2ETests.MessagingMode.PubSub, _timeoutToken);
         }
+
+        protected virtual bool RequiresFreshPublisherDeployment => false;
 
         [Fact, PriorityOrder(998)]
         public async Task TestRestartStandalonePublisher()
