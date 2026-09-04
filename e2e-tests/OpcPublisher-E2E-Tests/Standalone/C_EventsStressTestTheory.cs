@@ -42,7 +42,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             const int eventInstances = 1;
             const int instances = 10;
             const int nSeconds = 20;
-            const int nSecondWarmup = 180;
+            const int nSecondWarmup = 60;
             const int nSecondSkipLast = 6;
 
             // Arrange
@@ -54,7 +54,11 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
+                // Do not retain minutes of events while the ten endpoints are
+                // connected. Discarding old rollout events still leaves the
+                // steady stream subject to every rate and latency assertion.
+                TestConstants.PublishedNodesConfigurations.SimpleEventFilter(
+                    "i=2041", queueSize: 1)); // OPC-UA BaseEventType
 
             const int nSecondsTotal = nSecondWarmup + nSeconds + nSecondSkipLast;
             var configurationCompleted = new TaskCompletionSource<DateTime>(
