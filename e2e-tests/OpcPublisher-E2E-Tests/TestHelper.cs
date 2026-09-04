@@ -404,7 +404,13 @@ namespace OpcPublisherAEE2ETests
         /// <param name="port">Port of OPC UA server</param>
         /// <param name="writerId">DataSetWriterId to set</param>
         /// <param name="opcNodes">OPC UA nodes</param>
-        public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcNodes)
+        /// <param name="singleWriterGroup">
+        /// Put every endpoint into one writer group so native PubSub can batch
+        /// their dataset messages into one network message.
+        /// </param>
+        public static string PublishedNodesJson(this IIoTStandaloneTestContext context,
+            uint port, string writerId, JArray opcNodes,
+            bool singleWriterGroup = false)
         {
             return JsonConvert.SerializeObject(
                 new JArray(
@@ -416,7 +422,8 @@ namespace OpcPublisherAEE2ETests
                         // stack allocation. Prefix the group with the logical
                         // writer id so the E2E reader can correlate both the
                         // current wire and older compatibility messages.
-                        new JProperty("DataSetWriterGroup", $"{writerId}-{index}"),
+                        new JProperty("DataSetWriterGroup",
+                            $"{writerId}-{(singleWriterGroup ? 0 : index)}"),
                         new JProperty("DataSetWriterId", writerId),
                         new JProperty("OpcNodes", opcNodes)))
                 ), Formatting.Indented);

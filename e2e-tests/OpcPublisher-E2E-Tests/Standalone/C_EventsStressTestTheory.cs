@@ -48,7 +48,8 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
+                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041"),
+                singleWriterGroup: true); // OPC-UA BaseEventType
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             // Act
