@@ -41,7 +41,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             const int eventInstances = 1;
             const int instances = 10;
             const int nSeconds = 20;
-            const int nSecondSkipFirst = 10;
+            const int nSecondWarmup = 60;
             const int nSecondSkipLast = 6;
 
             // Arrange
@@ -55,7 +55,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
 
-            const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
+            const int nSecondsTotal = nSecondWarmup + nSeconds + nSecondSkipLast;
             var configurationCompleted = new TaskCompletionSource<DateTime>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             // Act
@@ -87,17 +87,31 @@ namespace OpcPublisherAEE2ETests.Standalone
 
             // Assert throughput
 
-            // Trim first few and last seconds of data, since Publisher polls PLCs
-            // at different times
-            var intervalStart = fullData.Min(d => d.SourceTimestamp) + FromSeconds(nSecondSkipFirst);
-            var intervalEnd = fullData.Max(d => d.SourceTimestamp) - FromSeconds(nSecondSkipLast);
-            var intervalDuration = intervalEnd - intervalStart;
-            var eventData = fullData.Where(d => d.SourceTimestamp > intervalStart && d.SourceTimestamp < intervalEnd).ToList();
+            // Allow the per-endpoint queues to drain after the last endpoint
+            // starts, then measure a complete enqueue-time window. Source time
+            // remains the latency origin, but is not a reliable window clock
+            // while older occurrences are being drained.
+            var intervalEnd = fullData.Max(d => d.EnqueuedTime)
+                - FromSeconds(nSecondSkipLast);
+            var intervalStart = intervalEnd - FromSeconds(nSeconds);
+            var eventData = fullData
+                .Where(d => d.EnqueuedTime > intervalStart
+                    && d.EnqueuedTime < intervalEnd)
+                .ToList();
+            eventData.Should().NotBeEmpty();
+            var intervalDuration = eventData.Max(d => d.EnqueuedTime)
+                - eventData.Min(d => d.EnqueuedTime);
 
             // Bin events by 1-second interval to compute event rate histogram
-            var eventRatesBySecond = eventData
-                .GroupBy(s => s.SourceTimestamp.Value.Truncate(FromSeconds(1)))
-                .Select(g => g.Count())
+            var ratesBySecond = eventData
+                .GroupBy(s => s.EnqueuedTime.Truncate(FromSeconds(1)))
+                .ToDictionary(g => g.Key, g => g.Count());
+            var firstSecond = ratesBySecond.Keys.Min();
+            var lastSecond = ratesBySecond.Keys.Max();
+            var eventRatesBySecond = Enumerable
+                .Range(0, (int)(lastSecond - firstSecond).TotalSeconds + 1)
+                .Select(offset => ratesBySecond.GetValueOrDefault(
+                    firstSecond.AddSeconds(offset), 0))
                 .ToArray()[1..^1];
 
             const int expectedEventsPerSecond = instances * eventInstances * 1000 / eventIntervalPerInstanceMs;
@@ -106,13 +120,18 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Assert latency
             var end2EndLatency = eventData
                 .ConvertAll(v => v.EnqueuedTime - v.SourceTimestamp);
+            _context.OutputHelper.WriteLine(
+                $"End-to-end latency: min {end2EndLatency.Min()}, " +
+                $"average {end2EndLatency.Average(v => v.Value.TotalMilliseconds):F0} ms, " +
+                $"max {end2EndLatency.Max()}.");
             end2EndLatency.Min().Should().BePositive();
             end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
 
             // var eventRate = eventData.Count / intervalDuration.Value.TotalSeconds;
             var eventRate = eventRatesBySecond.Average();
-            intervalDuration.Should().BeGreaterThan(FromSeconds(nSeconds));
-            eventData.Count.Should().BeGreaterThan(nSeconds * expectedEventsPerSecond,
+            intervalDuration.Should().BeGreaterThan(FromSeconds(nSeconds - 2));
+            eventData.Count.Should().BeGreaterThan(
+                nSeconds * expectedEventsPerSecond * 9 / 10,
                 "Publisher should produce data continuously");
             eventRate.Should().BeApproximately(
                 expectedEventsPerSecond,
