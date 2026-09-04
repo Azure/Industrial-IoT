@@ -32,11 +32,12 @@ namespace OpcPublisherAEE2ETests.Standalone
         public async Task TestACIVerifyEnd2EndThroughputAndLatency()
         {
             // Settings
-            const int eventIntervalPerInstanceMs = 400;
+            const int eventIntervalPerInstanceMs = 1000;
             //
             // Native PubSub carries one event occurrence per acknowledged
             // send. Keep enough headroom below the transport ceiling that the
-            // test measures sustained delivery rather than a growing backlog.
+            // test measures sustained delivery rather than a growing backlog:
+            // one event per second from each of ten independent endpoints.
             //
             const int eventInstances = 1;
             const int instances = 10;
