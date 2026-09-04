@@ -142,10 +142,10 @@ permissions:
   actions: read
 
 concurrency:
-  # Serialize per-RG so a new run doesn't kill an in-flight deploy and leak
-  # Azure resources. RG name is unique-per-run when the input is <generated>,
-  # so concurrent CI runs do not collide.
-  group: e2e-${{ inputs.resource_group_name || 'nightly' }}
+  # Serialize explicit-RG and scheduled runs so a new run cannot kill an
+  # in-flight deployment and leak Azure resources. A <generated> RG is unique
+  # per run, so its concurrency key must be unique as well.
+  group: e2e-${{ inputs.resource_group_name == '<generated>' && github.run_id || inputs.resource_group_name || github.workflow }}
   cancel-in-progress: false
 
 env:
