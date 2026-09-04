@@ -4516,6 +4516,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (clause.BrowsePath.Count == 0)
                     {
+                        if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                            clause.AttributeId == Attributes.NodeId)
+                        {
+                            return "ConditionId";
+                        }
                         return null;
                     }
                     var names = new string[clause.BrowsePath.Count];

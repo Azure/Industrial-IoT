@@ -2550,6 +2550,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task PlainConditionEventPublishesConditionIdField()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, new EventMonitoredItemModel
+            {
+                StartNodeId = "ns=2;s=conditions",
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId =
+                                ObjectTypeIds.ConditionType.ToString(),
+                            AttributeId = NodeAttribute.NodeId
+                        }
+                    ]
+                }
+            }));
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+
+            await manager.Handler!.OnEventDataNotificationAsync(
+                manager.Subscription, 1, DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new(item,
+                        ArrayOf.Wrapped(Variant.From(new NodeId(1234u, 2))))
+                },
+                PublishState.None, []);
+
+            var message = Assert.Single(owner.Events);
+            var conditionId = Assert.Single(message.Notifications);
+            Assert.Equal("ConditionId", conditionId.DataSetFieldName);
+            Assert.Equal(new Variant(new NodeId(1234u, 2)),
+                Assert.IsType<DataValue>(conditionId.Value).WrappedValue);
+        }
+
+        [Fact]
         public async Task FormatsEventFieldsAndAddsConnectionMetadata()
         {
             var manager = new FakeSubscriptionManager();
