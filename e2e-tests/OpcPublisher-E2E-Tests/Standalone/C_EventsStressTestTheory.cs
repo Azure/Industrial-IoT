@@ -33,7 +33,13 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
             // Settings
             const int eventIntervalPerInstanceMs = 400;
-            const int eventInstances = 40;
+            //
+            // The E2E IoT Hub has one S1 unit, whose device-to-cloud ingress
+            // limit is 100 sends per second. Native PubSub currently carries
+            // one event occurrence per send, so drive the service at its
+            // sustainable ceiling instead of measuring throttling backlog.
+            //
+            const int eventInstances = 4;
             const int instances = 10;
             const int nSeconds = 20;
             const int nSecondSkipFirst = 10;
@@ -48,8 +54,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041"),
-                singleWriterGroup: true); // OPC-UA BaseEventType
+                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             // Act

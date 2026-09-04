@@ -166,7 +166,8 @@ namespace OpcPublisherAEE2ETests.Standalone
             p.EnabledStateId.Value.Should().Be(expectedPayload.EnabledStateId.Value);
             p.EnabledStateEffectiveDisplayName.Value.Should().BeEquivalentTo(expectedPayload.EnabledStateEffectiveDisplayName.Value);
             p.LastSeverity.Value.Should().Be(expectedPayload.LastSeverity.Value);
-            p.Retain.Value.Should().Be(expectedPayload.Retain.Value);
+            (p.Retain.Value ?? false).Should().Be(
+                expectedPayload.Retain.Value ?? false);
             p.SourceName.Value.Should().BeEquivalentTo(expectedPayload.SourceName.Value);
             GetNodeIdIdentifier(p.SourceNode.Value).Should().Be(
                 GetNodeIdIdentifier(expectedPayload.SourceNode.Value));
