@@ -914,21 +914,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         internal static JsonElement GetDataNetworkMessage(JsonElement message)
             => ContainsDataSet(message, dataSet =>
                 dataSet.TryGetProperty("Payload", out var payload) &&
-                payload.TryGetProperty("Output", out _))
+                HasOutputValue(payload))
                     ? message : default;
 
         internal static JsonElement GetDataSetMessage(JsonElement message)
             => message.TryGetProperty("Payload", out var payload) &&
-                payload.TryGetProperty("Output", out _)
+                HasOutputValue(payload)
                     ? message : default;
 
         internal static JsonElement GetFullDataNetworkMessage(JsonElement message)
             => ContainsDataSet(message, dataSet =>
                 dataSet.TryGetProperty("Payload", out var payload) &&
-                payload.TryGetProperty("Output", out _) &&
+                HasOutputValue(payload) &&
                 payload.TryGetProperty("EndpointUrl", out _) &&
                 payload.TryGetProperty("ApplicationUri", out _))
                     ? message : default;
+
+        private static bool HasOutputValue(JsonElement payload)
+            => payload.TryGetProperty("Output", out var output) &&
+                output.ValueKind == JsonValueKind.Object &&
+                output.TryGetProperty("Value", out var value) &&
+                value.ValueKind is not JsonValueKind.Null and
+                    not JsonValueKind.Undefined;
 
         internal static JsonElement GetEventNetworkMessage(JsonElement message)
             => ContainsDataSet(message, dataSet =>
