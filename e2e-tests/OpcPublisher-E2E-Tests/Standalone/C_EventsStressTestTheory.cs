@@ -36,11 +36,11 @@ namespace OpcPublisherAEE2ETests.Standalone
             //
             // Native PubSub carries one event occurrence per acknowledged
             // send. Keep enough headroom below the transport ceiling that the
-            // test measures sustained delivery rather than a growing backlog:
-            // one event per second from each of ten independent endpoints.
+            // test measures sustained delivery rather than endpoint rollout:
+            // one source emits a ten-event burst every second.
             //
-            const int eventInstances = 1;
-            const int instances = 10;
+            const int eventInstances = 10;
+            const int instances = 1;
             const int nSeconds = 20;
             const int nSecondWarmup = 60;
             const int nSecondSkipLast = 6;
@@ -54,11 +54,8 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-                // Do not retain minutes of events while the ten endpoints are
-                // connected. Discarding old rollout events still leaves the
-                // steady stream subject to every rate and latency assertion.
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter(
-                    "i=2041", queueSize: 1)); // OPC-UA BaseEventType
+                    "i=2041", queueSize: eventInstances)); // OPC-UA BaseEventType
 
             const int nSecondsTotal = nSecondWarmup + nSeconds + nSecondSkipLast;
             var configurationCompleted = new TaskCompletionSource<DateTime>(
@@ -70,9 +67,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                         _writerId, -1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
                     // The reader is deliberately pre-armed before PublishNodes,
-                    // but configuring ten endpoints takes long enough that a
-                    // time window starting at the first connected endpoint
-                    // measures rollout rather than steady state.
+                    // but the measurement starts only after configuration.
                     .SkipWhile(e => !configurationCompleted.Task.IsCompletedSuccessfully
                         || e.Payload.ReceiveTime.Value is not { } sourceTimestamp
                         || sourceTimestamp < configurationCompleted.Task.Result)

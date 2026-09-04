@@ -18,6 +18,3 @@ using Xunit;
 
 // deactivate run of test in parallel
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
-[assembly: TestCollectionOrderer(
-    OpcPublisherAEE2ETests.TestExtensions.TestCollectionOrderer.FullName,
-    OpcPublisherAEE2ETests.TestConstants.TestAssemblyName)]
