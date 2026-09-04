@@ -52,6 +52,9 @@ namespace OpcPublisherAEE2ETests.Standalone
                         _writerId, 10000, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
                     .Select(e => e.Payload)
+                    // Condition refresh boundary events share the event stream
+                    // but do not carry ConditionType fields.
+                    .Where(c => c.ConditionName?.Value != null)
                     // First batch is ConditionRefresh and is not ordered.
                     .Skip(nMessages)
                     .SkipWhile(c => !c.Message.Value.Contains(
