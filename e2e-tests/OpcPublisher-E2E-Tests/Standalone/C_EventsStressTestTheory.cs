@@ -28,8 +28,6 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
         }
 
-        protected override bool RequiresFreshPublisherDeployment => true;
-
         [Fact, PriorityOrder(10)]
         public async Task TestACIVerifyEnd2EndThroughputAndLatency()
         {
