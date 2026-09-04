@@ -424,7 +424,9 @@ namespace OpcPublisherAEE2ETests
                         // current wire and older compatibility messages.
                         new JProperty("DataSetWriterGroup",
                             $"{writerId}-{(singleWriterGroup ? 0 : index)}"),
-                        new JProperty("DataSetWriterId", writerId),
+                        new JProperty("DataSetWriterId", singleWriterGroup
+                            ? $"{writerId}-{index}"
+                            : writerId),
                         new JProperty("OpcNodes", opcNodes)))
                 ), Formatting.Indented);
         }
