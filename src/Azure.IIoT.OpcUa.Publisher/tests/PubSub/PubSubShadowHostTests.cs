@@ -923,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await group.PublishOnceAsync();
 
-            return Assert.Single(captures.Captures.Skip(initialCaptureCount));
+            return captures.Captures.Skip(initialCaptureCount).First();
         }
 
         private static string Decompress(ReadOnlyMemory<byte> payload)

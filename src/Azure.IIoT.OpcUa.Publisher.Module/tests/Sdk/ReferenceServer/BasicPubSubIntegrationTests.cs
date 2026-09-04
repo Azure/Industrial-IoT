@@ -480,7 +480,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/KeyFrames.json",
+                nameof(CanSendKeyFramesWithExtensionFieldsToIoTHubTestAsync),
+                "./Resources/KeyFrames.json", GetKeyFrameNetworkMessage,
                 messageType: "ua-data", arguments: ["--mm=FullNetworkMessages", "--dm=false"]);
 
             // Assert
