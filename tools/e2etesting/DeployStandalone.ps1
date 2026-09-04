@@ -13,6 +13,7 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "_resourceSuffix.ps1")
 
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
@@ -80,7 +81,7 @@ if (!$resourceGroup.Tags) {
 $testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
 
 if (!$testSuffix) {
-    $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
+    $testSuffix = New-E2ETestingResourcesSuffix
 
     $tags = $resourceGroup.Tags
     $tags+= @{"TestingResourcesSuffix" = $testSuffix}
@@ -91,7 +92,13 @@ if (!$testSuffix) {
 Write-Host "Resources Suffix: $($testSuffix)"
 
 $iotHubName = "e2etesting-iotHub-$($testSuffix)"
-$keyVaultName = "e2etestingkeyVault$($testSuffix)"
+$keyVaultName = if ($testSuffix -match "^[0-9]{5}$") {
+    # Preserve the resource name used by existing tagged deployments.
+    "e2etestingkeyVault$($testSuffix)"
+}
+else {
+    "e2ekv$($testSuffix)"
+}
 
 Write-Host "IoT Hub: $($iotHubName)"
 Write-Host "Key Vault: $($keyVaultName)"

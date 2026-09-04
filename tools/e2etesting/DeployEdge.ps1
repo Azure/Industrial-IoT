@@ -16,6 +16,7 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "_resourceSuffix.ps1")
 
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
@@ -54,7 +55,7 @@ if (!$resourceGroup) {
 $testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
 
 if (!$testSuffix) {
-    $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
+    $testSuffix = New-E2ETestingResourcesSuffix
 
     $tags = $resourceGroup.Tags
     $tags+= @{"TestingResourcesSuffix" = $testSuffix}

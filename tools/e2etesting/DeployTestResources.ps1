@@ -6,6 +6,7 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "_resourceSuffix.ps1")
 
 ## Pre-Checks ##
 
@@ -32,7 +33,7 @@ if (!$resourceGroup) {
 
 $suffix = $resourceGroup.Tags["TestingResourcesSuffix"]
 if ([String]::IsNullOrWhiteSpace($suffix)) {
-    $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
+    $suffix = New-E2ETestingResourcesSuffix
     $tags = $resourceGroup.Tags
     $tags+= @{"TestingResourcesSuffix"=$suffix}
     Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null

@@ -31,6 +31,7 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "_resourceSuffix.ps1")
 
 if (!$PLCImage) {
     $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest"
@@ -54,7 +55,7 @@ Write-Host "Resource Group: $($ResourceGroupName)"
 $testSuffix = $resourceGroup.tags.TestingResourcesSuffix
 
 if (!$testSuffix) {
-    $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
+    $testSuffix = New-E2ETestingResourcesSuffix
     # TODO: don't override the original tags
     az group update --name $resourceGroup --tags TestingResourcesSuffix=$testSuffix
 }
