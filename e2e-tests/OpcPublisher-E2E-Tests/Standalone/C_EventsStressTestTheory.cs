@@ -41,7 +41,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             const int eventInstances = 1;
             const int instances = 10;
             const int nSeconds = 20;
-            const int nSecondWarmup = 60;
+            const int nSecondWarmup = 180;
             const int nSecondSkipLast = 6;
 
             // Arrange
@@ -120,9 +120,16 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Assert latency
             var end2EndLatency = eventData
                 .ConvertAll(v => v.EnqueuedTime - v.SourceTimestamp);
+            var latencyMilliseconds = end2EndLatency
+                .Select(v => v.Value.TotalMilliseconds)
+                .Order()
+                .ToArray();
+            var p95Latency = latencyMilliseconds[
+                (int)Math.Ceiling(latencyMilliseconds.Length * 0.95) - 1];
             _context.OutputHelper.WriteLine(
                 $"End-to-end latency: min {end2EndLatency.Min()}, " +
                 $"average {end2EndLatency.Average(v => v.Value.TotalMilliseconds):F0} ms, " +
+                $"p95 {p95Latency:F0} ms, " +
                 $"max {end2EndLatency.Max()}.");
             end2EndLatency.Min().Should().BePositive();
             end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
