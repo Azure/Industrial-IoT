@@ -34,12 +34,11 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Settings
             const int eventIntervalPerInstanceMs = 400;
             //
-            // The E2E IoT Hub has one S1 unit, whose device-to-cloud ingress
-            // limit is 100 sends per second. Native PubSub currently carries
-            // one event occurrence per send, so drive the service at its
-            // sustainable ceiling instead of measuring throttling backlog.
+            // Native PubSub carries one event occurrence per acknowledged
+            // send. Keep enough headroom below the transport ceiling that the
+            // test measures sustained delivery rather than a growing backlog.
             //
-            const int eventInstances = 4;
+            const int eventInstances = 1;
             const int instances = 10;
             const int nSeconds = 20;
             const int nSecondSkipFirst = 10;
@@ -57,20 +56,33 @@ namespace OpcPublisherAEE2ETests.Standalone
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
+            var configurationCompleted = new TaskCompletionSource<DateTime>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
             // Act
             var fullData = await TestHelper.ReadAfterAsync(
                 token => _consumer
                     .ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(
                         _writerId, -1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    // The reader is deliberately pre-armed before PublishNodes,
+                    // but configuring ten endpoints takes long enough that a
+                    // time window starting at the first connected endpoint
+                    // measures rollout rather than steady state.
+                    .SkipWhile(e => !configurationCompleted.Task.IsCompletedSuccessfully
+                        || e.Payload.ReceiveTime.Value is not { } sourceTimestamp
+                        || sourceTimestamp < configurationCompleted.Task.Result)
                     .TakeWhile(_context, (first, current) =>
                         current.EnqueuedTime - first.EnqueuedTime <=
                             FromSeconds(nSecondsTotal))
                     // Get time of event attached Server node.
                     .Select(e => (e.EnqueuedTime,
                         SourceTimestamp: e.Payload.ReceiveTime.Value)),
-                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
-                    pnJson, _context, token),
+                async token =>
+                {
+                    await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                        pnJson, _context, token);
+                    configurationCompleted.TrySetResult(DateTime.UtcNow);
+                },
                 _timeoutToken);
 
             // Assert throughput

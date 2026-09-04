@@ -73,7 +73,7 @@ on:
         type: string
         default: all
       test_filter:
-        description: 'Optional dotnet test filter overriding the suite trait filter'
+        description: 'Optional dotnet test filter overriding the suite trait filter. For ordered A&E tests, select the complete class so its deploy/restart/cleanup tests are included.'
         required: false
         type: string
         default: ''
@@ -131,7 +131,7 @@ on:
           - ae
         default: all
       test_filter:
-        description: 'Optional dotnet test filter overriding the suite trait filter'
+        description: 'Optional dotnet test filter overriding the suite trait filter. For ordered A&E tests, select the complete class so its deploy/restart/cleanup tests are included.'
         required: false
         type: string
         default: ''
@@ -279,6 +279,42 @@ jobs:
         run: |
           dotnet build e2e-tests/IIoTPlatform-E2E-Tests.slnx \
             -c Release --no-restore --no-incremental
+      - name: Validate targeted E2E test selection
+        if: inputs.test_filter != null && inputs.test_filter != ''
+        shell: bash
+        env:
+          EXACT_FILTER: ${{ inputs.test_filter }}
+          SUITE: ${{ inputs.suite || 'all' }}
+        run: |
+          set -euo pipefail
+          mkdir -p e2e-tests/results
+          result=e2e-tests/results/targeted-discovery.txt
+          dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            -c Release --no-build --list-tests \
+            --filter "$EXACT_FILTER" \
+            --logger "console;verbosity=normal" \
+            | tee "$result"
+          discovered=$(awk '
+            /The following Tests are available:/ { listed = 1; next }
+            listed && /^[[:space:]]*$/ { exit }
+            listed && /^[[:space:]]+[^[:space:]]/ { count++ }
+            END { print count + 0 }
+          ' "$result")
+          echo "Discovered ${discovered} targeted test(s)."
+          if [ "$discovered" -eq 0 ]; then
+            echo "::error::The requested E2E filter discovered zero tests."
+            exit 1
+          fi
+          if [ "$SUITE" = "ae" ] &&
+              grep -Eq 'Standalone\.[CD][^.]*TestTheory\.TestACI' "$result"; then
+            for required in TestDeployStandalonePublisher \
+                TestRestartStandalonePublisher TestDeleteAci; do
+              if ! grep -q "$required" "$result"; then
+                echo "::error::Targeted A&E filters must select the complete test class so its ordered deploy, restart, and cleanup tests run. Use FullyQualifiedName~<namespace>.<class>."
+                exit 1
+              fi
+            done
+          fi
       - name: Run E2E reader unit tests
         shell: bash
         run: |

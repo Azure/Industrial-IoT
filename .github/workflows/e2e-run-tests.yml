@@ -62,7 +62,7 @@ on:
         type: string
         default: ''
       test_filter:
-        description: 'Optional dotnet test filter overriding filter_name=filter_value'
+        description: 'Optional dotnet test filter overriding filter_name=filter_value. Ordered A&E tests must select the complete class.'
         required: false
         type: string
         default: ''
