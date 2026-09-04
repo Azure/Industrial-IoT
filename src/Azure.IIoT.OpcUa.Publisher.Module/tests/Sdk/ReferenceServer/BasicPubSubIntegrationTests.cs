@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync),
-                "./Resources/DataItems.json",
+                "./Resources/DataItems.json", GetDataSetMessage,
                 arguments: ["-c", "--dm", "--mm=DataSetMessages"]);
 
             // Assert
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenComplexTypeSystemIsDisabledTestAsync),
-                "./Resources/DataItems.json",
+                "./Resources/DataItems.json", GetDataSetMessage,
                 arguments: ["-c", "--dct", "--mm=DataSetMessages"]);
 
             // Assert
@@ -515,7 +515,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/DataItems.json", messageType: "ua-data",
+                nameof(CanSendFullAndCompliantNetworkMessageWithEndpointUrlAndApplicationUriToIoTHubTestAsync),
+                "./Resources/DataItems.json", GetFullDataNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--fm=true", "--strict"]);
 
             // Assert
@@ -913,6 +915,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             => ContainsDataSet(message, dataSet =>
                 dataSet.TryGetProperty("Payload", out var payload) &&
                 payload.TryGetProperty("Output", out _))
+                    ? message : default;
+
+        internal static JsonElement GetDataSetMessage(JsonElement message)
+            => message.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty("Output", out _)
+                    ? message : default;
+
+        internal static JsonElement GetFullDataNetworkMessage(JsonElement message)
+            => ContainsDataSet(message, dataSet =>
+                dataSet.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty("Output", out _) &&
+                payload.TryGetProperty("EndpointUrl", out _) &&
+                payload.TryGetProperty("ApplicationUri", out _))
                     ? message : default;
 
         internal static JsonElement GetEventNetworkMessage(JsonElement message)

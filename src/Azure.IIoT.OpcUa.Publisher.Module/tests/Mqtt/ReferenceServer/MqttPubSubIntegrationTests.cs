@@ -94,6 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync), "./Resources/DataItems.json",
+                BasicPubSubIntegrationTests.GetDataSetMessage,
                 arguments: ["--dm", "--mm=DataSetMessages"],
                 version: MqttVersion.v5);
 
