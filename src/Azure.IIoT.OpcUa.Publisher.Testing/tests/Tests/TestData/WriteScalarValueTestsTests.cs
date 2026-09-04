@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 .ReturnsAsync(new ValueWriteResponseModel());
             var reads = new Queue<JsonNode?>([
                 null,
-                null,
                 JsonValue.Create("i=84")
             ]);
             var tests = new WriteScalarValueTests<string>(
