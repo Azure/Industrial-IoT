@@ -1348,7 +1348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             return value;
         }
 
-        private static JsonNode CreateStructureValue()
+        private static JsonObject CreateStructureValue()
         {
             var value = new TestData.ScalarStructureDataType();
             return new JsonObject

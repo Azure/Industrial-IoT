@@ -37,8 +37,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                 || (SharedAccessKey is null ? 0 : 1)
                     + (SharedAccessSignature is null ? 0 : 1)
                     + (UsesX509 ? 1 : 0) != 1
-                || SharedAccessKey == string.Empty
-                || SharedAccessSignature == string.Empty)
+                || SharedAccessKey is { Length: 0 }
+                || SharedAccessSignature is { Length: 0 })
             {
                 throw new FormatException();
             }

@@ -1017,7 +1017,7 @@ namespace Opc.Ua.Test
             private readonly ISecureRandomSource _source;
         }
 
-        private readonly ISecureRandomSource _random;
+        private readonly ThreadSafeRandomSource _random;
         private readonly SortedDictionary<string, object[]> _boundaryValues;
         private readonly bool _useBoundaryValues = true;
         private readonly string[] _availableLocales;

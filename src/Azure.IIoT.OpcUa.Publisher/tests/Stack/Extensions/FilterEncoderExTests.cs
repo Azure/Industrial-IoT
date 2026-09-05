@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 
     public sealed class FilterEncoderExTests
     {
-        private static IVariantEncoder CreateEncoder()
+        private static JsonVariantEncoder CreateEncoder()
         {
             return new JsonVariantEncoder(new ServiceMessageContext());
         }

@@ -1926,7 +1926,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ToArray();
         }
 
-        private IReadOnlyDictionary<string, BindingMetadataSnapshot>
+        private Dictionary<string, BindingMetadataSnapshot>
             SnapshotBindingMetadata()
         {
             return GetBindings().ToDictionary(binding => binding.Name,
@@ -4531,7 +4531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            private static IReadOnlyList<Guid> CreateEventFieldIds(
+            private static Guid[] CreateEventFieldIds(
                 EventMonitoredItemModel? template, IReadOnlyList<string?> fieldNames,
                 IReadOnlyList<string?>? previousFieldNames = null,
                 IReadOnlyList<Guid>? previousFieldIds = null)

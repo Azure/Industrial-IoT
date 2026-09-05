@@ -161,7 +161,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         private static void VerifyPayload(IReadOnlyList<string> namespaceUris,
-            IReadOnlyList<ConditionTypePayload> payloads, int i,
+            List<ConditionTypePayload> payloads, int i,
             TimeSpan? expectedDelay, ConditionTypePayload expectedPayload)
         {
             var p = payloads[i];

@@ -526,7 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private static WriterGroupModel Group(string id) =>
             new WriterGroupModel { Id = id };
 
-        private static IPubSubIdentityTransaction CreateIdTransaction()
+        private static SequentialIdTransaction CreateIdTransaction()
         {
             return new SequentialIdTransaction();
         }

@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
             Assert.Equal(true, scopeFactory.LastScope.Disposed);
         }
 
-        private static IServiceProvider CreateServiceProvider(
+        private static ServiceProvider CreateServiceProvider(
             EventHubsClientOptions? options)
         {
             var services = new ServiceCollection();

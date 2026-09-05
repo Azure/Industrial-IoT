@@ -718,12 +718,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
             var second = await readClient.ReadNextAsync()
                 .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
-            var calls = new[] { first, second }.OrderBy(call => call.Nodes.Count).ToArray();
+            var calls = new[] { first, second }.OrderBy(call => call.Nodes.Length).ToArray();
 
             Assert.Single(calls[0].Nodes);
             Assert.Equal(TimeSpan.FromMilliseconds(30), calls[0].SamplingInterval);
             Assert.Equal(TimeSpan.FromMilliseconds(5), calls[0].MaxAge);
-            Assert.Equal(2, calls[1].Nodes.Count);
+            Assert.Equal(2, calls[1].Nodes.Length);
             Assert.Equal(TimeSpan.FromMilliseconds(20), calls[1].SamplingInterval);
             Assert.Equal(TimeSpan.Zero, calls[1].MaxAge);
 
@@ -4716,7 +4716,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private sealed class CyclicReadCall
         {
-            public IReadOnlyList<ReadValueId> Nodes { get; }
+            public ReadValueId[] Nodes { get; }
             public IReadOnlyList<bool> Register { get; }
             public TimeSpan SamplingInterval { get; }
             public TimeSpan MaxAge { get; }

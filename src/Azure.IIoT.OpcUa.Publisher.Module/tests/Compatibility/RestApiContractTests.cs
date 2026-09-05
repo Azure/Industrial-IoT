@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
             {
             }
 
-            internal static readonly IReadOnlySet<string> ExpectedRoutes =
+            internal static readonly HashSet<string> ExpectedRoutes =
                 new HashSet<string>(StringComparer.Ordinal)
                 {
                     "GET v2/pki/{store}/certs",

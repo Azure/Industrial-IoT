@@ -155,10 +155,10 @@ namespace OpcPublisherAEE2ETests.Standalone
             stDev.Should().BeLessThan(expectedEventsPerSecond / 3d, "Publisher should sustain PLC event rate");
         }
 
-        private static (double average, double stDev) DescriptiveStats(IReadOnlyCollection<int> population)
+        private static (double average, double stDev) DescriptiveStats(int[] population)
         {
             var average = population.Average();
-            var stDev = Math.Sqrt(population.Sum(v => (v - average) * (v - average)) / population.Count);
+            var stDev = Math.Sqrt(population.Sum(v => (v - average) * (v - average)) / population.Length);
             return (average, stDev);
         }
     }

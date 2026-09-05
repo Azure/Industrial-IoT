@@ -714,7 +714,7 @@ namespace OpcPublisherAEE2ETests
         /// valid time range") partway through the run. Returns null when the workflow is
         /// not running under GitHub Actions with id-token: write.
         /// </summary>
-        private static TokenCredential TryBuildGitHubActionsCredential(IIoTPlatformTestContext context)
+        private static ClientAssertionCredential TryBuildGitHubActionsCredential(IIoTPlatformTestContext context)
         {
             var requestUrl = Environment.GetEnvironmentVariable("ACTIONS_ID_TOKEN_REQUEST_URL");
             var requestToken = Environment.GetEnvironmentVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN");

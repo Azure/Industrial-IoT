@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     public sealed class ManagedSubscriptionOptionsAdapterTests
     {
-        private static IVariantEncoder CreateEncoder() =>
+        private static JsonVariantEncoder CreateEncoder() =>
             new JsonVariantEncoder(new ServiceMessageContext());
 
         // ── ToManagedOptions(SubscriptionModel, OpcUaSubscriptionOptions) ─────

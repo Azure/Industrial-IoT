@@ -2614,7 +2614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             });
         }
 
-        private static IReadOnlyList<IMonitoredItem> CreateAppliedMonitoredItems(
+        private static IMonitoredItem[] CreateAppliedMonitoredItems(
             IReadOnlyList<(string Name,
                 IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state)
         {
@@ -2940,7 +2940,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private static ITelemetryContext CreateTelemetry()
+        private static LoggerTelemetryContext CreateTelemetry()
         {
             return new LoggerTelemetryContext(NullLoggerFactory.Instance);
         }

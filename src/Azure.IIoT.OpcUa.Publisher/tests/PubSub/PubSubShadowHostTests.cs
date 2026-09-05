@@ -658,7 +658,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         [Fact]
         public async Task NotificationBufferPreservesIntermediateEventsAndOwnershipAsync()
         {
-            IManagedPubSubNotificationBuffer buffer = new ManagedPubSubNotificationBuffer();
+            var buffer = new ManagedPubSubNotificationBuffer();
             var firstPayload = new byte[] { 1 };
             await buffer.EnqueueAsync(new ManagedPubSubNotification("data", "field",
                 DateTimeOffset.UnixEpoch, firstPayload));
@@ -1211,7 +1211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public Task WaitForBlockedEncodeAsync()
+            public Task<bool> WaitForBlockedEncodeAsync()
             {
                 return _blocked.Task;
             }

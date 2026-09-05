@@ -244,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await transport.SendAsync(new byte[] { 2 }, "topic");
             await transport.CloseAsync();
 
-            Assert.Equal(2, client.Events.Count);
+            Assert.Equal(2, client.Events.Length);
             Assert.Equal(new byte[] { 1 }, client.Events[0].Payload);
             Assert.Equal(new byte[] { 2 }, client.Events[1].Payload);
             Assert.Equal(2, transport.Metrics.SentCount);
@@ -646,7 +646,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await hosted.StartAsync(default);
             await host.ReplaceConfigurationAsync([group]);
-            var before = client.Events.Count;
+            var before = client.Events.Length;
             await host.ReplaceConfigurationAsync([]);
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await hosted.StopAsync(default);
@@ -685,7 +685,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await hosted.StartAsync(default);
             await host.ReplaceConfigurationAsync([retained]);
-            var before = client.Events.Count;
+            var before = client.Events.Length;
             await host.ReplaceConfigurationAsync([transient]);
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await hosted.StopAsync(default);
@@ -878,7 +878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             client.FailuresRemaining = 0;
             await host.ReplaceConfigurationAsync([group]);
-            var afterReactivation = client.Events.Count;
+            var afterReactivation = client.Events.Length;
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await Task.Delay(25);
             await hosted.StopAsync(default);
@@ -2381,8 +2381,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.True(sources.TryGetSource("data", out var nativeSource));
             var managedSource = Assert.IsType<ManagedPubSubDataSetSource>(nativeSource);
             await WaitUntilAsync(() => managedSource.PendingCount == 1 ||
-                client.Events.Count != 0);
-            var priorEvents = client.Events.Count;
+                client.Events.Length != 0);
+            var priorEvents = client.Events.Length;
 
             await provider.GetRequiredService<IPubSubKeyFrameControl>()
                 .ForceKeyFrameAsync("group", "writer");
@@ -3215,7 +3215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 TaskCreationOptions.RunContinuationsAsynchronously);
             public int DisposeCount => Volatile.Read(ref _disposeCount);
 
-            public IReadOnlyList<CapturedEvent> Events
+            public CapturedEvent[] Events
             {
                 get
                 {
