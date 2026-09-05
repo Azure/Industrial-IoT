@@ -37,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToMqttBrokerTestAsync), "./Resources/DataItems.json",
+                BasicPubSubIntegrationTests.GetDataNetworkMessage,
                 messageType: "ua-data", arguments: ["--mm=PubSub", "--mdt={TelemetryTopic}/metadatamessage", "--dm=False"],
                 version: MqttVersion.v311);
 
@@ -63,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var (_, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync),
                 "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 20,
+                BasicPubSubIntegrationTests.GetDataNetworkMessage,
                 messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--dm=False", "--ps=False"],
                 version: MqttVersion.v5);
@@ -70,8 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Assert
             Assert.NotEmpty(messages);
             //
-            // The runtime emits an initial key frame before any value has been
-            // observed, so the first message carries an empty payload.
+            // Keep the assertion independent of any empty startup key frame.
             //
             var carrying = messages
                 .Select(message => message.Message)
@@ -93,6 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync), "./Resources/DataItems.json",
+                BasicPubSubIntegrationTests.GetDataSetMessage,
                 arguments: ["--dm", "--mm=DataSetMessages"],
                 version: MqttVersion.v5);
 
@@ -153,7 +155,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithoutReversibleEncodingTestAsync),
-                "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: ["--mm=PubSub", "--me=Json", "--dm=false"],
+                "./Resources/SimpleEvents.json",
+                BasicPubSubIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data", arguments: ["--mm=PubSub", "--me=Json", "--dm=false"],
                 version: MqttVersion.v5);
 
             Assert.Single(result);
@@ -191,7 +195,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingTestAsync),
-                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4,
+                BasicPubSubIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--me=JsonReversible", "--dm=False"],
                 version: MqttVersion.v311);
 
@@ -234,7 +240,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeEventWithCompliantEncodingTestAsync),
-                "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: ["-c", "--mm=PubSub", "--me=Json"],
+                "./Resources/SimpleEvents.json",
+                BasicPubSubIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data", arguments: ["-c", "--mm=PubSub", "--me=Json"],
                 version: MqttVersion.v5);
 
             Assert.Single(result);
@@ -272,7 +280,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestAsync),
-                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4,
+                BasicPubSubIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["-c", "--mm=PubSub", "--me=JsonReversible"],
                 version: MqttVersion.v311);
 
@@ -338,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(nameof(CanSendPendingConditionsToMqttBrokerTestAsync),
-                "./Resources/PendingAlarms.json", BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data",
+                "./Resources/PendingAlarms.json", BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--dm=False"], version: MqttVersion.v311);
 
             // Assert
@@ -346,7 +356,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             _output.WriteLine(message.Topic + message.Message.ToJsonString());
 
             Assert.Equal(JsonValueKind.Object, message.Message.ValueKind);
-            Assert.True(message.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            var payload = message.Message.GetProperty("Payload");
+            Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
 
             Assert.NotNull(metadata);
         }

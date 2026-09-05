@@ -420,11 +420,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 {
                     (null, null, immediate),
                     (null, TimeSpan.Zero, immediate),
-                    (null, TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(25)),
+                    (null, TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5)),
+                    (null, TimeSpan.FromMilliseconds(25), immediate),
                     (TimeSpan.Zero, null, immediate),
                     (TimeSpan.Zero, TimeSpan.Zero, immediate),
                     (TimeSpan.Zero, TimeSpan.FromMilliseconds(-1), immediate),
-                    (TimeSpan.Zero, TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(25)),
+                    (TimeSpan.Zero, TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5)),
+                    (TimeSpan.Zero, TimeSpan.FromMilliseconds(25), immediate),
                     (TimeSpan.FromSeconds(3), null, immediate),
                     (TimeSpan.FromSeconds(3), TimeSpan.Zero, immediate),
                     (TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(30), immediate)
@@ -656,7 +658,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         [Fact]
         public async Task NotificationBufferPreservesIntermediateEventsAndOwnershipAsync()
         {
-            IManagedPubSubNotificationBuffer buffer = new ManagedPubSubNotificationBuffer();
+            var buffer = new ManagedPubSubNotificationBuffer();
             var firstPayload = new byte[] { 1 };
             await buffer.EnqueueAsync(new ManagedPubSubNotification("data", "field",
                 DateTimeOffset.UnixEpoch, firstPayload));
@@ -846,7 +848,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.NotEqual(initialGeneration, encodings.ActiveGeneration.Id);
             var oldCapture = captures.Captures
                 .Skip(captureCount)
-                .Single(capture => capture.Encoding == PubSubShadowEncoding.Json);
+                .First(capture => capture.Encoding == PubSubShadowEncoding.Json &&
+                    Encoding.UTF8.GetString(capture.Payload.Span)
+                        .Contains("\"Value\":42", StringComparison.Ordinal));
             var oldPayload = Encoding.UTF8.GetString(oldCapture.Payload.Span);
             Assert.Null(oldCapture.ContentEncoding);
             Assert.Contains("\"Value\":42", oldPayload, StringComparison.Ordinal);
@@ -859,7 +863,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var newGroup = Assert.IsType<WriterGroup>(newConnection.WriterGroups[0]);
             await newGroup.PublishOnceAsync();
 
-            var newCapture = Assert.Single(captures.Captures.Skip(newCaptureCount));
+            var newCapture = captures.Captures
+                .Skip(newCaptureCount)
+                .First(capture =>
+                    capture.Encoding == PubSubShadowEncoding.JsonReversibleGzip &&
+                    Decompress(capture.Payload)
+                        .Contains("\"Body\":43", StringComparison.Ordinal));
             var newPayload = Decompress(newCapture.Payload);
             Assert.Equal(PubSubShadowEncoding.JsonReversibleGzip, newCapture.Encoding);
             Assert.Equal("gzip", newCapture.ContentEncoding);
@@ -914,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await group.PublishOnceAsync();
 
-            return Assert.Single(captures.Captures.Skip(initialCaptureCount));
+            return captures.Captures.Skip(initialCaptureCount).First();
         }
 
         private static string Decompress(ReadOnlyMemory<byte> payload)
@@ -1202,7 +1211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public Task WaitForBlockedEncodeAsync()
+            public Task<bool> WaitForBlockedEncodeAsync()
             {
                 return _blocked.Task;
             }

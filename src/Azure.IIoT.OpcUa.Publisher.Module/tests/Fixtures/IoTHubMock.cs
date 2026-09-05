@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Net;
+    using System.Net.Sockets;
     using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
@@ -619,23 +620,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     public sealed class MqttServer : IAwaitable<MqttServer>, IDisposable
     {
         /// <summary>
+        /// Effective bound port.
+        /// </summary>
+        public int Port { get; }
+
+        /// <summary>
         /// Create and start the test MQTT server.
         /// </summary>
         /// <param name="options"></param>
         public MqttServer(IOptions<MqttOptions> options)
         {
             ArgumentNullException.ThrowIfNull(options);
-            var port = options.Value.Port ??
-                throw new InvalidOperationException("MQTT test server port is not configured.");
             var factory = new MqttNetServerFactory();
-            var serverOptions = factory.CreateServerOptionsBuilder()
-                .WithDefaultEndpoint()
-                .WithDefaultEndpointBoundIPAddress(IPAddress.Loopback)
-                .WithDefaultEndpointBoundIPV6Address(IPAddress.None)
-                .WithDefaultEndpointPort(port)
-                .Build();
-            _server = factory.CreateMqttServer(serverOptions);
-            _server.StartAsync().GetAwaiter().GetResult();
+            var requestedPort = options.Value.Port ?? 0;
+            Exception lastError = null;
+            for (var attempt = 0; attempt < kPortAttempts; attempt++)
+            {
+                var port = attempt == 0 && requestedPort > 0
+                    ? requestedPort
+                    : GetAvailableLoopbackPort();
+                var serverOptions = factory.CreateServerOptionsBuilder()
+                    .WithDefaultEndpoint()
+                    .WithDefaultEndpointBoundIPAddress(IPAddress.Loopback)
+                    .WithDefaultEndpointBoundIPV6Address(IPAddress.None)
+                    .WithDefaultEndpointPort(port)
+                    .Build();
+                var server = factory.CreateMqttServer(serverOptions);
+                try
+                {
+                    server.StartAsync().GetAwaiter().GetResult();
+                    options.Value.Port = port;
+                    Port = port;
+                    _server = server;
+                    return;
+                }
+                catch (Exception ex) when (ContainsSocketFailure(ex))
+                {
+                    lastError = ex;
+                    server.Dispose();
+                }
+                catch
+                {
+                    server.Dispose();
+                    throw;
+                }
+            }
+            throw new InvalidOperationException(
+                $"Could not bind an MQTT test server after {kPortAttempts} attempts.",
+                lastError);
         }
 
         /// <inheritdoc/>
@@ -650,6 +682,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             _server.Dispose();
         }
 
+        private static int GetAvailableLoopbackPort()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            try
+            {
+                return ((IPEndPoint)listener.LocalEndpoint).Port;
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        }
+
+        private static bool ContainsSocketFailure(Exception error)
+        {
+            for (var current = error; current != null;
+                current = current.InnerException)
+            {
+                if (current is SocketException)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private const int kPortAttempts = 10;
         private readonly MqttNetServer _server;
     }
 

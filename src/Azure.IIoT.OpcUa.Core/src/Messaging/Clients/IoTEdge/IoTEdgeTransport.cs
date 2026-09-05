@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         IAsyncDisposable
     {
         /// <inheritdoc/>
-        public string Name => "IoTEdge";
+        public string Name => "IoTHub";
 
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes { get; } = (256 * 1024) - 4 * 1024;
@@ -291,11 +291,14 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             }
         }
 
-        private static IReadOnlyDictionary<string, string> MergeProperties(
+        private static Dictionary<string, string?> MergeProperties(
             CloudToDeviceMessage message)
         {
-            var properties = new Dictionary<string, string>(message.Properties,
-                StringComparer.Ordinal);
+            var properties = new Dictionary<string, string?>(StringComparer.Ordinal);
+            foreach (var property in message.Properties)
+            {
+                properties.Add(property.Key, property.Value);
+            }
             foreach (var property in message.SystemProperties)
             {
                 properties[property.Key] = property.Value;

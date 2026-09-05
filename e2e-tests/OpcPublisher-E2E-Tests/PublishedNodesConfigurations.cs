@@ -19,6 +19,7 @@ namespace OpcPublisherAEE2ETests
                     {
                         "EndpointUrl": "opc.tcp://{{host}}:{{port}}",
                         "UseSecurity": true,
+                        "DataSetWriterGroup":"{{writerId}}-0",
                         "DataSetWriterId":"{{writerId}}",
                         "OpcNodes": [
                             {
@@ -73,12 +74,13 @@ namespace OpcPublisherAEE2ETests
             }
 
             public static JArray SimpleEventFilter(
-                string typeDefinitionId = "i=2782")
+                string typeDefinitionId = "i=2782",
+                uint queueSize = 1000)
             {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),
-                        new JProperty("QueueSize", 1000),
+                        new JProperty("QueueSize", queueSize),
                         new JProperty("EventFilter", new JObject(
                             new JProperty("TypeDefinitionId", typeDefinitionId)))));
             }

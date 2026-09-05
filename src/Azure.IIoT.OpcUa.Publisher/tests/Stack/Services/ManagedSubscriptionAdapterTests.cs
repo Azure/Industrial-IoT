@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
@@ -717,12 +718,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
             var second = await readClient.ReadNextAsync()
                 .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
-            var calls = new[] { first, second }.OrderBy(call => call.Nodes.Count).ToArray();
+            var calls = new[] { first, second }.OrderBy(call => call.Nodes.Length).ToArray();
 
             Assert.Single(calls[0].Nodes);
             Assert.Equal(TimeSpan.FromMilliseconds(30), calls[0].SamplingInterval);
             Assert.Equal(TimeSpan.FromMilliseconds(5), calls[0].MaxAge);
-            Assert.Equal(2, calls[1].Nodes.Count);
+            Assert.Equal(2, calls[1].Nodes.Length);
             Assert.Equal(TimeSpan.FromMilliseconds(20), calls[1].SamplingInterval);
             Assert.Equal(TimeSpan.Zero, calls[1].MaxAge);
 
@@ -2486,7 +2487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     SelectClauses = [new SimpleAttributeOperandModel
                     {
-                        DisplayName = "ConditionId"
+                        DisplayName = "Configured"
                     }]
                 }
             }));
@@ -2509,9 +2510,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(MessageType.Condition, notification.MessageType);
             Assert.Equal("opc.tcp://localhost:4840", notification.EndpointUrl);
             Assert.Equal("urn:managed-subscription-tests", notification.ApplicationUri);
-            var value = Assert.IsType<DataValue>(
-                Assert.Single(notification.Notifications).Value);
+            Assert.Equal(3, notification.Notifications.Count);
+            var configured = Assert.Single(notification.Notifications,
+                item => item.DataSetFieldName == "Configured");
+            var value = Assert.IsType<DataValue>(configured.Value);
             Assert.Equal(publishTime, value.SourceTimestamp.ToDateTime());
+            var conditionId = Assert.Single(notification.Notifications,
+                item => item.DataSetFieldName == "ConditionId");
+            Assert.Equal(new Variant(new NodeId(1234u, 2)),
+                Assert.IsType<DataValue>(conditionId.Value).WrappedValue);
+            var retain = Assert.Single(notification.Notifications,
+                item => item.DataSetFieldName == BrowseNames.Retain);
+            Assert.True(Assert.IsType<DataValue>(retain.Value).WrappedValue
+                .TryGetValue(out bool retained));
+            Assert.True(retained);
 
             await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
                 DateTime.UtcNow,
@@ -2536,6 +2548,124 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(2, owner.Events.Count);
             Assert.Equal(MessageType.Condition, owner.Events[1].MessageType);
+        }
+
+        [Fact]
+        public async Task PlainConditionEventPublishesConditionIdField()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, new EventMonitoredItemModel
+            {
+                StartNodeId = "ns=2;s=conditions",
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId =
+                                ObjectTypeIds.ConditionType.ToString(),
+                            AttributeId = NodeAttribute.NodeId
+                        }
+                    ]
+                }
+            }));
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+
+            await manager.Handler!.OnEventDataNotificationAsync(
+                manager.Subscription, 1, DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new(item,
+                        ArrayOf.Wrapped(Variant.From(new NodeId(1234u, 2))))
+                },
+                PublishState.None, []);
+
+            var message = Assert.Single(owner.Events);
+            var conditionId = Assert.Single(message.Notifications);
+            Assert.Equal("ConditionId", conditionId.DataSetFieldName);
+            Assert.Equal(new Variant(new NodeId(1234u, 2)),
+                Assert.IsType<DataValue>(conditionId.Value).WrappedValue);
+        }
+
+        [Theory]
+        [InlineData("i=2041")]
+        [InlineData("i=2782")]
+        public async Task ConditionSnapshotWithSelectedRetainPublishesOneOccurrenceAsync(
+            string retainType)
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, new EventMonitoredItemModel
+            {
+                StartNodeId = "ns=2;s=conditions",
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = 60
+                },
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
+                            AttributeId = NodeAttribute.NodeId
+                        },
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = retainType,
+                            AttributeId = NodeAttribute.Value,
+                            BrowsePath = [BrowseNames.Retain]
+                        }
+                    ]
+                }
+            })]);
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+            var filter = Assert.IsType<EventFilter>(item.Options.Filter);
+            var values = filter.SelectClauses.Select(clause =>
+                clause.AttributeId == Attributes.NodeId
+                    ? new Variant(new NodeId(1234u, 2))
+                    : clause.BrowsePath[0] == BrowseNames.Retain
+                        ? new Variant(true)
+                        : new Variant(ObjectTypeIds.AlarmConditionType)).ToArray();
+
+            await manager.Handler!.OnEventDataNotificationAsync(
+                manager.Subscription, 1, DateTime.UtcNow,
+                new EventNotification[] { new(item, values) },
+                PublishState.None, []);
+            adapter.FlushConditions(force: true);
+            var notification = Assert.Single(owner.Events);
+            notification.Context = new DataSetWriterContext
+            {
+                DataSetWriterId = 1,
+                Topic = "topic",
+                Qos = null,
+                PublisherId = "publisher",
+                Writer = new DataSetWriterModel
+                {
+                    Id = "writer",
+                    DataSet = new PublishedDataSetModel { Name = "conditions" }
+                },
+                WriterName = "writer",
+                MetaData = null,
+                ExtensionFields = [],
+                NextWriterSequenceNumber = () => 1,
+                WriterGroup = new WriterGroupModel { Id = "group" },
+                Schema = null,
+                CloudEvent = null
+            };
+
+            var occurrence = Assert.Single(PubSubNotificationSink.Translate(notification));
+            Assert.Equal(["ConditionId", "Retain"], occurrence.Fields.Select(field => field.Name));
+            Assert.Equal(new Variant(new NodeId(1234u, 2)), occurrence.Fields[0].Value.WrappedValue);
+            Assert.Equal(new Variant(true), occurrence.Fields[1].Value.WrappedValue);
         }
 
         [Fact]
@@ -4586,7 +4716,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private sealed class CyclicReadCall
         {
-            public IReadOnlyList<ReadValueId> Nodes { get; }
+            public ReadValueId[] Nodes { get; }
             public IReadOnlyList<bool> Register { get; }
             public TimeSpan SamplingInterval { get; }
             public TimeSpan MaxAge { get; }

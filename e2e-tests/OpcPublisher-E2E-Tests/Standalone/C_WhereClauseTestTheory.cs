@@ -34,17 +34,19 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-
-            // take any message
-            var (_, _, payload, _) = await messages.FirstAsync(_timeoutToken);
+            // Act
+            var values = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events.ReadMessagesFromWriterIdAsync(
+                    _writerId, -1, _context,
+                    _context.IoTHubPublisherDeployment.ModuleName, token).Take(1),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
+            var (_, _, payload, _) = Assert.Single(values);
 
             // Assert
             ValidateBaseEventTypeFields(payload);
@@ -58,17 +60,19 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            // take any message
-            var (_, _, payload, _) = await messages
-                .FirstAsync(_timeoutToken);
+            // Act
+            var values = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events.ReadMessagesFromWriterIdAsync(
+                    _writerId, -1, _context,
+                    _context.IoTHubPublisherDeployment.ModuleName, token).Take(1),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
+            var (_, _, payload, _) = Assert.Single(values);
 
             // Assert
             ValidateBaseEventTypeFields(payload);
@@ -82,16 +86,18 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
-
-            // Act
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],
                 50000,
                 _writerId);
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            // take any message
-            var (_, _, payload, _) = await messages
-                .FirstAsync(_timeoutToken);
+            // Act
+            var values = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events.ReadMessagesFromWriterIdAsync(
+                    _writerId, -1, _context,
+                    _context.IoTHubPublisherDeployment.ModuleName, token).Take(1),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
+            var (_, _, payload, _) = Assert.Single(values);
 
             // Assert
             ValidateSimpleEventFields(payload);

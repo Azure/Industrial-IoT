@@ -263,6 +263,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddSingleton<IoTEdgeTransport>();
             services.AddSingleton<IEventClient>(
                 static provider => provider.GetRequiredService<IoTEdgeTransport>());
+            services.AddSingleton<IoTHubEventClientFactory>();
+            services.AddSingleton<IEventClientFactory>(
+                static provider => provider.GetRequiredService<IoTHubEventClientFactory>());
             services.AddSingleton<IEventSubscriber>(
                 static provider => provider.GetRequiredService<IoTEdgeTransport>());
             services.AddSingleton<IRpcServer>(

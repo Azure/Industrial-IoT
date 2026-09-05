@@ -42,11 +42,15 @@ namespace OpcPublisherAEE2ETests.Standalone
                 "6:CycleId",
                 "ns=6;i=2");
 
-            await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => PublishNodesAsync(pnJson, token),
+                _timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
@@ -64,11 +68,15 @@ namespace OpcPublisherAEE2ETests.Standalone
                 "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId",
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
-            await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => PublishNodesAsync(pnJson, token),
+                _timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
@@ -84,11 +92,15 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=6;i=2"));
 
-            await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => PublishNodesAsync(pnJson, token),
+                _timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
@@ -104,11 +116,15 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
-            await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => PublishNodesAsync(pnJson, token),
+                _timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert

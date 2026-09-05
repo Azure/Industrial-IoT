@@ -6,14 +6,17 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 {
     using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.PubSub;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.PubSub.Application;
     using Opc.Ua.PubSub.DataSets;
     using Opc.Ua.PubSub.Diagnostics;
     using Opc.Ua.PubSub.Encoding;
@@ -241,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await transport.SendAsync(new byte[] { 2 }, "topic");
             await transport.CloseAsync();
 
-            Assert.Equal(2, client.Events.Count);
+            Assert.Equal(2, client.Events.Length);
             Assert.Equal(new byte[] { 1 }, client.Events[0].Payload);
             Assert.Equal(new byte[] { 2 }, client.Events[1].Payload);
             Assert.Equal(2, transport.Metrics.SentCount);
@@ -643,7 +646,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await hosted.StartAsync(default);
             await host.ReplaceConfigurationAsync([group]);
-            var before = client.Events.Count;
+            var before = client.Events.Length;
             await host.ReplaceConfigurationAsync([]);
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await hosted.StopAsync(default);
@@ -682,7 +685,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await hosted.StartAsync(default);
             await host.ReplaceConfigurationAsync([retained]);
-            var before = client.Events.Count;
+            var before = client.Events.Length;
             await host.ReplaceConfigurationAsync([transient]);
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await hosted.StopAsync(default);
@@ -796,7 +799,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             tombstones.Persist(settings, topic, removedGeneration);
             await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
-            await tombstones.ReactivateAsync(topic, tombstones.NextGeneration());
+            await using var reactivation = await tombstones.ReactivateAsync(
+                topic, tombstones.NextGeneration());
+            Assert.NotNull(reactivation);
             Assert.Equal(0, tombstones.PendingCount);
             client.ReleaseSuccessfulSends();
 
@@ -828,7 +833,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             tombstones.Persist(settings, topic, removedGeneration);
             await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
-            var reactivation = await tombstones.ReactivateAsync(
+            await using var reactivation = await tombstones.ReactivateAsync(
                 topic, tombstones.NextGeneration());
             Assert.NotNull(reactivation);
             tombstones.Restore(reactivation!);
@@ -873,7 +878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             client.FailuresRemaining = 0;
             await host.ReplaceConfigurationAsync([group]);
-            var afterReactivation = client.Events.Count;
+            var afterReactivation = client.Events.Length;
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await Task.Delay(25);
             await hosted.StopAsync(default);
@@ -906,6 +911,1134 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await Assert.ThrowsAsync<NotSupportedException>(async () =>
                 await host.ReplaceConfigurationAsync([]));
             await hosted.StopAsync(default);
+        }
+
+        [Fact]
+        public async Task NativeSelectionRetiresRemovedGroupsWithoutDisposingRetainedGroupsAsync()
+        {
+            var first = new RecordingEventClient();
+            var second = new RecordingEventClient();
+            var firstScope = new Mock<IDisposable>(MockBehavior.Strict);
+            firstScope.Setup(scope => scope.Dispose());
+            var secondScope = new Mock<IDisposable>(MockBehavior.Strict);
+            secondScope.Setup(scope => scope.Dispose());
+            var factory = new Mock<IEventClientFactory>(MockBehavior.Strict);
+            factory.SetupGet(instance => instance.Name).Returns("recording");
+            IEventClient firstClient = first;
+            IEventClient secondClient = second;
+            factory.Setup(instance => instance.CreateEventClient("first", out firstClient))
+                .Returns(firstScope.Object);
+            factory.Setup(instance => instance.CreateEventClient("second", out secondClient))
+                .Returns(secondScope.Object);
+            await using var provider = CreateNativeProvider(factory.Object);
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var firstGroup = CreateConfiguredWriterGroup("first");
+            var secondGroup = CreateConfiguredWriterGroup("second");
+
+            await host.ReplaceConfigurationAsync([firstGroup, secondGroup]);
+            firstScope.Verify(scope => scope.Dispose(), Times.Never);
+            secondScope.Verify(scope => scope.Dispose(), Times.Never);
+
+            await host.ReplaceConfigurationAsync([secondGroup]);
+
+            firstScope.Verify(scope => scope.Dispose(), Times.Once);
+            secondScope.Verify(scope => scope.Dispose(), Times.Never);
+            factory.Verify(instance => instance.CreateEventClient("second", out secondClient),
+                Times.Once);
+
+            await host.ReplaceConfigurationAsync([]);
+            secondScope.Verify(scope => scope.Dispose(), Times.Once);
+            await provider.DisposeAsync();
+            firstScope.Verify(scope => scope.Dispose(), Times.Once);
+            secondScope.Verify(scope => scope.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public async Task NativeSelectionReplacesChangedConfigurationWithoutChurningRetainedGroupAsync()
+        {
+            var old = new RecordingEventClient();
+            var replacement = new RecordingEventClient();
+            var retained = new RecordingEventClient();
+            var oldScope = CreateOwnedScope(old);
+            var newScope = CreateOwnedScope(replacement);
+            var retainedScope = CreateOwnedScope(retained);
+            var factory = CreateOwnedFactory(
+                ("old", old, oldScope), ("new", replacement, newScope),
+                ("retained", retained, retainedScope));
+            await using var provider = CreateNativeProvider(factory.Object);
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var registry = provider.GetRequiredService<PubSubShadowEgressRegistration>().Settings;
+            var retainedGroup = CreateConfiguredWriterGroup("retained");
+
+            await host.ReplaceConfigurationAsync(
+                [CreateConfiguredWriterGroup("same", "old"), retainedGroup]);
+            Assert.Same(old, registry.Snapshot()["shadow-same"].EventClient);
+
+            await host.ReplaceConfigurationAsync(
+                [CreateConfiguredWriterGroup("same", "new"), retainedGroup]);
+
+            Assert.Equal(2, registry.Snapshot().Count);
+            Assert.Same(replacement, registry.Snapshot()["shadow-same"].EventClient);
+            Assert.Same(retained, registry.Snapshot()["shadow-retained"].EventClient);
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            newScope.Verify(scope => scope.Dispose(), Times.Never);
+            retainedScope.Verify(scope => scope.Dispose(), Times.Never);
+            await using var transport = CreateNativeTransport(provider, "same");
+            await transport.OpenAsync();
+            await transport.SendAsync(new byte[] { 2 }, "replacement/topic").AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(10));
+            await transport.DisposeAsync();
+            var sent = Assert.Single(replacement.Events);
+            Assert.Equal(new byte[] { 2 }, sent.Payload);
+            Assert.Equal("replacement/topic", sent.Topic);
+            Assert.Equal("same", sent.Properties["writerGroupId"]);
+            Assert.Empty(old.Events);
+
+            await host.ReplaceConfigurationAsync([]);
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            newScope.Verify(scope => scope.Dispose(), Times.Once);
+            retainedScope.Verify(scope => scope.Dispose(), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                It.IsAny<string>(), out It.Ref<IEventClient>.IsAny), Times.Exactly(3));
+
+            // Final release must evict the cache entry, not leave a closed
+            // holder that prevents this exact group/configuration returning.
+            var revived = new RecordingEventClient();
+            var revivedScope = CreateOwnedScope(revived);
+            IEventClient revivedClient = revived;
+            factory.Setup(instance => instance.CreateEventClient("old", out revivedClient))
+                .Returns(revivedScope.Object);
+            await host.ReplaceConfigurationAsync([CreateConfiguredWriterGroup("same", "old")]);
+            Assert.Same(revived, Assert.Single(registry.Snapshot().Values).EventClient);
+            revivedScope.Verify(scope => scope.Dispose(), Times.Never);
+            await provider.DisposeAsync();
+            revivedScope.Verify(scope => scope.Dispose(), Times.Once);
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            newScope.Verify(scope => scope.Dispose(), Times.Once);
+            retainedScope.Verify(scope => scope.Dispose(), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                It.IsAny<string>(), out It.Ref<IEventClient>.IsAny), Times.Exactly(4));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task NativeSelectionRetiresChangedDerivedDestinationOnlyAsync(bool changeQos)
+        {
+            var retained = new RecordingEventClient();
+            var retainedScope = CreateOwnedScope(retained);
+            var factory = CreateOwnedFactory(("retained", retained, retainedScope));
+            var created = new List<(RecordingEventClient Client, Mock<IDisposable> Scope)>();
+            factory.Setup(instance => instance.CreateEventClient(
+                    "partitioned", out It.Ref<IEventClient>.IsAny))
+                .Returns(new CreateOwnedEventClient((string _, out IEventClient client) =>
+                {
+                    var recording = new RecordingEventClient();
+                    var scope = CreateOwnedScope(recording);
+                    created.Add((recording, scope));
+                    client = recording;
+                    return scope.Object;
+                }));
+            await using var provider = CreateNativeProvider(factory.Object);
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var registry = provider.GetRequiredService<PubSubShadowEgressRegistration>().Settings;
+            var group = CreateConfiguredWriterGroup("partitioned");
+            var first = group.DataSetWriters![0];
+            first.Publishing = new PublishingQueueSettingsModel
+            {
+                QueueName = "partition/first",
+                RequestedDeliveryGuarantee = QoS.AtLeastOnce
+            };
+            var second = CreateConfiguredWriterGroup("second-writer").DataSetWriters![0];
+            second.Publishing = new PublishingQueueSettingsModel
+            {
+                QueueName = "partition/second",
+                RequestedDeliveryGuarantee = QoS.AtLeastOnce
+            };
+            group.DataSetWriters = [first, second];
+            var retainedGroup = CreateConfiguredWriterGroup("retained");
+            await host.ReplaceConfigurationAsync([group, retainedGroup]);
+            var old = Assert.Single(registry.Snapshot().Values,
+                settings => settings.Topic == "partition/first");
+            var unchanged = Assert.Single(registry.Snapshot().Values,
+                settings => settings.Topic == "partition/second");
+            Assert.StartsWith("shadow-partitioned_", old.ConnectionName, StringComparison.Ordinal);
+            Assert.Equal(2, created.Count);
+            var changedPublishing = first.Publishing with
+            {
+                QueueName = changeQos ? "partition/first" : "partition/changed",
+                RequestedDeliveryGuarantee = changeQos ? QoS.ExactlyOnce : QoS.AtLeastOnce
+            };
+            var changed = group with
+            {
+                DataSetWriters = [first with { Publishing = changedPublishing }, second]
+            };
+
+            await host.ReplaceConfigurationAsync([changed, retainedGroup]);
+
+            var current = registry.Snapshot();
+            Assert.Equal(3, current.Count);
+            Assert.DoesNotContain(old.ConnectionName, current.Keys);
+            Assert.Same(unchanged.EventClient, current[unchanged.ConnectionName].EventClient);
+            Assert.Same(retained, current["shadow-retained"].EventClient);
+            var newSettings = Assert.Single(current.Values,
+                settings => settings.Topic == changedPublishing.QueueName);
+            Assert.NotEqual(old.ConnectionName, newSettings.ConnectionName);
+            Assert.NotSame(old.EventClient, newSettings.EventClient);
+            Assert.Equal(changedPublishing.RequestedDeliveryGuarantee, newSettings.QualityOfService);
+            Assert.Equal(3, created.Count);
+            Assert.Equal(1, Assert.IsType<RecordingEventClient>(old.EventClient).DisposeCount);
+            Assert.Equal(0, Assert.IsType<RecordingEventClient>(unchanged.EventClient).DisposeCount);
+            Assert.Equal(0, retained.DisposeCount);
+
+            await host.ReplaceConfigurationAsync([]);
+            await provider.DisposeAsync();
+            Assert.All(created, item => item.Scope.Verify(scope => scope.Dispose(), Times.Once));
+            retainedScope.Verify(scope => scope.Dispose(), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                "retained", out It.Ref<IEventClient>.IsAny), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                "partitioned", out It.Ref<IEventClient>.IsAny), Times.Exactly(3));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task NativeTransportPinsRetiredSelectionUntilConcurrentDisposalDrainsAsync(
+            bool replaceWithAnotherGroup)
+        {
+            var old = new RecordingEventClient { IgnoreCancellation = true };
+            var replacement = new RecordingEventClient();
+            var oldScope = CreateOwnedScope(old);
+            var newScope = CreateOwnedScope(replacement);
+            var closing = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseScope = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var asyncScope = oldScope.As<IAsyncDisposable>();
+            asyncScope.Setup(scope => scope.DisposeAsync()).Returns(() => new ValueTask(CloseAsync()));
+            var factory = CreateOwnedFactory(("old", old, oldScope),
+                ("new", replacement, newScope));
+            await using var provider = CreateNativeProvider(factory.Object);
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            await host.ReplaceConfigurationAsync([CreateConfiguredWriterGroup("old")]);
+            var borrowedLease = Assert.Single(registration.Settings.Snapshot().Values).ClientLease!;
+            await using var transport = CreateNativeTransport(provider, "old");
+            await transport.OpenAsync();
+
+            await host.ReplaceConfigurationAsync(replaceWithAnotherGroup
+                ? [CreateConfiguredWriterGroup("new")] : []);
+            await using (var reselected = registration.EventClients.Select(
+                CreateConfiguredWriterGroup("old")))
+            {
+                Assert.Same(old, reselected.EventClient);
+                factory.Verify(instance => instance.CreateEventClient(
+                    "old", out It.Ref<IEventClient>.IsAny), Times.Once);
+            }
+            await provider.DisposeAsync();
+            Assert.Empty(registration.Settings.Snapshot());
+            Assert.Throws<ObjectDisposedException>(() =>
+                registration.EventClients.Select(CreateConfiguredWriterGroup("old")));
+            Assert.Equal(0, old.DisposeCount);
+            await transport.SendAsync(new byte[] { 1 }, "old/still-live").AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(10));
+
+            old.BlockSuccessfulSends();
+            var sending = transport.SendAsync(new byte[] { 2 }, "old/draining").AsTask();
+            try
+            {
+                await old.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                var firstDispose = transport.DisposeAsync().AsTask();
+                var secondDispose = transport.DisposeAsync().AsTask();
+                await old.SendCancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.False(firstDispose.IsCompleted);
+                Assert.False(secondDispose.IsCompleted);
+                Assert.False(closing.Task.IsCompleted);
+                Assert.Equal(0, old.DisposeCount);
+
+                old.ReleaseSuccessfulSends();
+                await sending.WaitAsync(TimeSpan.FromSeconds(10));
+                await closing.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.False(firstDispose.IsCompleted);
+                Assert.False(secondDispose.IsCompleted);
+                Assert.Equal(0, old.DisposeCount);
+                Assert.Throws<InvalidOperationException>(() => borrowedLease.Acquire());
+                releaseScope.TrySetResult();
+                await Task.WhenAll(firstDispose, secondDispose).WaitAsync(TimeSpan.FromSeconds(10));
+            }
+            finally
+            {
+                old.ReleaseSuccessfulSends();
+                releaseScope.TrySetResult();
+            }
+
+            await transport.DisposeAsync();
+            Assert.Collection(old.Events, sent =>
+            {
+                Assert.Equal(new byte[] { 1 }, sent.Payload);
+                Assert.Equal("old/still-live", sent.Topic);
+            }, sent =>
+            {
+                Assert.Equal(new byte[] { 2 }, sent.Payload);
+                Assert.Equal("old/draining", sent.Topic);
+            });
+            Assert.Equal(2, transport.Metrics.SentCount);
+            Assert.Equal(0, transport.Metrics.QueueDepth);
+            Assert.False(transport.IsConnected);
+            Assert.Equal(1, old.DisposeCount);
+            asyncScope.Verify(scope => scope.DisposeAsync(), Times.Once);
+            oldScope.Verify(scope => scope.Dispose(), Times.Never);
+            newScope.Verify(scope => scope.Dispose(),
+                replaceWithAnotherGroup ? Times.Once() : Times.Never());
+            factory.Verify(instance => instance.CreateEventClient(
+                "old", out It.Ref<IEventClient>.IsAny), Times.Once);
+
+            async Task CloseAsync()
+            {
+                closing.TrySetResult();
+                await releaseScope.Task.ConfigureAwait(false);
+                old.Dispose();
+            }
+        }
+
+        [Fact]
+        public async Task RollbackRestoresSettingsAndEncodingBeforeRecreatingOldNativeTransportAsync()
+        {
+            var old = new RecordingEventClient();
+            var firstStaged = new RecordingEventClient();
+            var secondStaged = new RecordingEventClient();
+            var oldScope = CreateOwnedScope(old);
+            var firstScope = CreateOwnedScope(firstStaged);
+            var secondScope = CreateOwnedScope(secondStaged);
+            var factory = CreateOwnedFactory(("old", old, oldScope),
+                ("first-staged", firstStaged, firstScope),
+                ("second-staged", secondStaged, secondScope));
+            var encodings = new PubSubShadowEncodingRegistry();
+            var committedEncoding = encodings.ActiveGeneration;
+            var failure = new IOException("identity persistence failed");
+            var saves = 0;
+            var store = new Mock<IPubSubIdentityRegistryStore>(MockBehavior.Strict);
+            store.Setup(instance => instance.LoadAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PubSubIdentityRegistrySnapshot());
+            store.Setup(instance => instance.SaveAsync(
+                    It.IsAny<PubSubIdentityRegistrySnapshot>(), It.IsAny<CancellationToken>()))
+                .Returns(() =>
+                {
+                    if (++saves == 2)
+                    {
+                        Assert.NotSame(committedEncoding, encodings.ActiveGeneration);
+                        return ValueTask.FromException(failure);
+                    }
+                    return ValueTask.CompletedTask;
+                });
+            await using var provider = CreateNativeProvider(factory.Object,
+                services => services.AddSingleton(store.Object));
+            var egress = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            var application = new Mock<IPubSubApplication>(MockBehavior.Strict);
+            var transports = new List<EventClientPubSubTransport>();
+            var replacements = 0;
+            application.Setup(instance => instance.ReplaceConfigurationAsync(
+                    It.IsAny<PubSubConfigurationDataType>(), It.IsAny<CancellationToken>()))
+                .Returns<PubSubConfigurationDataType, CancellationToken>((configuration, _) =>
+                    ReplaceNativeAsync(configuration));
+            application.Setup(instance => instance.DisposeAsync()).Returns(DisposeNativeAsync);
+            var state = new PubSubShadowRuntimeStateProvider();
+            await using var host = new PubSubShadowHost(
+                provider.GetRequiredService<IPubSubIdentityRegistry>(),
+                new PubSubConfigurationTranslator(), state, encodings,
+                application.Object, PubSubConfigurationTranslator.CreateEmpty(), egress);
+            await host.ReplaceConfigurationAsync([CreateConfiguredWriterGroup("old")]);
+            committedEncoding = encodings.ActiveGeneration;
+            var first = CreateConfiguredWriterGroup("first-staged");
+            first.MessageType = MessageEncoding.JsonGzip;
+
+            var error = await Assert.ThrowsAsync<IOException>(() =>
+                host.ReplaceConfigurationAsync(
+                    [first, CreateConfiguredWriterGroup("second-staged")])
+                    .AsTask().WaitAsync(TimeSpan.FromSeconds(10)));
+
+            Assert.Same(failure, error);
+            Assert.Equal(3, replacements);
+            Assert.Equal(2, saves);
+            Assert.Equal(1, state.State.ConfigurationGeneration);
+            Assert.Same(committedEncoding, encodings.ActiveGeneration);
+            Assert.Same(old, Assert.Single(egress.Settings.Snapshot().Values).EventClient);
+            oldScope.Verify(scope => scope.Dispose(), Times.Never);
+            firstScope.Verify(scope => scope.Dispose(), Times.Once);
+            secondScope.Verify(scope => scope.Dispose(), Times.Once);
+            var resumed = Assert.Single(transports);
+            await resumed.SendAsync(new byte[] { 9 }, "rollback/old").AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(10));
+            var sent = Assert.Single(old.Events);
+            Assert.Equal(new byte[] { 9 }, sent.Payload);
+            Assert.Equal("rollback/old", sent.Topic);
+            Assert.Null(sent.ContentEncoding);
+
+            await host.DisposeAsync();
+            await provider.DisposeAsync();
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            firstScope.Verify(scope => scope.Dispose(), Times.Once);
+            secondScope.Verify(scope => scope.Dispose(), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                "old", out It.Ref<IEventClient>.IsAny), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                It.IsAny<string>(), out It.Ref<IEventClient>.IsAny), Times.Exactly(3));
+
+            async ValueTask<ArrayOf<StatusCode>> ReplaceNativeAsync(
+                PubSubConfigurationDataType configuration)
+            {
+                await DisposeNativeAsync();
+                if (++replacements == 3)
+                {
+                    // This is the native rollback callback, before its factory lookup.
+                    Assert.Same(committedEncoding, encodings.ActiveGeneration);
+                    Assert.Equal(1, configuration.Connections.Count);
+                    var connection = configuration.Connections[0];
+                    Assert.Equal("shadow-old", connection.Name);
+                    Assert.Same(old, egress.Settings.Resolve(connection).EventClient);
+                    Assert.Equal(0, old.DisposeCount);
+                    Assert.Equal(1, firstStaged.DisposeCount);
+                    Assert.Equal(1, secondStaged.DisposeCount);
+                }
+                for (var index = 0; index < configuration.Connections.Count; index++)
+                {
+                    var transport = CreateNativeTransport(provider, configuration.Connections[index]);
+                    transports.Add(transport);
+                    await transport.OpenAsync();
+                }
+                return [StatusCodes.Good];
+            }
+
+            async ValueTask DisposeNativeAsync()
+            {
+                await Task.WhenAll(transports.Select(transport =>
+                    transport.DisposeAsync().AsTask())).WaitAsync(TimeSpan.FromSeconds(10));
+                transports.Clear();
+            }
+        }
+
+        [Fact]
+        public async Task FailedCandidateCleanupStillRollsBackAndRestartsOldConfigurationAsync()
+        {
+            var old = new RecordingEventClient();
+            var candidate = new RecordingEventClient();
+            var oldScope = CreateOwnedScope(old);
+            var candidateScope = CreateOwnedScope(candidate);
+            var cleanupFailure = new IOException("candidate cleanup failed");
+            candidateScope.Setup(scope => scope.Dispose()).Callback(candidate.Dispose)
+                .Throws(cleanupFailure);
+            var factory = CreateOwnedFactory(("old", old, oldScope),
+                ("candidate", candidate, candidateScope));
+            await using var provider = CreateNativeProvider(factory.Object);
+            var egress = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            var application = new Mock<IPubSubApplication>(MockBehavior.Strict);
+            var replacements = 0;
+            var starts = 0;
+            application.Setup(instance => instance.StartAsync(It.IsAny<CancellationToken>()))
+                .Callback(() => starts++).Returns(ValueTask.CompletedTask);
+            application.Setup(instance => instance.StopAsync(It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask);
+            application.Setup(instance => instance.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            application.Setup(instance => instance.ReplaceConfigurationAsync(
+                    It.IsAny<PubSubConfigurationDataType>(), It.IsAny<CancellationToken>()))
+                .Returns<PubSubConfigurationDataType, CancellationToken>((configuration, _) =>
+                {
+                    if (++replacements == 3)
+                    {
+                        Assert.Equal("shadow-old", configuration.Connections[0].Name);
+                        Assert.Same(old, egress.Settings.Resolve(configuration.Connections[0])
+                            .EventClient);
+                        oldScope.Verify(scope => scope.Dispose(), Times.Never);
+                    }
+                    ArrayOf<StatusCode> result = replacements == 2
+                        ? [StatusCodes.BadConfigurationError] : [StatusCodes.Good];
+                    return ValueTask.FromResult(result);
+                });
+            await using var host = new PubSubShadowHost(
+                provider.GetRequiredService<IPubSubIdentityRegistry>(),
+                new PubSubConfigurationTranslator(), new PubSubShadowRuntimeStateProvider(),
+                new PubSubShadowEncodingRegistry(), application.Object,
+                PubSubConfigurationTranslator.CreateEmpty(), egress);
+            await host.ReplaceConfigurationAsync([CreateConfiguredWriterGroup("old")]);
+            await host.StartAsync(default);
+
+            var error = await Record.ExceptionAsync(() => host.ReplaceConfigurationAsync(
+                [CreateConfiguredWriterGroup("candidate")]).AsTask());
+
+            Assert.Equal(3, replacements);
+            Assert.Equal(2, starts);
+            var aggregate = Assert.IsType<AggregateException>(error);
+            Assert.Contains(cleanupFailure, aggregate.InnerExceptions);
+            Assert.Contains(aggregate.InnerExceptions, exception =>
+                exception is InvalidOperationException
+                    && exception.Message.Contains("runtime rejected", StringComparison.Ordinal));
+            Assert.Same(old, Assert.Single(egress.Settings.Snapshot().Values).EventClient);
+            oldScope.Verify(scope => scope.Dispose(), Times.Never);
+            candidateScope.Verify(scope => scope.Dispose(), Times.Once);
+            await using (var transport = CreateNativeTransport(provider, "old"))
+            {
+                await transport.OpenAsync();
+                await transport.SendAsync(new byte[] { 42 }, "old/resumed");
+            }
+            Assert.Equal(new byte[] { 42 }, Assert.Single(old.Events).Payload);
+            await host.DisposeAsync();
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            candidateScope.Verify(scope => scope.Dispose(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task TombstoneCleanupFailureDoesNotStrandIndependentTopicsAsync(
+            bool enqueueAfterFailure)
+        {
+            var first = new RecordingEventClient();
+            var second = new RecordingEventClient();
+            var firstScope = CreateOwnedScope(first);
+            var secondScope = CreateOwnedScope(second);
+            var failure = new IOException("retired transport cleanup failed");
+            firstScope.Setup(scope => scope.Dispose()).Callback(first.Dispose).Throws(failure);
+            using var firstLease = new PubSubShadowEventClientLease(first, firstScope.Object);
+            using var secondLease = new PubSubShadowEventClientLease(second, secondScope.Object);
+            var firstSettings = CreateSettings(eventClient: first, retain: true) with
+            {
+                ClientLease = firstLease
+            };
+            var secondSettings = CreateSettings(eventClient: second, retain: true) with
+            {
+                ClientLease = secondLease
+            };
+            var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+            Exception? disposalError;
+            first.BlockSuccessfulSends();
+            try
+            {
+                queue.Persist(firstSettings, "metadata/first", queue.NextGeneration());
+                firstLease.Dispose();
+                await first.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                if (!enqueueAfterFailure)
+                {
+                    queue.Persist(secondSettings, "metadata/second", queue.NextGeneration());
+                    secondLease.Dispose();
+                }
+                first.ReleaseSuccessfulSends();
+                await first.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                if (enqueueAfterFailure)
+                {
+                    queue.Persist(secondSettings, "metadata/second", queue.NextGeneration());
+                    secondLease.Dispose();
+                }
+
+                await second.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.Equal(0, queue.PendingCount);
+                Assert.Equal("metadata/first", Assert.Single(first.Events).Topic);
+                var sent = Assert.Single(second.Events);
+                Assert.Equal("metadata/second", sent.Topic);
+                Assert.Empty(sent.Payload);
+                Assert.True(sent.Retain);
+            }
+            finally
+            {
+                first.ReleaseSuccessfulSends();
+                disposalError = await Record.ExceptionAsync(() => queue.DisposeAsync()
+                    .AsTask().WaitAsync(TimeSpan.FromSeconds(5)));
+            }
+            Assert.Contains(failure,
+                Assert.IsType<AggregateException>(disposalError).Flatten().InnerExceptions);
+            var repeated = await Record.ExceptionAsync(() => queue.DisposeAsync().AsTask());
+            Assert.Same(disposalError, repeated);
+            firstScope.Verify(scope => scope.Dispose(), Times.Once);
+            secondScope.Verify(scope => scope.Dispose(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("persist")]
+        [InlineData("reactivate")]
+        [InlineData("restore")]
+        public async Task TombstoneCancellationFailurePreservesJournalAndDoesNotLeakLeasesAsync(
+            string action)
+        {
+            var failure = new InvalidOperationException("cancellation callback failed");
+            var active = new RecordingEventClient
+            {
+                CancellationFailure = failure,
+                IgnoreCancellation = true
+            };
+            var candidate = new RecordingEventClient();
+            var activeScope = CreateOwnedScope(active);
+            var candidateScope = CreateOwnedScope(candidate);
+            using var activeLease = new PubSubShadowEventClientLease(active, activeScope.Object);
+            using var candidateLease = new PubSubShadowEventClientLease(candidate, candidateScope.Object);
+            var activeSettings = CreateSettings(eventClient: active) with { ClientLease = activeLease };
+            var candidateSettings = CreateSettings(eventClient: candidate) with
+            {
+                ClientLease = candidateLease
+            };
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+            var generation = queue.NextGeneration();
+            const string topic = "metadata/cancellation-failure";
+            PubSubShadowTombstoneReactivation? reactivation = null;
+            active.BlockSuccessfulSends();
+            try
+            {
+                if (action == "restore")
+                {
+                    candidate.BlockSuccessfulSends();
+                    queue.Persist(candidateSettings, topic, generation);
+                    candidateLease.Dispose();
+                    await candidate.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                    reactivation = await queue.ReactivateAsync(topic, queue.NextGeneration());
+                    Assert.NotNull(reactivation);
+                }
+                queue.Persist(activeSettings, topic, generation);
+                activeLease.Dispose();
+                await active.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+                Exception? error = action switch
+                {
+                    "persist" => Record.Exception(() =>
+                        queue.Persist(candidateSettings, topic, queue.NextGeneration())),
+                    "restore" => Record.Exception(() => queue.Restore(reactivation!)),
+                    _ => await Record.ExceptionAsync(() =>
+                        queue.ReactivateAsync(topic, queue.NextGeneration()).AsTask())
+                };
+
+                Assert.Contains(failure,
+                    Assert.IsType<AggregateException>(error).Flatten().InnerExceptions);
+                candidateLease.Dispose();
+                reactivation?.Dispose();
+                candidateScope.Verify(scope => scope.Dispose(), Times.Once);
+                Assert.Equal(1, queue.PendingCount);
+                activeScope.Verify(scope => scope.Dispose(), Times.Never);
+                active.CancellationFailure = null;
+                active.ReleaseSuccessfulSends();
+                await active.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.Equal(0, queue.PendingCount);
+                activeScope.Verify(scope => scope.Dispose(), Times.Once);
+            }
+            finally
+            {
+                active.CancellationFailure = null;
+                active.ReleaseSuccessfulSends();
+                candidate.ReleaseSuccessfulSends();
+                reactivation?.Dispose();
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task NativeHostRemovalPinsFinalSelectionThroughTombstoneRetryOrTeardownAsync(
+            bool tearDownQueue)
+        {
+            var client = new RecordingEventClient();
+            var scope = CreateOwnedScope(client);
+            var factory = CreateOwnedFactory(("removed", client, scope));
+            await using var provider = CreateNativeProvider(factory.Object, services =>
+                services.PostConfigure<PublisherOptions>(options =>
+                    options.DisableDataSetMetaData = false));
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            registration.Options.InitialRetryDelay = TimeSpan.FromMilliseconds(1);
+            registration.Options.MaximumRetryDelay = TimeSpan.FromMilliseconds(5);
+            var group = CreateConfiguredWriterGroup("removed");
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/last-owned-group",
+                Retain = true
+            };
+            await host.ReplaceConfigurationAsync([group]);
+            Assert.True(Assert.Single(
+                Assert.Single(registration.Settings.Snapshot().Values).MetadataWriters).Enabled);
+            client.FailuresRemaining = 1;
+            client.BlockSuccessfulSends();
+            try
+            {
+                await host.ReplaceConfigurationAsync([]).AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+                await client.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+                Assert.Empty(registration.Settings.Snapshot());
+                Assert.Equal(1, registration.Tombstones.PendingCount);
+                Assert.Equal(1, registration.Tombstones.RetryCount);
+                Assert.Empty(client.Events);
+                scope.Verify(instance => instance.Dispose(), Times.Never);
+                if (tearDownQueue)
+                {
+                    await registration.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+                    Assert.True(client.SendCancellationObserved.Task.IsCompleted);
+                    Assert.Empty(client.Events);
+                }
+                else
+                {
+                    client.ReleaseSuccessfulSends();
+                    await client.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    var tombstone = Assert.Single(client.Events);
+                    Assert.Equal("metadata/last-owned-group", tombstone.Topic);
+                    Assert.Empty(tombstone.Payload);
+                    Assert.True(tombstone.Retain);
+                }
+                Assert.Equal(0, registration.Tombstones.PendingCount);
+                scope.Verify(instance => instance.Dispose(), Times.Once);
+            }
+            finally
+            {
+                client.ReleaseSuccessfulSends();
+            }
+            await provider.DisposeAsync();
+            Assert.Equal(1, client.DisposeCount);
+            scope.Verify(instance => instance.Dispose(), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                "removed", out It.Ref<IEventClient>.IsAny), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task NativeHostReactivationOwnsPendingLeaseUntilCommitOrRollbackAsync(
+            bool failCommit)
+        {
+            var old = new RecordingEventClient();
+            var replacement = new RecordingEventClient();
+            var oldScope = CreateOwnedScope(old);
+            var newScope = CreateOwnedScope(replacement);
+            var factory = CreateOwnedFactory(("old", old, oldScope),
+                ("new", replacement, newScope));
+            var committing = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseCommit = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var failure = new IOException("reactivation commit failed");
+            var saves = 0;
+            var store = new Mock<IPubSubIdentityRegistryStore>(MockBehavior.Strict);
+            store.Setup(instance => instance.LoadAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PubSubIdentityRegistrySnapshot());
+            store.Setup(instance => instance.SaveAsync(
+                    It.IsAny<PubSubIdentityRegistrySnapshot>(), It.IsAny<CancellationToken>()))
+                .Returns(SaveAsync);
+            await using var provider = CreateNativeProvider(factory.Object,
+                services =>
+                {
+                    services.AddSingleton(store.Object);
+                    services.PostConfigure<PublisherOptions>(options =>
+                        options.DisableDataSetMetaData = false);
+                });
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            var group = CreateConfiguredWriterGroup("reactivated", "old");
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/reactivation-owned",
+                Retain = true
+            };
+            await host.ReplaceConfigurationAsync([group]);
+            old.BlockSuccessfulSends();
+            try
+            {
+                await host.ReplaceConfigurationAsync([]);
+                await old.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.Equal(1, registration.Tombstones.PendingCount);
+                var replacing = host.ReplaceConfigurationAsync(
+                    [group with { TransportConfiguration = "new" }]).AsTask();
+                await committing.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+                // The old registry/native roots are gone and the in-flight send
+                // has been canceled. Only the host's reactivation owns this scope.
+                Assert.True(old.SendCancellationObserved.Task.IsCompleted);
+                Assert.False(replacing.IsCompleted);
+                Assert.Equal(0, registration.Tombstones.PendingCount);
+                Assert.Same(replacement,
+                    Assert.Single(registration.Settings.Snapshot().Values).EventClient);
+                Assert.Empty(old.Events);
+                oldScope.Verify(scope => scope.Dispose(), Times.Never);
+                newScope.Verify(scope => scope.Dispose(), Times.Never);
+                releaseCommit.TrySetResult();
+
+                if (failCommit)
+                {
+                    var error = await Assert.ThrowsAsync<IOException>(() =>
+                        replacing.WaitAsync(TimeSpan.FromSeconds(10)));
+                    Assert.Same(failure, error);
+                    Assert.Empty(registration.Settings.Snapshot());
+                    Assert.Equal(1, registration.Tombstones.PendingCount);
+                    oldScope.Verify(scope => scope.Dispose(), Times.Never);
+                    newScope.Verify(scope => scope.Dispose(), Times.Once);
+                    old.ReleaseSuccessfulSends();
+                    await old.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    var tombstone = Assert.Single(old.Events);
+                    Assert.Equal("metadata/reactivation-owned", tombstone.Topic);
+                    Assert.Empty(tombstone.Payload);
+                    Assert.True(tombstone.Retain);
+                    Assert.Empty(replacement.Events);
+                }
+                else
+                {
+                    await replacing.WaitAsync(TimeSpan.FromSeconds(10));
+                    oldScope.Verify(scope => scope.Dispose(), Times.Once);
+                    newScope.Verify(scope => scope.Dispose(), Times.Never);
+                    await using var transport = CreateNativeTransport(provider, "reactivated");
+                    await transport.OpenAsync();
+                    await transport.SendAsync(new byte[] { 7 }, "metadata/reactivation-owned")
+                        .AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+                    var retained = Assert.Single(replacement.Events);
+                    Assert.Equal(new byte[] { 7 }, retained.Payload);
+                    Assert.Equal("metadata/reactivation-owned", retained.Topic);
+                    Assert.True(retained.Retain);
+                    // Joining the worker proves there is no late old cleanup.
+                    await registration.Tombstones.DisposeAsync().AsTask()
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+                    Assert.Empty(old.Events);
+                }
+                Assert.Equal(0, registration.Tombstones.PendingCount);
+            }
+            finally
+            {
+                releaseCommit.TrySetResult();
+                old.ReleaseSuccessfulSends();
+            }
+
+            await provider.DisposeAsync();
+            Assert.Equal(3, saves);
+            Assert.Equal(1, old.DisposeCount);
+            Assert.Equal(1, replacement.DisposeCount);
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            newScope.Verify(scope => scope.Dispose(), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                "old", out It.Ref<IEventClient>.IsAny), Times.Once);
+            factory.Verify(instance => instance.CreateEventClient(
+                "new", out It.Ref<IEventClient>.IsAny), Times.Once);
+
+            async ValueTask SaveAsync()
+            {
+                if (++saves == 3)
+                {
+                    committing.TrySetResult();
+                    await releaseCommit.Task.ConfigureAwait(false);
+                    if (failCommit)
+                    {
+                        throw failure;
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ReactivationHandleOwnsRemovedLeaseAndRestoreAcquiresIndependentRootAsync(
+            bool restore)
+        {
+            var client = new RecordingEventClient { IgnoreCancellation = !restore };
+            var scope = CreateOwnedScope(client);
+            await using var root = new PubSubShadowEventClientLease(client, scope.Object);
+            var settings = CreateSettings(retain: true, eventClient: client) with { ClientLease = root };
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+            const string topic = "metadata/owned-reactivation";
+            var generation = queue.NextGeneration();
+            client.BlockSuccessfulSends();
+            try
+            {
+                queue.Persist(settings, topic, generation);
+                await root.DisposeAsync();
+                await client.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+                var reactivating = queue.ReactivateAsync(topic, queue.NextGeneration()).AsTask();
+                await client.SendCancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                if (!restore)
+                {
+                    Assert.False(reactivating.IsCompleted);
+                    Assert.Empty(client.Events);
+                    scope.Verify(instance => instance.Dispose(), Times.Never);
+                    client.ReleaseSuccessfulSends();
+                }
+                await using var reactivation = Assert.IsType<PubSubShadowTombstoneReactivation>(
+                    await reactivating.WaitAsync(TimeSpan.FromSeconds(10)));
+
+                Assert.Equal(0, queue.PendingCount);
+                Assert.Equal(generation, reactivation.Entry.Generation);
+                Assert.Equal(topic, reactivation.Entry.Topic);
+                Assert.Same(client, reactivation.Entry.Settings.EventClient);
+                scope.Verify(instance => instance.Dispose(), Times.Never);
+                if (restore)
+                {
+                    Assert.Empty(client.Events);
+                    queue.Restore(reactivation);
+                    await reactivation.DisposeAsync();
+                    Assert.Equal(1, queue.PendingCount);
+                    scope.Verify(instance => instance.Dispose(), Times.Never);
+                    client.ReleaseSuccessfulSends();
+                    await client.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    var tombstone = Assert.Single(client.Events);
+                    Assert.Equal(topic, tombstone.Topic);
+                    Assert.Empty(tombstone.Payload);
+                    Assert.True(tombstone.Retain);
+                }
+                else
+                {
+                    // The uncancellable old send must finish before a new
+                    // retained value can be published to this same topic.
+                    var oldTombstone = Assert.Single(client.Events);
+                    Assert.Empty(oldTombstone.Payload);
+                    Assert.Equal(topic, oldTombstone.Topic);
+                    Assert.True(oldTombstone.Retain);
+                    await using var transport = CreateTransport(client, settings);
+                    await transport.OpenAsync();
+                    await transport.SendAsync(new byte[] { 7 }, topic).AsTask()
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+                    await transport.DisposeAsync();
+                    await queue.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+                    scope.Verify(instance => instance.Dispose(), Times.Never);
+                    await reactivation.DisposeAsync();
+                    Assert.Collection(client.Events, sent => Assert.Same(oldTombstone, sent),
+                        sent =>
+                        {
+                            Assert.Equal(new byte[] { 7 }, sent.Payload);
+                            Assert.Equal(topic, sent.Topic);
+                            Assert.True(sent.Retain);
+                        });
+                }
+                await reactivation.DisposeAsync();
+                Assert.Equal(0, queue.PendingCount);
+                Assert.Equal(1, client.DisposeCount);
+                scope.Verify(instance => instance.Dispose(), Times.Once);
+            }
+            finally
+            {
+                client.ReleaseSuccessfulSends();
+            }
+        }
+
+        [Fact]
+        public async Task CoalescedTombstoneKeepsSupersededSendLeaseUntilItFinishesAsync()
+        {
+            var old = new RecordingEventClient { IgnoreCancellation = true };
+            var latest = new RecordingEventClient();
+            var oldScope = CreateOwnedScope(old);
+            var latestScope = CreateOwnedScope(latest);
+            await using var oldRoot = new PubSubShadowEventClientLease(old, oldScope.Object);
+            await using var latestRoot = new PubSubShadowEventClientLease(latest, latestScope.Object);
+            await using var queue = new PubSubShadowTombstoneQueue(new PubSubShadowEgressOptions());
+            const string topic = "metadata/coalesced-owned";
+            old.BlockSuccessfulSends();
+            latest.BlockSuccessfulSends();
+            try
+            {
+                queue.Persist(CreateSettings(retain: true, eventClient: old) with
+                {
+                    ClientLease = oldRoot,
+                    QualityOfService = QoS.AtMostOnce
+                }, topic, queue.NextGeneration());
+                await oldRoot.DisposeAsync();
+                await old.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+                queue.Persist(CreateSettings(retain: true, eventClient: latest) with
+                {
+                    ClientLease = latestRoot,
+                    QualityOfService = QoS.ExactlyOnce
+                }, topic, queue.NextGeneration());
+                await latestRoot.DisposeAsync();
+                await old.SendCancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+                Assert.Equal(1, queue.PendingCount);
+                Assert.False(latest.SuccessfulSendStarted.Task.IsCompleted);
+                oldScope.Verify(scope => scope.Dispose(), Times.Never);
+                latestScope.Verify(scope => scope.Dispose(), Times.Never);
+                old.ReleaseSuccessfulSends();
+                await old.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                await latest.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.Equal(1, queue.PendingCount);
+                oldScope.Verify(scope => scope.Dispose(), Times.Once);
+                latestScope.Verify(scope => scope.Dispose(), Times.Never);
+
+                latest.ReleaseSuccessfulSends();
+                await latest.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                await queue.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+                var superseded = Assert.Single(old.Events);
+                var current = Assert.Single(latest.Events);
+                Assert.Equal(topic, superseded.Topic);
+                Assert.Equal(topic, current.Topic);
+                Assert.Empty(superseded.Payload);
+                Assert.Empty(current.Payload);
+                Assert.True(superseded.Retain);
+                Assert.True(current.Retain);
+                Assert.Equal(QoS.AtMostOnce, superseded.QualityOfService);
+                Assert.Equal(QoS.ExactlyOnce, current.QualityOfService);
+                Assert.Equal(0, queue.PendingCount);
+                oldScope.Verify(scope => scope.Dispose(), Times.Once);
+                latestScope.Verify(scope => scope.Dispose(), Times.Once);
+            }
+            finally
+            {
+                old.ReleaseSuccessfulSends();
+                latest.ReleaseSuccessfulSends();
+            }
+        }
+
+        [Fact]
+        public async Task BorrowedDefaultClientIsDisposedOnlyByItsContainerOwnerAsync()
+        {
+            var client = new RecordingEventClient();
+            var factory = CreateOwnedFactory();
+            await using var provider = CreateNativeProvider(factory.Object, services =>
+            {
+                // The delegate registration, unlike an instance registration,
+                // makes the provider the actual owner of this global client.
+                services.AddSingleton<IEventClient>(_ => client);
+                services.PostConfigure<PublisherOptions>(options =>
+                    options.DisableDataSetMetaData = false);
+            });
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            var group = CreateConfiguredWriterGroup("borrowed");
+            group.TransportConfiguration = null;
+            await host.ReplaceConfigurationAsync([group]);
+            using (var borrowedLease = new PubSubShadowSingleEventClientSelector(client).Select(group))
+            using (var borrower = borrowedLease.Acquire())
+            {
+                Assert.Same(client, borrower.EventClient);
+            }
+            Assert.Equal(0, client.DisposeCount);
+            var borrowed = Assert.Single(registration.Settings.Snapshot().Values);
+            Assert.Same(client, borrowed.EventClient);
+            await using var snapshot = registration.Settings.AcquireSnapshot();
+            await using var selection = registration.EventClients.Select(group);
+            await using var transport = CreateNativeTransport(provider, "borrowed");
+            var metadataSettings = borrowed.WithTransportSettings("borrowed/retained",
+                new PublishingQueueSettingsModel { Retain = true }, defaultRetain: false);
+            Assert.Same(borrowed.ClientLease, metadataSettings.ClientLease);
+            await using var metadataTransport = CreateTransport(client, metadataSettings);
+            await transport.OpenAsync();
+            await metadataTransport.OpenAsync();
+            client.BlockSuccessfulSends();
+            try
+            {
+                registration.Tombstones.Persist(metadataSettings, "borrowed/retained",
+                    registration.Tombstones.NextGeneration());
+                await client.SuccessfulSendStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+                await host.ReplaceConfigurationAsync([]);
+                await registration.Settings.DisposeAsync();
+                Assert.IsAssignableFrom<IDisposable>(registration.EventClients).Dispose();
+                await snapshot.DisposeAsync();
+                await selection.DisposeAsync();
+                await registration.Tombstones.DisposeAsync().AsTask()
+                    .WaitAsync(TimeSpan.FromSeconds(10));
+
+                Assert.Equal(0, client.DisposeCount);
+                Assert.Equal(0, registration.Tombstones.PendingCount);
+                Assert.Empty(client.Events);
+                client.ReleaseSuccessfulSends();
+                await transport.SendAsync(new byte[] { 3 }, "borrowed/data").AsTask()
+                    .WaitAsync(TimeSpan.FromSeconds(10));
+                await metadataTransport.SendAsync(new byte[] { 4 }, "borrowed/retained")
+                    .AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+                await transport.DisposeAsync();
+                await metadataTransport.DisposeAsync();
+                await registration.DisposeAsync();
+                Assert.Collection(client.Events, sent =>
+                {
+                    Assert.Equal(new byte[] { 3 }, sent.Payload);
+                    Assert.Equal("borrowed/data", sent.Topic);
+                    Assert.False(sent.Retain);
+                }, sent =>
+                {
+                    Assert.Equal(new byte[] { 4 }, sent.Payload);
+                    Assert.Equal("borrowed/retained", sent.Topic);
+                    Assert.True(sent.Retain);
+                });
+                Assert.Equal(0, client.DisposeCount);
+                factory.Verify(instance => instance.CreateEventClient(
+                    It.IsAny<string>(), out It.Ref<IEventClient>.IsAny), Times.Never);
+            }
+            finally
+            {
+                client.ReleaseSuccessfulSends();
+            }
+
+            await provider.DisposeAsync();
+            Assert.Equal(1, client.DisposeCount);
+        }
+
+        [Theory]
+        [InlineData("capacity")]
+        [InlineData("time-provider")]
+        [InlineData("metadata")]
+        [InlineData("capabilities")]
+        public async Task FailedNativeTransportConstructionDoesNotLeakAnAcquiredLeaseAsync(
+            string failureMode)
+        {
+            var client = new RecordingEventClient();
+            var scope = CreateOwnedScope(client);
+            var factory = CreateOwnedFactory(("owned", client, scope));
+            await using var provider = CreateNativeProvider(factory.Object);
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            var group = CreateConfiguredWriterGroup("invalid", "owned");
+            group.Publishing = new PublishingQueueSettingsModel { Retain = true };
+            await registration.Settings.ReplaceAsync([group], new PublisherOptions(),
+                registration.Options);
+            var settings = Assert.Single(registration.Settings.Snapshot().Values);
+
+            switch (failureMode)
+            {
+                case "capacity":
+                    registration.Options.QueueCapacity = 0;
+                    Assert.Equal("options", Assert.Throws<ArgumentOutOfRangeException>(() =>
+                        CreateNativeTransport(provider, "invalid")).ParamName);
+                    break;
+                case "time-provider":
+                    Assert.Equal("timeProvider", Assert.Throws<ArgumentNullException>(() =>
+                        new EventClientPubSubTransport(Profiles.PubSubMqttJsonTransport,
+                            PubSubTransportDirection.Send, client, settings,
+                            registration.Options, null!)).ParamName);
+                    break;
+                case "metadata":
+                    var duplicateMetadata = new PubSubConnectionDataType
+                    {
+                        Name = "shadow-invalid",
+                        WriterGroups =
+                        [
+                            new WriterGroupDataType
+                            {
+                                WriterGroupId = 1,
+                                DataSetWriters =
+                                [
+                                    new DataSetWriterDataType
+                                    {
+                                        Name = "invalid-writer",
+                                        DataSetWriterId = 1
+                                    },
+                                    new DataSetWriterDataType
+                                    {
+                                        Name = "invalid-writer",
+                                        DataSetWriterId = 2
+                                    }
+                                ]
+                            }
+                        ]
+                    };
+                    Assert.Contains("configured more than once",
+                        Assert.Throws<InvalidOperationException>(() =>
+                            CreateNativeTransport(provider, duplicateMetadata)).Message,
+                        StringComparison.Ordinal);
+                    break;
+                default:
+                    client.Capabilities &= ~EventClientCapabilities.Retain;
+                    Assert.Contains(nameof(EventClientCapabilities.Retain),
+                        Assert.Throws<NotSupportedException>(() =>
+                            CreateNativeTransport(provider, "invalid")).Message,
+                        StringComparison.Ordinal);
+                    break;
+            }
+
+            Assert.Same(settings, Assert.Single(registration.Settings.Snapshot().Values));
+            scope.Verify(instance => instance.Dispose(), Times.Never);
+            await registration.Settings.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.Equal(1, client.DisposeCount);
+            scope.Verify(instance => instance.Dispose(), Times.Once);
+            Assert.Throws<InvalidOperationException>(() => settings.ClientLease!.Acquire());
+            Assert.Empty(client.Events);
+            factory.Verify(instance => instance.CreateEventClient(
+                "owned", out It.Ref<IEventClient>.IsAny), Times.Once);
         }
 
         [Fact]
@@ -1247,13 +2380,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var sources = provider.GetRequiredService<ManagedPubSubDataSetSourceRegistry>();
             Assert.True(sources.TryGetSource("data", out var nativeSource));
             var managedSource = Assert.IsType<ManagedPubSubDataSetSource>(nativeSource);
-            await WaitUntilAsync(() => managedSource.PendingCount == 1);
-            var priorEvents = client.Events.Count;
+            await WaitUntilAsync(() => managedSource.PendingCount == 1 ||
+                client.Events.Length != 0);
+            var priorEvents = client.Events.Length;
 
             await provider.GetRequiredService<IPubSubKeyFrameControl>()
                 .ForceKeyFrameAsync("group", "writer");
-            Assert.Equal(1, managedSource.PendingCount);
-            await WaitUntilAsync(() => client.Events.Count > priorEvents);
+            await WaitUntilAsync(() => client.Events
+                .Skip(priorEvents)
+                .Any(IsKeyFrameWithPayload));
             await hosted.StopAsync(default);
 
             var published = client.Events.Skip(priorEvents).ToList();
@@ -1261,7 +2396,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 CreateManagedWriterGroup(MessageEncoding.JsonGzip));
             Assert.True(published.Any(captured => captured.Topic == expectedTopic),
                 string.Join(", ", published.Select(captured => captured.Topic)));
-            var publication = published.Single(captured => captured.Topic == expectedTopic);
+            var publication = published.First(captured =>
+                captured.Topic == expectedTopic && IsKeyFrameWithPayload(captured));
             Assert.Equal("gzip", publication.ContentEncoding);
             var decoded = Decompress(publication.Payload);
             Assert.Contains("\"payload\"", Encoding.UTF8.GetString(decoded),
@@ -1269,6 +2405,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             using var _ = JsonDocument.Parse(decoded);
             Assert.Equal(1, ((IPubSubShadowRuntimeStateProvider)provider.GetRequiredService<
                 IPubSubShadowRuntimeStateProvider>()).State.StartCount);
+
+            static bool IsKeyFrameWithPayload(CapturedEvent captured)
+            {
+                if (captured.ContentEncoding != "gzip")
+                {
+                    return false;
+                }
+                var json = Encoding.UTF8.GetString(Decompress(captured.Payload));
+                return json.Contains("\"MessageType\":\"ua-keyframe\"",
+                    StringComparison.Ordinal) &&
+                    json.Contains("\"payload\"", StringComparison.Ordinal);
+            }
         }
 
         private static EventClientPubSubTransport CreateTransport(
@@ -1357,6 +2505,95 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     }
                 ]
             };
+        }
+
+        private static ServiceProvider CreateNativeProvider(IEventClientFactory factory,
+            Action<IServiceCollection>? configure = null)
+        {
+            var configuration = new ConfigurationBuilder().Build();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddSingleton<IConfigurationRoot>(configuration);
+            services.AddSingleton<IEventClient>(new RecordingEventClient());
+            services.AddSingleton(factory);
+            services.AddSingleton<IPubSubIdentityRegistryStore>(new PubSubTestIdentityStore());
+            services.AddPublisherCore();
+            configure?.Invoke(services);
+            return services.BuildServiceProvider();
+        }
+
+        private static Mock<IDisposable> CreateOwnedScope(RecordingEventClient client)
+        {
+            var scope = new Mock<IDisposable>(MockBehavior.Strict);
+            scope.Setup(instance => instance.Dispose()).Callback(client.Dispose);
+            return scope;
+        }
+
+        private static Mock<IEventClientFactory> CreateOwnedFactory(
+            params (string Configuration, RecordingEventClient Client, Mock<IDisposable> Scope)[] selections)
+        {
+            var factory = new Mock<IEventClientFactory>(MockBehavior.Strict);
+            factory.SetupGet(instance => instance.Name).Returns("recording");
+            foreach (var selection in selections)
+            {
+                IEventClient client = selection.Client;
+                factory.Setup(instance => instance.CreateEventClient(
+                        selection.Configuration, out client))
+                    .Returns(selection.Scope.Object);
+            }
+            return factory;
+        }
+
+        private static EventClientPubSubTransport CreateNativeTransport(
+            IServiceProvider provider, string groupId)
+        {
+            return CreateNativeTransport(provider, new PubSubConnectionDataType
+            {
+                Name = "shadow-" + groupId,
+                WriterGroups =
+                [
+                    new WriterGroupDataType
+                    {
+                        WriterGroupId = 1,
+                        DataSetWriters =
+                        [
+                            new DataSetWriterDataType
+                            {
+                                Name = groupId + "-writer",
+                                DataSetWriterId = 1
+                            }
+                        ]
+                    }
+                ]
+            });
+        }
+
+        private static EventClientPubSubTransport CreateNativeTransport(
+            IServiceProvider provider, PubSubConnectionDataType connection)
+        {
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+            var factory = new EventClientPubSubTransportFactory(Profiles.PubSubMqttJsonTransport,
+                registration.Settings, registration.Options);
+            return Assert.IsType<EventClientPubSubTransport>(factory.Create(connection,
+                new ServiceProviderTelemetryContext(provider), TimeProvider.System));
+        }
+
+        private delegate IDisposable CreateOwnedEventClient(
+            string configuration, out IEventClient client);
+
+        private static WriterGroupModel CreateConfiguredWriterGroup(string id,
+            string? configuration = null)
+        {
+            var group = CreateManagedWriterGroup(groupId: id, writerId: id + "-writer",
+                dataSetName: id + "-data");
+            group.TransportConfiguration = configuration ?? id;
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = id + "/metadata",
+                Retain = false
+            };
+            return group;
         }
 
         // ── PubSubShadowTombstoneQueue validation ──────────────────────────────
@@ -1747,9 +2984,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 _clients = clients;
             }
 
-            public IEventClient Select(WriterGroupModel writerGroup)
+            public PubSubShadowEventClientLease Select(WriterGroupModel writerGroup)
             {
-                return _clients[writerGroup.Id!];
+                return new PubSubShadowEventClientLease(_clients[writerGroup.Id!]);
             }
 
             private readonly Dictionary<string, IEventClient> _clients;
@@ -1937,7 +3174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         private sealed class RecordingEventClient : IEventClient, IEventClientCapabilities,
-            IEventClientRetainedTombstoneCapabilities
+            IEventClientRetainedTombstoneCapabilities, IDisposable
         {
             public string Name => "recording";
             public int MaxPayload { get; set; } = 1024;
@@ -1956,6 +3193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 | EventClientCapabilities.Schema;
             public bool SupportsRetainedTombstones { get; set; } = true;
             public bool IgnoreCancellation { get; set; }
+            public Exception? CancellationFailure { get; set; }
             public Exception? PermanentFailure { get; set; }
             public int TerminalFailuresRemaining
             {
@@ -1969,8 +3207,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             }
             public TaskCompletionSource SendStarted { get; } = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource SuccessfulSendStarted { get; private set; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource SendCancellationObserved { get; private set; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource Disposed { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            public int DisposeCount => Volatile.Read(ref _disposeCount);
 
-            public IReadOnlyList<CapturedEvent> Events
+            public CapturedEvent[] Events
             {
                 get
                 {
@@ -1983,11 +3228,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             public IEvent CreateEvent()
             {
+                ObjectDisposedException.ThrowIf(DisposeCount != 0, this);
                 return new RecordingEvent(this);
+            }
+
+            public void Dispose()
+            {
+                Interlocked.Increment(ref _disposeCount);
+                Disposed.TrySetResult();
             }
 
             public void BlockSuccessfulSends()
             {
+                SuccessfulSendStarted = new TaskCompletionSource(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                SendCancellationObserved = new TaskCompletionSource(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
                 _release = new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
             }
@@ -2000,6 +3256,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             private async ValueTask SendAsync(CapturedEvent captured,
                 CancellationToken cancellationToken)
             {
+                ObjectDisposedException.ThrowIf(DisposeCount != 0, this);
+                using var registration = cancellationToken.Register(() =>
+                {
+                    SendCancellationObserved.TrySetResult();
+                    if (CancellationFailure is { } failure)
+                    {
+                        throw failure;
+                    }
+                });
                 SendStarted.TrySetResult();
                 if (PermanentFailure is not null
                     && Interlocked.Decrement(ref _terminalFailuresRemaining) >= 0)
@@ -2010,6 +3275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 {
                     throw new InvalidOperationException("transient");
                 }
+                SuccessfulSendStarted.TrySetResult();
                 if (_release is not null)
                 {
                     if (IgnoreCancellation)
@@ -2018,9 +3284,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     }
                     else
                     {
-                        await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                        {
+                            SendCancellationObserved.TrySetResult();
+                            throw;
+                        }
                     }
                 }
+                ObjectDisposedException.ThrowIf(DisposeCount != 0, this);
                 lock (_gate)
                 {
                     _events.Add(captured);
@@ -2133,6 +3408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             private TaskCompletionSource<bool>? _release;
             private int _failuresRemaining;
             private int _terminalFailuresRemaining;
+            private int _disposeCount;
         }
 
         private sealed record CapturedEvent(string? Topic, DateTimeOffset Timestamp,

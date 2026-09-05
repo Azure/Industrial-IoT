@@ -38,24 +38,33 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --dalm=files/sc001.json --pn=50000"},
                 _timeoutToken,
                 "opc-plc-files/sc001.json");
+            var namespaceUris = await ReadNamespaceUrisAsync(_timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 10000, _timeoutToken, _context);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nMessages = 6;
-            var payloads = await messages
-                .Select(e => e.Payload)
-                .Skip(nMessages) // First batch of alarms are from a ConditionRefresh, therefore not in order
-                .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP", StringComparison.Ordinal))
-                .Skip(1)
-                .Take(nMessages)
-                .ToListAsync(_timeoutToken);
+            // Act
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<ConditionTypePayload>(
+                        _writerId, 10000, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(e => e.Payload)
+                    // Condition refresh boundary events share the event stream
+                    // but do not carry ConditionType fields.
+                    .Where(c => c.ConditionName?.Value != null)
+                    // First batch is ConditionRefresh and is not ordered.
+                    .Skip(nMessages)
+                    .SkipWhile(c => !c.Message.Value.Contains(
+                        "LAST EVENT IN LOOP", StringComparison.Ordinal))
+                    .Skip(1)
+                    .Take(nMessages),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert
 
@@ -74,9 +83,9 @@ namespace OpcPublisherAEE2ETests.Standalone
                 SourceName = DataValueObject.Create("VendingMachine1"),
                 SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
             };
-            VerifyPayload(payloads, ++i, null, doorOpen);
+            VerifyPayload(namespaceUris, payloads, ++i, null, doorOpen);
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 FromSeconds(5),
                 new ConditionTypePayload
@@ -94,7 +103,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2")
                 });
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 Zero,
                 new ConditionTypePayload
@@ -112,7 +121,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 FromSeconds(5),
                 new ConditionTypePayload
@@ -130,7 +139,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 FromSeconds(4),
                 new ConditionTypePayload
@@ -148,10 +157,12 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
-            VerifyPayload(payloads, ++i, Zero, doorOpen); // cycling back to first message
+            VerifyPayload(namespaceUris, payloads, ++i, Zero, doorOpen); // cycling back to first message
         }
 
-        private static void VerifyPayload(IReadOnlyList<ConditionTypePayload> payloads, int i, TimeSpan? expectedDelay, ConditionTypePayload expectedPayload)
+        private static void VerifyPayload(IReadOnlyList<string> namespaceUris,
+            List<ConditionTypePayload> payloads, int i,
+            TimeSpan? expectedDelay, ConditionTypePayload expectedPayload)
         {
             var p = payloads[i];
 
@@ -161,11 +172,14 @@ namespace OpcPublisherAEE2ETests.Standalone
             p.EnabledStateId.Value.Should().Be(expectedPayload.EnabledStateId.Value);
             p.EnabledStateEffectiveDisplayName.Value.Should().BeEquivalentTo(expectedPayload.EnabledStateEffectiveDisplayName.Value);
             p.LastSeverity.Value.Should().Be(expectedPayload.LastSeverity.Value);
-            p.Retain.Value.Should().Be(expectedPayload.Retain.Value);
+            (p.Retain.Value ?? false).Should().Be(
+                expectedPayload.Retain.Value ?? false);
             p.SourceName.Value.Should().BeEquivalentTo(expectedPayload.SourceName.Value);
-            p.SourceNode.Value.Should().BeEquivalentTo(expectedPayload.SourceNode.Value);
+            OpcUaNodeId.Normalize(p.SourceNode.Value, namespaceUris).Should().Be(
+                OpcUaNodeId.Normalize(expectedPayload.SourceNode.Value, namespaceUris));
 
-            p.ConditionId.Value.Should().StartWith("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
+            OpcUaNodeId.Normalize(p.ConditionId.Value, namespaceUris).Should().StartWith(
+                "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
 
             p.EnabledStateEffectiveTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
             p.EnabledStateTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);

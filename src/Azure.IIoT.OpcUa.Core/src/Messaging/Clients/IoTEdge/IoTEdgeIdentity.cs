@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
 {
-    using Azure.IIoT.OpcUa.Core.AzureSdk;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Azure.IIoT.OpcUa.Core.IoTEdge;
     using Microsoft.Extensions.Logging;
@@ -29,6 +28,14 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         /// <inheritdoc />
         public string? Gateway { get; }
 
+        internal IoTEdgeIdentity(string hub, string deviceId, string? moduleId, string? gateway)
+        {
+            Hub = hub;
+            DeviceId = deviceId;
+            ModuleId = moduleId;
+            Gateway = gateway;
+        }
+
         /// <summary>
         /// Create identity.
         /// </summary>
@@ -49,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             {
                 if (!string.IsNullOrEmpty(options.Value.EdgeHubConnectionString))
                 {
-                    var cs = ConnectionString.Parse(options.Value.EdgeHubConnectionString);
+                    var cs = IoTHubConnectionSettings.Parse(options.Value.EdgeHubConnectionString);
                     deviceId = cs.DeviceId;
                     moduleId = cs.ModuleId;
                     hub = cs.HostName;

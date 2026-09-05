@@ -60,9 +60,26 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                 }
             }
 
-            _client = (clientFactory ?? IoTHubModuleClientFactory.Instance)
-                .Create(options.Value, Configure);
-            _client.ConnectionStateChanged += OnConnectionStateChanged;
+            IIoTHubModuleClient? client = null;
+            try
+            {
+                client = (clientFactory ?? IoTHubModuleClientFactory.Instance)
+                    .Create(options.Value, Configure);
+                client.ConnectionStateChanged += OnConnectionStateChanged;
+                _client = client;
+            }
+            catch
+            {
+                try
+                {
+                    client?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    _connectLock.Dispose();
+                }
+                throw;
+            }
         }
 
         /// <summary>
@@ -89,16 +106,36 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         }
 
         /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
-            _client.ConnectionStateChanged -= OnConnectionStateChanged;
-            await _client.DisposeAsync().ConfigureAwait(false);
-            foreach (var handler in _stateHandlers)
+            lock (_disposeGate)
             {
-                handler.OnClosed(_counter, Identity.DeviceId, Identity.ModuleId,
-                    "Disposed");
+                return new ValueTask(_disposeTask ??= DisposeCoreAsync());
             }
-            _connectLock.Dispose();
+        }
+
+        private async Task DisposeCoreAsync()
+        {
+            try
+            {
+                try
+                {
+                    _client.ConnectionStateChanged -= OnConnectionStateChanged;
+                }
+                finally
+                {
+                    await _client.DisposeAsync().ConfigureAwait(false);
+                }
+                foreach (var handler in _stateHandlers)
+                {
+                    handler.OnClosed(_counter, Identity.DeviceId, Identity.ModuleId,
+                        "Disposed");
+                }
+            }
+            finally
+            {
+                _connectLock.Dispose();
+            }
         }
 
         private void OnConnectionStateChanged(object? sender,
@@ -175,6 +212,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         private readonly IIoTHubModuleClient _client;
         private readonly IEnumerable<IIoTEdgeClientState> _stateHandlers;
         private readonly SemaphoreSlim _connectLock = new(1, 1);
+        private readonly Lock _disposeGate = new();
+        private Task? _disposeTask;
         private int _counter;
         private int _opened;
     }

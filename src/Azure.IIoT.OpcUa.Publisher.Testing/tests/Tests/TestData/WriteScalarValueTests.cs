@@ -481,23 +481,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2055";
 
-            // ReadCanonicalValueAsync would throw if the server stored NodeId.Null; use
-            // _readExpected directly and fall back to a deterministic non-null value when
-            // that happens. See ReadScalarValueTests.NodeReadStaticScalarNodeIdValueVariable-
-            // TestAsync for the full explanation of why null occurs (~22 % of Module runs).
-            var expected = await _readExpected(_connection, node).ConfigureAwait(false)
-                ?? JsonValue.Create("i=84");
+            //
+            // The Quickstarts fixture initializes this node randomly and can
+            // produce an empty opaque identifier. Its JSON projection is
+            // indistinguishable from null on readback, so a write test must not
+            // use that random value as its expected input.
+            //
+            var expected = JsonValue.Create("i=84");
 
-            // Act
-            var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
+            var request = new ValueWriteRequestModel
             {
                 NodeId = node,
                 Value = expected,
                 DataType = "NodeId"
-            }, ct).ConfigureAwait(false);
+            };
 
-            // Assert
-            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
+            JsonNode? actual = null;
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                var result = await services.ValueWriteAsync(_connection, request, ct)
+                    .ConfigureAwait(false);
+                Assert.Null(result.ErrorInfo);
+                actual = await _readExpected(_connection, node).ConfigureAwait(false);
+                if (JsonNode.DeepEquals(expected, actual))
+                {
+                    return;
+                }
+            }
+            Assert.Fail($"{expected} != {actual} after three successful writes.");
         }
 
         public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync(CancellationToken ct = default)
@@ -793,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             return value;
         }
 
-        private static JsonNode CreateStructureValue()
+        private static JsonObject CreateStructureValue()
         {
             var value = new TestData.ScalarStructureDataType();
             return new JsonObject

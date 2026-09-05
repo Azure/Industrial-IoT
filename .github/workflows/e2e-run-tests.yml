@@ -2,9 +2,9 @@ name: E2E Run Tests
 
 # ----------------------------------------------------------------------------
 # Reusable helper workflow that runs the IIoTPlatform-E2E-Tests xUnit suite
-# against a previously-deployed standalone resource group. Invoked twice by
-# e2e-standalone.yml -- once with PublisherMode=AE, once with
-# PublisherMode=standalone -- to keep the test logic in one place.
+# against a previously-deployed standalone resource group. Invoked by
+# e2e-standalone.yml for the basic, counter-soak, heartbeat-soak and A&E suites
+# so authentication, build, filtering and result publication stay in one place.
 #
 # Required repository variables (federated OIDC):
 #   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
@@ -58,6 +58,11 @@ on:
         default: ''
       soak_nodes:
         description: 'Number of counter nodes for the long running telemetry quality tests'
+        required: false
+        type: string
+        default: ''
+      test_filter:
+        description: 'Optional dotnet test filter overriding filter_name=filter_value. Ordered A&E tests must select the complete class.'
         required: false
         type: string
         default: ''
@@ -191,12 +196,18 @@ jobs:
             -c Release --no-restore --no-incremental
       - name: Discover xUnit tests (${{ inputs.filter_name }}=${{ inputs.filter_value }})
         shell: bash
+        env:
+          EXACT_FILTER: ${{ inputs.test_filter }}
+          FILTER_NAME: ${{ inputs.filter_name }}
+          FILTER_VALUE: ${{ inputs.filter_value }}
         run: |
           set -euo pipefail
           mkdir -p e2e-tests/results
+          filter="${EXACT_FILTER:-${FILTER_NAME}=${FILTER_VALUE}}"
+          echo "Test filter: $filter"
           dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
             --configuration Release --no-build --list-tests \
-            --filter "${{ inputs.filter_name }}=${{ inputs.filter_value }}" \
+            --filter "$filter" \
             --logger "console;verbosity=normal" \
             | tee "e2e-tests/results/${{ inputs.result_label }}-discovery.txt"
           discovered=$(awk '
@@ -205,7 +216,7 @@ jobs:
             listed && /^[[:space:]]+[^[:space:]]/ { count++ }
             END { print count + 0 }
           ' "e2e-tests/results/${{ inputs.result_label }}-discovery.txt")
-          echo "Discovered ${discovered} test(s) for ${{ inputs.filter_name }}=${{ inputs.filter_value }}."
+          echo "Discovered ${discovered} test(s) for $filter."
           if [ "${discovered}" -eq 0 ]; then
             echo "::error::The requested E2E mode discovered zero tests."
             exit 1
@@ -230,9 +241,13 @@ jobs:
           # values leave the in-code defaults (30 minutes, 100 nodes) in place.
           IIOT_E2E_SOAK_MINUTES: ${{ inputs.soak_minutes }}
           IIOT_E2E_SOAK_NODES: ${{ inputs.soak_nodes }}
+          EXACT_FILTER: ${{ inputs.test_filter }}
+          FILTER_NAME: ${{ inputs.filter_name }}
+          FILTER_VALUE: ${{ inputs.filter_value }}
         run: |
           set -euo pipefail
           mkdir -p e2e-tests/results
+          filter="${EXACT_FILTER:-${FILTER_NAME}=${FILTER_VALUE}}"
           #
           # The blame detector measures the time between test completions, so
           # the window has to clear the longest legitimate one. A telemetry
@@ -268,7 +283,7 @@ jobs:
           echo "Blame hang window: ${hang_minutes}m"
           dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
             --configuration Release --no-build \
-            --filter "${{ inputs.filter_name }}=${{ inputs.filter_value }}" \
+            --filter "$filter" \
             --blame-hang-timeout "${hang_minutes}m" --blame-hang-dump-type none \
             --logger "trx;LogFileName=${{ inputs.result_label }}.trx" \
             --logger "console;verbosity=detailed" \

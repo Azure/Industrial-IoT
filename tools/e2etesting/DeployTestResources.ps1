@@ -6,6 +6,7 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "_resourceSuffix.ps1")
 
 ## Pre-Checks ##
 
@@ -32,7 +33,7 @@ if (!$resourceGroup) {
 
 $suffix = $resourceGroup.Tags["TestingResourcesSuffix"]
 if ([String]::IsNullOrWhiteSpace($suffix)) {
-    $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
+    $suffix = New-E2ETestingResourcesSuffix
     $tags = $resourceGroup.Tags
     $tags+= @{"TestingResourcesSuffix"=$suffix}
     Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
@@ -83,9 +84,14 @@ if (!$iotHub) {
 
 ## Get IoT Hub EventHub-compatible Endpoint ##
 
-$ehEndpoint = $iotHub.Properties.EventHubEndpoints["events"].Endpoint
+$eventHubEndpoint = $iotHub.Properties.EventHubEndpoints["events"]
+if (!$eventHubEndpoint -or !$eventHubEndpoint.Endpoint -or !$eventHubEndpoint.Path) {
+    throw "IoT Hub '$($IoTHubName)' does not expose a complete Event Hubs-compatible endpoint."
+}
+$ehEndpoint = $eventHubEndpoint.Endpoint
+$ehPath = $eventHubEndpoint.Path
 $iotHubkey = Get-AzIotHubKey -ResourceGroupName $ResourceGroupName -Name $IoTHubName -KeyName "iothubowner"
-$ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2};EntityPath={3}" -f $ehEndpoint,$iotHubkey.KeyName,$iotHubkey.PrimaryKey,$iotHub.Name
+$ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2};EntityPath={3}" -f $ehEndpoint,$iotHubkey.KeyName,$iotHubkey.PrimaryKey,$ehPath
 Write-Host "Setting KeyVault Secret 'iothub-eventhub-connectionstring' to '***'."
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 $secret = ConvertTo-SecureString $ehConnectionString -AsPlainText -Force

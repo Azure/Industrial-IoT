@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Selects and configures the event client a writer group publishes
@@ -29,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// send queue is bounded by the egress options instead. Only the client
     /// selection outlived it.
     /// </remarks>
-    internal sealed record class WriterGroupTransportOptions : IDisposable
+    internal sealed class WriterGroupTransportOptions : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Event client selected
@@ -49,13 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Dictionary<string, IEventClientFactory> factories,
             IOptions<PublisherOptions> options, ILogger logger)
         {
-            EventClient = eventClients
-                    .Find(e => e.Name.Equals(writerGroup.Transport?.ToString(),
-                        StringComparison.OrdinalIgnoreCase))
-                ?? eventClients
-                    .Find(e => e.Name.Equals(options.Value.DefaultTransport?.ToString(),
-                        StringComparison.OrdinalIgnoreCase))
-                ?? eventClients[0];
+            EventClient = SelectEventClient(writerGroup, eventClients, options.Value);
 
             if (string.IsNullOrEmpty(writerGroup.TransportConfiguration))
             {
@@ -64,8 +60,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!factories.TryGetValue(EventClient.Name, out var factory))
             {
                 logger.CustomWriterGroupConfigurationCouldNotBeApplied(
-                    EventClient.Name);
-                return;
+                    writerGroup.Id, EventClient.Name);
+                throw new InvalidOperationException(
+                    $"Transport {EventClient.Name} does not support a custom " +
+                    $"configuration for writer group {writerGroup.Id}.");
             }
             // Create event client with configuration from factory.
             try
@@ -79,18 +77,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             catch (Exception e)
             {
+                Dispose();
                 logger.CustomWriterGroupConfigurationCouldNotBeAppliedWithError(
-                    EventClient.Name, e.Message);
+                    writerGroup.Id, EventClient.Name, e.GetType().Name);
+                if (e is OperationCanceledException)
+                {
+                    throw;
+                }
+                throw new InvalidOperationException(
+                    $"Custom configuration for writer group {writerGroup.Id} " +
+                    $"could not be applied to transport {EventClient.Name}.", e);
             }
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            _scope?.Dispose();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        /// <inheritdoc/>
+        public ValueTask DisposeAsync()
+        {
+            lock (_gate)
+            {
+                return new ValueTask(_disposeTask ??= DisposeCoreAsync());
+            }
+        }
+
+        internal static IEventClient SelectEventClient(WriterGroupModel writerGroup,
+            List<IEventClient> eventClients, PublisherOptions options)
+        {
+            return eventClients
+                    .Find(e => e.Name.Equals(writerGroup.Transport?.ToString(),
+                        StringComparison.OrdinalIgnoreCase))
+                ?? eventClients
+                    .Find(e => e.Name.Equals(options.DefaultTransport?.ToString(),
+                        StringComparison.OrdinalIgnoreCase))
+                ?? eventClients[0];
+        }
+
+        private async Task DisposeCoreAsync()
+        {
+            if (_scope is IAsyncDisposable asyncScope)
+            {
+                await asyncScope.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                _scope?.Dispose();
+            }
         }
 
         private readonly IDisposable? _scope;
+        private readonly Lock _gate = new();
+        private Task? _disposeTask;
     }
 
     /// <summary>
@@ -106,15 +147,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string transport);
 
         [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Warning,
-            Message = "Custom writer group configuration could not be applied to transport {Transport} " +
-            "- using default.")]
+            Message = "Custom configuration for writer group {WriterGroupId} " +
+            "could not be applied to transport {Transport}.")]
         public static partial void CustomWriterGroupConfigurationCouldNotBeApplied(this ILogger logger,
-            string transport);
+            string? writerGroupId, string transport);
 
         [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
-            Message = "Custom writer group configuration could not be applied to transport {Transport} " +
-            "due to bad configuration (Error: {Error}) - using default.")]
+            Message = "Custom configuration for writer group {WriterGroupId} " +
+            "could not be applied to transport {Transport} due to bad configuration " +
+            "(Error: {Error}).")]
         public static partial void CustomWriterGroupConfigurationCouldNotBeAppliedWithError(this ILogger logger,
-            string transport, string error);
+            string? writerGroupId, string transport, string error);
     }
 }

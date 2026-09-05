@@ -42,11 +42,18 @@ namespace OpcPublisherAEE2ETests.Standalone
                 "6:CycleId",
                 "ns=6;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
-            // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            // Act - start Event Hubs consumption before applying the
+            // subscription so the first event cannot be lost to lazy
+            // IAsyncEnumerable startup.
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert
             VerifyPayloads(payloads);
@@ -63,11 +70,16 @@ namespace OpcPublisherAEE2ETests.Standalone
                 "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId",
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert
             VerifyPayloads(payloads);
@@ -82,11 +94,16 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=6;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert
             VerifyPayloads(payloads);
@@ -101,11 +118,16 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
-
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
+                        _writerId, 1, token,
+                        _context.IoTHubPublisherDeployment.ModuleName, _context)
+                    .Select(v => v.Payload),
+                token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
+                    pnJson, _context, token),
+                _timeoutToken);
 
             // Assert
             VerifyPayloads(payloads);

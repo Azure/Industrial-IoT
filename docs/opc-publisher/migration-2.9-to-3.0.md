@@ -126,6 +126,8 @@ To tell them apart, compare the `SourceTimestamp` of consecutive values for a fi
 
 The native PubSub runtime emits one message per sample and does not coalesce multiple samples into a single message. The `--bs` (`BatchSize`) option is accepted and ignored (see [below](#batch-size-and-writer-group-partitions)). Use `--bi` (`BatchTriggerInterval`) to control how frequently the runtime samples, and `--om` (`MaxNetworkMessageSendQueueSize`) to bound the send queue.
 
+High-rate event streams no longer benefit from the batch amortization used by 2.x. Each event occurrence is an individual sample and, with `AtLeastOnce`, an individually acknowledged transport send. Sustainable event throughput is therefore governed by per-message send latency as well as the broker or IoT Hub quota. Validate the expected event rate before upgrading and select a transport and quality-of-service level appropriate for that workload.
+
 ## What was removed and why
 
 All removals except the messaging modes follow the same rule: **the option is accepted and ignored**, so an existing command line or `published_nodes.json` still starts. Only `Samples` and `FullSamples` fail loudly, because silently changing the wire format of a running deployment is worse than refusing to start.

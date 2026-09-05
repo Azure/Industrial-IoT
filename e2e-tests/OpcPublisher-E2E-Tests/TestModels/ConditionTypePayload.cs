@@ -18,6 +18,7 @@ namespace OpcPublisherAEE2ETests.TestModels
 
         /// <summary>Gets or sets comment source timestamp.</summary>
         [JsonProperty(nameof(Comment))]
+        [JsonConverter(typeof(LocalizedTextDataValueObjectConverter))]
         public DataValueObject<string> Comment { get; set; }
 
         /// <summary>Gets or sets the condition name.</summary>
@@ -28,11 +29,13 @@ namespace OpcPublisherAEE2ETests.TestModels
         /// <summary>Gets or sets the enabled state.</summary>
         /// <example>"Enabled"</example>
         [JsonProperty(nameof(EnabledState))]
+        [JsonConverter(typeof(LocalizedTextDataValueObjectConverter))]
         public DataValueObject<string> EnabledState { get; set; }
 
         /// <summary>Gets or sets the enabled state effective display name.</summary>
         /// <example>"Active | Unacknowledged"</example>
         [JsonProperty("EnabledState/EffectiveDisplayName")]
+        [JsonConverter(typeof(LocalizedTextDataValueObjectConverter))]
         public DataValueObject<string> EnabledStateEffectiveDisplayName { get; set; }
 
         /// <summary>Gets or sets the enabled state effective transition time.</summary>

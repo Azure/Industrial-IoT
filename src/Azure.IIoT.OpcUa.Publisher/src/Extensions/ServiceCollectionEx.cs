@@ -221,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 _services = services;
             }
 
-            public IEventClient Select(WriterGroupModel writerGroup)
+            public PubSubShadowEventClientLease Select(WriterGroupModel writerGroup)
             {
                 ArgumentNullException.ThrowIfNull(writerGroup);
                 var eventClients = _services.GetServices<IEventClient>().Reverse().ToList();
@@ -229,27 +229,37 @@ namespace Azure.IIoT.OpcUa.Publisher
                 {
                     throw new InvalidOperationException("No transports registered.");
                 }
-                //
-                // A writer group specific transport configuration makes the
-                // options own the client they build, so the selection is cached
-                // per group and disposed with the selector rather than at the
-                // end of this call.
-                //
+                var options = _services.GetRequiredService<IOptions<PublisherOptions>>();
+                var selected = WriterGroupTransportOptions.SelectEventClient(
+                    writerGroup, eventClients, options.Value);
+                var key = (writerGroup.Id ?? string.Empty, selected.Name,
+                    string.IsNullOrEmpty(writerGroup.TransportConfiguration)
+                        ? null : writerGroup.TransportConfiguration);
                 lock (_gate)
                 {
-                    var key = writerGroup.Id ?? string.Empty;
+                    ObjectDisposedException.ThrowIf(_disposed, this);
                     if (_selected.TryGetValue(key, out var existing))
                     {
-                        return existing.EventClient;
+                        return existing.Acquire();
                     }
                     var transport = new WriterGroupTransportOptions(writerGroup,
                         eventClients,
                         _services.GetServices<IEventClientFactory>()
                             .ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase),
-                        _services.GetRequiredService<IOptions<PublisherOptions>>(),
+                        options,
                         _services.GetRequiredService<ILogger<WriterGroupTransportOptions>>());
-                    _selected[key] = transport;
-                    return transport.EventClient;
+                    var lease = new PubSubShadowEventClientLease(transport.EventClient,
+                        transport, () =>
+                        {
+                            lock (_gate)
+                            {
+                                _selected.Remove(key);
+                            }
+                        });
+                    // The cache does not own a reference. Its entry disappears
+                    // after the last configuration/connection/tombstone releases it.
+                    _selected[key] = lease;
+                    return lease;
                 }
             }
 
@@ -257,18 +267,16 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 lock (_gate)
                 {
-                    foreach (var transport in _selected.Values)
-                    {
-                        transport.Dispose();
-                    }
+                    _disposed = true;
                     _selected.Clear();
                 }
             }
 
             private readonly Lock _gate = new();
-            private readonly Dictionary<string, WriterGroupTransportOptions> _selected =
-                new(StringComparer.Ordinal);
+            private readonly Dictionary<(string Group, string Transport, string? Configuration),
+                PubSubShadowEventClientLease> _selected = [];
             private readonly IServiceProvider _services;
+            private bool _disposed;
         }
     }
 }

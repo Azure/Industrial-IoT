@@ -45,7 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/DataItems.json",
-                messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
+                GetDataNetworkMessage, messageType: "ua-data",
+                arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -98,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync),
-                "./Resources/DataItems.json",
+                "./Resources/DataItems.json", GetDataSetMessage,
                 arguments: ["-c", "--dm", "--mm=DataSetMessages"]);
 
             // Assert
@@ -117,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenComplexTypeSystemIsDisabledTestAsync),
-                "./Resources/DataItems.json",
+                "./Resources/DataItems.json", GetDataSetMessage,
                 arguments: ["-c", "--dct", "--mm=DataSetMessages"]);
 
             // Assert
@@ -172,7 +173,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithoutReversibleEncodingTestAsync),
-                "./Resources/SimpleEvents.json", messageType: "ua-data",
+                "./Resources/SimpleEvents.json", GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--me=Json", "--dm=false"]
             );
 
@@ -211,7 +213,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingTestAsync),
-                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4,
+                GetEventNetworkMessage, messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--me=JsonReversible", "--dm=false"]
             );
 
@@ -250,7 +253,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeEventWithCompliantEncodingTestAsync),
-                "./Resources/SimpleEvents.json", messageType: "ua-data",
+                "./Resources/SimpleEvents.json", GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["-c", "--mm=PubSub", "--me=Json"]);
 
             Assert.Single(result);
@@ -288,7 +292,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestAsync),
-                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4,
+                GetEventNetworkMessage, messageType: "ua-data",
                 arguments: ["-c", "--mm=PubSub", "--me=JsonReversible"]);
 
             var messages = result
@@ -412,7 +417,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendPendingConditionsToIoTHubTestAsync), "./Resources/PendingAlarms.json", GetAlarmCondition,
+                nameof(CanSendPendingConditionsToIoTHubTestAsync),
+                "./Resources/PendingAlarms.json", GetPendingCondition,
                 messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=False"]);
 
             // Assert
@@ -421,7 +427,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             _output.WriteLine(message.ToJsonString());
 
             Assert.Equal(JsonValueKind.Object, message.ValueKind);
-            Assert.True(message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            var payload = message.GetProperty("Payload");
+            Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
 
             Assert.NotNull(metadata);
         }
@@ -470,7 +480,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/KeyFrames.json",
+                nameof(CanSendKeyFramesWithExtensionFieldsToIoTHubTestAsync),
+                "./Resources/KeyFrames.json", GetKeyFrameNetworkMessage,
                 messageType: "ua-data", arguments: ["--mm=FullNetworkMessages", "--dm=false"]);
 
             // Assert
@@ -504,7 +515,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/DataItems.json", messageType: "ua-data",
+                nameof(CanSendFullAndCompliantNetworkMessageWithEndpointUrlAndApplicationUriToIoTHubTestAsync),
+                "./Resources/DataItems.json", GetFullDataNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--fm=true", "--strict"]);
 
             // Assert
@@ -580,7 +593,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendKeyFramesWithExtensionFieldsToIoTHubTestJsonReversibleAsync), "./Resources/KeyFrames.json", messageType: "ua-data",
+                nameof(CanSendKeyFramesWithExtensionFieldsToIoTHubTestJsonReversibleAsync),
+                "./Resources/KeyFrames.json", GetKeyFrameNetworkMessage,
+                messageType: "ua-data",
             // NOTE: while we --fm and fullnetworkmessage, the keyframes.json overrides this back to PubSub
                 arguments: ["--mm=FullNetworkMessages", "--me=JsonReversible", "--fm=true", "--strict"]);
 
@@ -874,6 +889,84 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     return node.ValueKind != JsonValueKind.Null;
                 });
         }
+
+        internal static JsonElement GetPendingCondition(JsonElement jsonElement)
+        {
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element =>
+            {
+                if (!element.TryGetProperty("MessageType", out var type) ||
+                    type.ValueKind != JsonValueKind.String ||
+                    type.GetString() is not ("ua-event" or "ua-condition") ||
+                    !element.TryGetProperty("Payload", out var payload))
+                {
+                    return false;
+                }
+                return payload.TryGetProperty("ConditionId", out _) &&
+                    payload.TryGetProperty("Retain", out _);
+            });
+        }
+
+        internal static JsonElement GetDataNetworkMessage(JsonElement message)
+            => ContainsDataSet(message, dataSet =>
+                dataSet.TryGetProperty("Payload", out var payload) &&
+                HasOutputValue(payload))
+                    ? message : default;
+
+        internal static JsonElement GetDataSetMessage(JsonElement message)
+            => message.TryGetProperty("Payload", out var payload) &&
+                HasOutputValue(payload)
+                    ? message : default;
+
+        internal static JsonElement GetFullDataNetworkMessage(JsonElement message)
+            => ContainsDataSet(message, dataSet =>
+                dataSet.TryGetProperty("Payload", out var payload) &&
+                HasOutputValue(payload) &&
+                payload.TryGetProperty("EndpointUrl", out _) &&
+                payload.TryGetProperty("ApplicationUri", out _))
+                    ? message : default;
+
+        private static bool HasOutputValue(JsonElement payload)
+            => payload.TryGetProperty("Output", out var output) &&
+                output.ValueKind == JsonValueKind.Object &&
+                output.TryGetProperty("Value", out var value) &&
+                value.ValueKind is not JsonValueKind.Null and
+                    not JsonValueKind.Undefined;
+
+        internal static JsonElement GetEventNetworkMessage(JsonElement message)
+            => ContainsDataSet(message, dataSet =>
+                IsMessageType(dataSet, "ua-event") &&
+                dataSet.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty(EventId, out _))
+                    ? message : default;
+
+        internal static JsonElement GetKeyFrameNetworkMessage(JsonElement message)
+            => ContainsDataSet(message, dataSet =>
+                IsMessageType(dataSet, "ua-keyframe") &&
+                dataSet.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty("CurrentTime", out _) &&
+                payload.TryGetProperty("Important", out _))
+                    ? message : default;
+
+        private static bool ContainsDataSet(JsonElement message,
+            Func<JsonElement, bool> predicate)
+        {
+            if (!message.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+            return messages.EnumerateArray().Any(predicate);
+        }
+
+        private static bool IsMessageType(JsonElement message, string expected)
+            => message.TryGetProperty("MessageType", out var type) &&
+                type.ValueKind == JsonValueKind.String &&
+                type.GetString() == expected;
 
         /// <summary>
         /// Asserts a metadata field's data type. The spelling varies with the

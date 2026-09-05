@@ -67,6 +67,16 @@ on:
         required: false
         type: string
         default: '100'
+      suite:
+        description: 'E2E suite to run: all, basic, counters, heartbeat or ae'
+        required: false
+        type: string
+        default: all
+      test_filter:
+        description: 'Optional dotnet test filter overriding the suite trait filter. For ordered A&E tests, select the complete class so its deploy/restart/cleanup tests are included.'
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       image_tag:
@@ -109,6 +119,22 @@ on:
         required: false
         type: string
         default: '100'
+      suite:
+        description: 'E2E suite to run'
+        required: false
+        type: choice
+        options:
+          - all
+          - basic
+          - counters
+          - heartbeat
+          - ae
+        default: all
+      test_filter:
+        description: 'Optional dotnet test filter overriding the suite trait filter. For ordered A&E tests, select the complete class so its deploy/restart/cleanup tests are included.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   id-token: write   # OIDC federation to Azure
@@ -116,10 +142,10 @@ permissions:
   actions: read
 
 concurrency:
-  # Serialize per-RG so a new run doesn't kill an in-flight deploy and leak
-  # Azure resources. RG name is unique-per-run when the input is <generated>,
-  # so concurrent CI runs do not collide.
-  group: e2e-${{ inputs.resource_group_name || 'nightly' }}
+  # Serialize explicit-RG and scheduled runs so a new run cannot kill an
+  # in-flight deployment and leak Azure resources. A <generated> RG is unique
+  # per run, so its concurrency key must be unique as well.
+  group: e2e-${{ inputs.resource_group_name == '<generated>' && github.run_id || inputs.resource_group_name || github.workflow }}
   cancel-in-progress: false
 
 env:
@@ -174,6 +200,8 @@ jobs:
         env:
           RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name || '<generated>' }}
           SOAK_MINUTES: ${{ inputs.soak_minutes || '30' }}
+          SUITE: ${{ inputs.suite || 'all' }}
+          TEST_FILTER: ${{ inputs.test_filter || '' }}
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -206,6 +234,103 @@ jobs:
           echo "soak_timeout=$((SOAK_MINUTES + 60))" >> "$GITHUB_OUTPUT"
           echo "Soak job timeout: $((SOAK_MINUTES + 60)) minutes"
 
+          case "$SUITE" in
+            all|basic|counters|heartbeat|ae) ;;
+            *)
+              echo "::error::suite must be one of all, basic, counters, heartbeat or ae; got: $SUITE"
+              exit 1
+              ;;
+          esac
+          if [ -n "$TEST_FILTER" ] && [ "$SUITE" = "all" ]; then
+            echo "::error::test_filter requires a single selected suite; suite=all would apply the same filter to every job."
+            exit 1
+          fi
+          echo "E2E suite: $SUITE"
+
+  # --------------------------------------------------------------------------
+  # validate_tests: compile the E2E solution before provisioning an IoT Hub,
+  # VM, Key Vault and PLC containers. The E2E solution is intentionally not a
+  # member of Industrial-IoT.slnx, so the normal CI build cannot catch drift in
+  # it. A missing reference previously consumed an entire Azure deployment
+  # before all four test jobs failed at compile time.
+  # --------------------------------------------------------------------------
+  validate_tests:
+    name: Validate E2E test solution
+    needs: init
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore E2E test solution
+        shell: bash
+        run: |
+          dotnet restore e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            -s https://api.nuget.org/v3/index.json
+      - name: Build E2E test solution
+        shell: bash
+        run: |
+          dotnet build e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            -c Release --no-restore --no-incremental
+      - name: Validate targeted E2E test selection
+        if: inputs.test_filter != null && inputs.test_filter != ''
+        shell: bash
+        env:
+          EXACT_FILTER: ${{ inputs.test_filter }}
+          SUITE: ${{ inputs.suite || 'all' }}
+        run: |
+          set -euo pipefail
+          mkdir -p e2e-tests/results
+          result=e2e-tests/results/targeted-discovery.txt
+          dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            -c Release --no-build --list-tests \
+            --filter "$EXACT_FILTER" \
+            --logger "console;verbosity=normal" \
+            | tee "$result"
+          discovered=$(awk '
+            /The following Tests are available:/ { listed = 1; next }
+            listed && /^[[:space:]]*$/ { exit }
+            listed && /^[[:space:]]+[^[:space:]]/ { count++ }
+            END { print count + 0 }
+          ' "$result")
+          echo "Discovered ${discovered} targeted test(s)."
+          if [ "$discovered" -eq 0 ]; then
+            echo "::error::The requested E2E filter discovered zero tests."
+            exit 1
+          fi
+          if [ "$SUITE" = "ae" ] &&
+              grep -Eq 'Standalone\.[CD][^.]*TestTheory\.TestACI' "$result"; then
+            for required in TestDeployStandalonePublisher \
+                TestRestartStandalonePublisher TestDeleteAci; do
+              if ! grep -q "$required" "$result"; then
+                echo "::error::Targeted A&E filters must select the complete test class so its ordered deploy, restart, and cleanup tests run. Use FullyQualifiedName~<namespace>.<class>."
+                exit 1
+              fi
+            done
+          fi
+      - name: Run E2E unit tests
+        shell: bash
+        run: |
+          mkdir -p e2e-tests/results
+          dotnet test \
+            e2e-tests/OpcPublisher-E2E-Tests/OpcPublisher-AE-E2E-Tests.csproj \
+            -c Release --no-build \
+            --filter "Category=Unit" \
+            --results-directory e2e-tests/results \
+            --logger "trx;LogFileName=e2e-unit.trx"
+          if ! grep -Eq 'total="[1-9][0-9]*"' \
+              e2e-tests/results/e2e-unit.trx; then
+            echo "::error::E2E unit tests matched zero tests."
+            exit 1
+          fi
+
   # --------------------------------------------------------------------------
   # deploy_standalone: deploys the standalone IIoT infrastructure (KeyVault,
   # IoT Hub, ResourceGroup tags) and writes the GHCR registry secrets into
@@ -214,7 +339,7 @@ jobs:
   # --------------------------------------------------------------------------
   deploy_standalone:
     name: Deploy standalone resources
-    needs: init
+    needs: [init, validate_tests]
     runs-on: windows-latest
     # Gate every job that authenticates to Azure behind the `e2e` environment,
     # matching e2e-gc.yml. The environment is where the deployment credentials
@@ -350,36 +475,23 @@ jobs:
             -SshPublicKey "${{ env.SshPublicKey }}"
 
   # --------------------------------------------------------------------------
-  # run_tests_ae: A&E filter (PublisherMode=AE). Runs first because the
-  # internal pipeline ordered it before the basic run.
-  # --------------------------------------------------------------------------
-  run_tests_ae:
-    name: Run A&E tests (PublisherMode=AE)
-    needs: [init, deploy_standalone, deploy_test_resources]
-    uses: ./.github/workflows/e2e-run-tests.yml
-    with:
-      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
-      key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
-      filter_name: PublisherMode
-      filter_value: AE
-      timeout_minutes: 90
-      result_label: ae
-      image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
-      image_namespace: ${{ inputs.image_namespace || 'azure' }}
-      image_tag: ${{ inputs.image_tag || 'latest' }}
-      edge_version: '1.4'
-    secrets: inherit
-
-  # --------------------------------------------------------------------------
-  # run_tests_basic: standalone filter, depends on AE so they don't run in
-  # parallel against the same IoT Edge deployment. Always runs even if AE
-  # failed -- the internal pipeline uses succeededOrFailed() for the same
-  # reason.
+  # The test suites share one two-vCPU IoT Edge VM. Separate publisher modules
+  # and consumer groups isolate names and telemetry, but they do not create more
+  # CPU, memory or one more edgeHub. Running A&E and both soaks concurrently
+  # kept the gateway busy for ninety minutes and the heartbeat module then went
+  # offline. Serialize basic -> counters -> heartbeat -> A&E. Every job uses
+  # always() plus the deployment result so a failed suite does not hide the
+  # later ones, while !cancelled() stops new suites after an operator cancel.
+  # Targeted dispatch can still skip directly to any one suite.
   # --------------------------------------------------------------------------
   run_tests_basic:
     name: Run basic tests (PublisherMode=standalone)
-    needs: [init, deploy_standalone, deploy_test_resources, run_tests_ae]
-    if: always() && needs.deploy_test_resources.result == 'success'
+    needs: [init, deploy_standalone, deploy_test_resources]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.deploy_test_resources.result == 'success' &&
+      (inputs.suite == null || inputs.suite == '' || inputs.suite == 'all' || inputs.suite == 'basic')
     uses: ./.github/workflows/e2e-run-tests.yml
     with:
       resource_group_name: ${{ needs.init.outputs.resource_group_name }}
@@ -392,24 +504,24 @@ jobs:
       image_namespace: ${{ inputs.image_namespace || 'azure' }}
       image_tag: ${{ inputs.image_tag || 'latest' }}
       edge_version: '1.4'
+      test_filter: ${{ inputs.test_filter || '' }}
     secrets: inherit
 
   # --------------------------------------------------------------------------
-  # run_tests_soak_counters / run_tests_soak_heartbeat: long running telemetry
-  # quality soaks. They depend only on the deploy jobs, NOT on run_tests_ae, so
-  # they run in parallel with the A&E job -- each deploys its own publisher
-  # module into the shared IoT Edge gateway, creates its own OPC PLC simulation
-  # and reads from its own Event Hub consumer group, so nothing is contended.
-  #
   # The counter soak reproduces the customer configuration (2 s publishing,
-  # sampling and heartbeat interval, queue size > 1, samples encoding) against
+  # sampling and heartbeat interval, queue size > 1, PubSub encoding) against
   # nodes that count up every 2 s. A value arrives on every cycle, so the
   # heartbeat watchdog must never fire and the stream must be complete,
   # ordered, free of repeats and evenly spaced.
   # --------------------------------------------------------------------------
   run_tests_soak_counters:
     name: Run telemetry quality soak (counters)
-    needs: [init, deploy_standalone, deploy_test_resources]
+    needs: [init, deploy_standalone, deploy_test_resources, run_tests_basic]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.deploy_test_resources.result == 'success' &&
+      (inputs.suite == null || inputs.suite == '' || inputs.suite == 'all' || inputs.suite == 'counters')
     uses: ./.github/workflows/e2e-run-tests.yml
     with:
       resource_group_name: ${{ needs.init.outputs.resource_group_name }}
@@ -424,6 +536,7 @@ jobs:
       edge_version: '1.4'
       soak_minutes: ${{ inputs.soak_minutes || '30' }}
       soak_nodes: ${{ inputs.soak_nodes || '100' }}
+      test_filter: ${{ inputs.test_filter || '' }}
     secrets: inherit
 
   # --------------------------------------------------------------------------
@@ -434,7 +547,13 @@ jobs:
   # --------------------------------------------------------------------------
   run_tests_soak_heartbeat:
     name: Run telemetry quality soak (heartbeat)
-    needs: [init, deploy_standalone, deploy_test_resources]
+    needs: [init, deploy_standalone, deploy_test_resources, run_tests_basic,
+            run_tests_soak_counters]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.deploy_test_resources.result == 'success' &&
+      (inputs.suite == null || inputs.suite == '' || inputs.suite == 'all' || inputs.suite == 'heartbeat')
     uses: ./.github/workflows/e2e-run-tests.yml
     with:
       resource_group_name: ${{ needs.init.outputs.resource_group_name }}
@@ -448,6 +567,37 @@ jobs:
       image_tag: ${{ inputs.image_tag || 'latest' }}
       edge_version: '1.4'
       soak_minutes: ${{ inputs.soak_minutes || '30' }}
+      test_filter: ${{ inputs.test_filter || '' }}
+    secrets: inherit
+
+  # --------------------------------------------------------------------------
+  # A&E is last. It contains 43 event and condition tests and, while its reader
+  # was still 2.9-shaped, nine separate tests each consumed their ten-minute
+  # budget. Keeping it last means an event regression cannot starve the already
+  # independent basic and telemetry-quality coverage.
+  # --------------------------------------------------------------------------
+  run_tests_ae:
+    name: Run A&E tests (PublisherMode=AE)
+    needs: [init, deploy_standalone, deploy_test_resources, run_tests_basic,
+            run_tests_soak_counters, run_tests_soak_heartbeat]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.deploy_test_resources.result == 'success' &&
+      (inputs.suite == null || inputs.suite == '' || inputs.suite == 'all' || inputs.suite == 'ae')
+    uses: ./.github/workflows/e2e-run-tests.yml
+    with:
+      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
+      key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
+      filter_name: PublisherMode
+      filter_value: AE
+      timeout_minutes: 180
+      result_label: ae
+      image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
+      image_namespace: ${{ inputs.image_namespace || 'azure' }}
+      image_tag: ${{ inputs.image_tag || 'latest' }}
+      edge_version: '1.4'
+      test_filter: ${{ inputs.test_filter || '' }}
     secrets: inherit
 
   # --------------------------------------------------------------------------
@@ -458,7 +608,7 @@ jobs:
     name: Delete resource group
     needs: [init, deploy_standalone, deploy_test_resources, run_tests_ae, run_tests_basic,
             run_tests_soak_counters, run_tests_soak_heartbeat]
-    if: always() && (inputs.cleanup == null || inputs.cleanup == true) && !cancelled()
+    if: always() && (inputs.cleanup == null || inputs.cleanup == true)
     runs-on: ubuntu-latest
     environment: e2e
     timeout-minutes: 30

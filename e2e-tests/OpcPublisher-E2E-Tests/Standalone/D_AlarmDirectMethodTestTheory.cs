@@ -32,22 +32,30 @@ namespace OpcPublisherAEE2ETests.Standalone
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
                 _timeoutToken);
+            var namespaceUris = await ReadNamespaceUrisAsync(_timeoutToken);
 
-            var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 1, _timeoutToken);
-
-            // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
-            await PublishNodesAsync(pnJson, _timeoutToken);
-
-            // take any message
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
+            // Act
+            var payloads = await TestHelper.ReadAfterAsync(
+                _consumer, (events, token) => events
+                    .ReadMessagesFromWriterIdAsync(
+                        _writerId, -1, _context,
+                        _context.IoTHubPublisherDeployment.ModuleName, token)
+                    .Where(message =>
+                        message.payload["ConditionId"] is not null &&
+                        message.payload["Retain"] is not null)
+                    .Select(message =>
+                        message.payload.ToObject<ConditionTypePayload>())
+                    .Take(1),
+                token => PublishNodesAsync(pnJson, token),
+                _timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            ValidatePendingConditionsView(payloads);
+            ValidatePendingConditionsView(payloads, namespaceUris);
         }
     }
 }

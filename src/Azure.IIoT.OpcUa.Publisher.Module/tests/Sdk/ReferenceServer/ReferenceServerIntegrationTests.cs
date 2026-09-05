@@ -42,7 +42,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/DataItems.json",
-                messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
+                GetDataNetworkMessage, messageType: "ua-data",
+                arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -204,7 +205,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(nameof(CanSendEventToIoTHubTestAsync),
-                "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
+                "./Resources/SimpleEvents.json", GetSimpleEventNetworkMessage,
+                messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             var payload = AssertSimpleEventNetworkMessage(messages);
@@ -218,10 +220,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         public async Task CanSendEventToIoTHubTestFullFeaturedMessageAsync(bool useCurrentTime)
         {
             // Arrange
+            var testName = nameof(CanSendEventToIoTHubTestFullFeaturedMessageAsync) +
+                (useCurrentTime ? "CurrentTime" : "PublishTime");
             // Act
             var messages = await ProcessMessagesAsync(
-                nameof(CanSendEventToIoTHubTestFullFeaturedMessageAsync), "./Resources/SimpleEvents.json",
-                messageType: "ua-data", arguments: ["--mm=PubSub", "--fm=true", useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime"]);
+                testName, "./Resources/SimpleEvents.json",
+                TimeSpan.FromMinutes(2), 1, GetSimpleEventNetworkMessage,
+                messageType: "ua-data",
+                arguments: ["--mm=PubSub", "--fm=true",
+                    useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -290,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendPendingConditionsToIoTHubTestAsync), "./Resources/PendingAlarms.json",
-                BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
+                BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
@@ -384,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data");
+                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data");
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
@@ -491,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data");
+                var messages = await WaitForMessagesAsync(BasicPubSubIntegrationTests.GetPendingCondition, messageType: "ua-data");
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
@@ -555,7 +562,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             var message = Assert.Single(messages).Message;
             Assert.Equal("ua-data", message.GetProperty("MessageType").GetString());
-            return message.GetProperty("Messages")[0].GetProperty("Payload");
+            var dataSet = GetEventDataSet(message);
+            Assert.Equal(JsonValueKind.Object, dataSet.ValueKind);
+            return dataSet.GetProperty("Payload");
         }
 
         private static void AssertPendingAlarmDataSetMessage(JsonElement message)
@@ -563,6 +572,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal(JsonValueKind.Object, message.ValueKind);
             var payload = message.GetProperty("Payload");
             Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            Assert.Equal(JsonValueKind.String,
+                payload.GetProperty("ConditionId").GetProperty("Value").ValueKind);
+            Assert.True(payload.GetProperty("Retain").GetProperty("Value").GetBoolean());
         }
 
         private static void AssertDeadband<T>(IEnumerable<JsonElement> payloads, string fieldName,
@@ -604,22 +616,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
         private static JsonElement GetDataFrame(JsonElement jsonElement)
         {
-            var messages = jsonElement.GetProperty("Messages");
-            return messages.ValueKind != JsonValueKind.Array
-                ? default
-                : messages.EnumerateArray().FirstOrDefault(element =>
-                    element.GetProperty("Payload").TryGetProperty(kOutput, out _));
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element =>
+                element.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty(kOutput, out _));
         }
 
         private static JsonElement GetSimpleEvent(JsonElement jsonElement)
         {
-            var messages = jsonElement.GetProperty("Messages");
-            return messages.ValueKind != JsonValueKind.Array
-                ? default
-                : messages.EnumerateArray().FirstOrDefault(element =>
-                    element.TryGetProperty("Payload", out var payload) &&
-                    payload.TryGetProperty("ReceiveTime", out var receiveTime) &&
-                    receiveTime.GetProperty("Value").ValueKind == JsonValueKind.String);
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element =>
+                element.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty("ReceiveTime", out var receiveTime) &&
+                receiveTime.TryGetProperty("Value", out var value) &&
+                value.ValueKind == JsonValueKind.String);
         }
+
+        private static JsonElement GetEventDataSet(JsonElement jsonElement)
+        {
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element =>
+                element.TryGetProperty("Payload", out var payload) &&
+                payload.TryGetProperty(kEventId, out _));
+        }
+
+        private static JsonElement GetDataNetworkMessage(JsonElement message)
+            => GetDataFrame(message).ValueKind == JsonValueKind.Object
+                ? message : default;
+
+        private static JsonElement GetSimpleEventNetworkMessage(JsonElement message)
+            => GetEventDataSet(message).ValueKind == JsonValueKind.Object
+                ? message : default;
     }
 }

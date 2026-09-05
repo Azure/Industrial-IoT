@@ -9,8 +9,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     using Microsoft.Azure.Devices;
     using System;
     using System.Diagnostics;
-    using System.IO;
-    using System.IO.Compression;
     using System.Text;
     using System.Text.Json;
     using System.Threading;
@@ -23,7 +21,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     /// </para>
     /// <para>
     /// The long running telemetry quality tests observe a stream for tens of
-    /// minutes, so unlike <see cref="TestHelper.ReadMessagesFromWriterIdAsync(EventHubConsumerClient, string, int, IIoTPlatformTestContext, CancellationToken)"/>
+    /// minutes, so unlike <see cref="TestHelper.ReadMessagesFromWriterIdAsync(EventHubConsumerClient, string, int, IIoTPlatformTestContext, string, CancellationToken)"/>
     /// this reader must not buffer messages, must not write one line of test
     /// output per message, and must understand the legacy samples encoding
     /// (a bare monitored item message) in addition to PubSub network messages.
@@ -85,17 +83,8 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                         continue;
                     }
 
-                    byte[] body;
-                    if (partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType) &&
-                        contentType is string ct2 && ct2 == "application/json+gzip")
-                    {
-                        body = Decompress(Convert.FromBase64String(
-                            partitionEvent.Data.EventBody.ToString()));
-                    }
-                    else
-                    {
-                        body = partitionEvent.Data.EventBody.ToArray();
-                    }
+                    var body = await TestHelper.DecodeEventBodyAsync(
+                        partitionEvent.Data, cts.Token).ConfigureAwait(false);
                     if (body.Length == 0)
                     {
                         continue;
@@ -104,7 +93,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                     if (first)
                     {
                         first = false;
-                        onFirstMessage?.Invoke(Encoding.UTF8.GetString(body));
+                        onFirstMessage?.Invoke(Encoding.UTF8.GetString(body.Span));
                     }
 
                     using var document = JsonDocument.Parse(body);
@@ -157,15 +146,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                 stop.Cancel();
             }, onFirstMessage: null, stop.Token).ConfigureAwait(false);
             return seen ? stopWatch.Elapsed : null;
-        }
-
-        private static byte[] Decompress(byte[] compressed)
-        {
-            using var input = new MemoryStream(compressed);
-            using var gs = new GZipStream(input, CompressionMode.Decompress);
-            using var output = new MemoryStream();
-            gs.CopyTo(output);
-            return output.ToArray();
         }
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return result;
         }
 
-        private static IReadOnlyDictionary<uint, string> CreateSymbolicIds()
+        private static Dictionary<uint, string> CreateSymbolicIds()
         {
             return typeof(StatusCodes)
                 .GetFields(BindingFlags.Public | BindingFlags.Static)
@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 .ToDictionary(group => group.Key, group => group.First().Name);
         }
 
-        private static readonly IReadOnlyDictionary<uint, string> kSymbolicIds =
+        private static readonly Dictionary<uint, string> kSymbolicIds =
             CreateSymbolicIds();
     }
 }

@@ -19,6 +19,7 @@ namespace OpcPublisherAEE2ETests.TestModels
         /// <summary>Gets or sets message.</summary>
         /// <example>"The system cycle '29813' has started."</example>
         [JsonProperty(nameof(Message))]
+        [JsonConverter(typeof(LocalizedTextDataValueObjectConverter))]
         public DataValueObject<string> Message { get; set; }
 
         /// <summary>Gets or sets the severity.</summary>

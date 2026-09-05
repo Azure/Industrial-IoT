@@ -1926,7 +1926,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ToArray();
         }
 
-        private IReadOnlyDictionary<string, BindingMetadataSnapshot>
+        private Dictionary<string, BindingMetadataSnapshot>
             SnapshotBindingMetadata()
         {
             return GetBindings().ToDictionary(binding => binding.Name,
@@ -4480,15 +4480,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 clause.AttributeId == Attributes.NodeId)
                             {
                                 condition.ConditionIdIndex = index;
-                                fields.Add(null);
+                                fields.Add(GetFieldName(eventTemplate, clause, index,
+                                    messageContext) ?? "ConditionId");
                                 continue;
                             }
-                            if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                                clause.BrowsePath.Count != 0 &&
-                                clause.BrowsePath[0] == BrowseNames.Retain)
+                            if (ManagedSubscriptionOptionsAdapter.IsConditionRetainClause(clause))
                             {
                                 condition.RetainIndex = index;
-                                fields.Add(null);
+                                fields.Add(GetFieldName(eventTemplate, clause, index,
+                                    messageContext) ?? BrowseNames.Retain);
                                 continue;
                             }
                         }
@@ -4514,6 +4514,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (clause.BrowsePath.Count == 0)
                     {
+                        if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                            clause.AttributeId == Attributes.NodeId)
+                        {
+                            return "ConditionId";
+                        }
                         return null;
                     }
                     var names = new string[clause.BrowsePath.Count];
@@ -4526,7 +4531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            private static IReadOnlyList<Guid> CreateEventFieldIds(
+            private static Guid[] CreateEventFieldIds(
                 EventMonitoredItemModel? template, IReadOnlyList<string?> fieldNames,
                 IReadOnlyList<string?>? previousFieldNames = null,
                 IReadOnlyList<Guid>? previousFieldIds = null)

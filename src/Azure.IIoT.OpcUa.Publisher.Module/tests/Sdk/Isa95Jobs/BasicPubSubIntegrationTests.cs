@@ -6,6 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
+    using ReferenceServerIntegrationTests =
+        Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer.BasicPubSubIntegrationTests;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using System;
     using System.Linq;
@@ -36,7 +38,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingTestAsync),
-                "./Resources/Isa95Jobs.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/Isa95Jobs.json", TimeSpan.FromMinutes(2), 4,
+                ReferenceServerIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--me=JsonReversible", "--dm=false"]
             );
 
@@ -59,7 +63,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeEventWithCompliantEncodingTestAsync),
-                "./Resources/Isa95Jobs.json", messageType: "ua-data",
+                "./Resources/Isa95Jobs.json",
+                ReferenceServerIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["-c", "--mm=PubSub", "--me=Json"]);
 
             Assert.Single(result);
@@ -83,7 +89,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestAsync),
-                "./Resources/Isa95Jobs.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/Isa95Jobs.json", TimeSpan.FromMinutes(2), 4,
+                ReferenceServerIntegrationTests.GetEventNetworkMessage,
+                messageType: "ua-data",
                 arguments: ["-c", "--mm=PubSub", "--me=JsonReversible"]);
 
             var messages = result

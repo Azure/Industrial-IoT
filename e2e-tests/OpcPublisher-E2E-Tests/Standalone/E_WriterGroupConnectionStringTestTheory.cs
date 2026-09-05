@@ -15,6 +15,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -54,8 +55,8 @@ namespace OpcPublisherAEE2ETests.Standalone
             _timeoutToken = _timeoutTokenSource.Token;
             _consumer = _context.GetEventHubConsumerClient();
             _writerId = Guid.NewGuid().ToString();
-            _writerGroup = Guid.NewGuid().ToString();
-            _childDeviceId = "e2e-writergroup-cs-" + _context.TestingSuffix;
+            _writerGroup = _writerId + "-0";
+            _childDeviceId = "e2e-writergroup-cs-" + _writerId;
 
             // Second publisher identity with dedicated published nodes file and pki folder.
             _deployment = new IoTHubPublisherDeployment(_context, OpcPublisherAEE2ETests.MessagingMode.PubSub,
@@ -114,14 +115,45 @@ namespace OpcPublisherAEE2ETests.Standalone
                         new JProperty("Id", "ns=0;i=2258"), // Server CurrentTime, changes every second
                         new JProperty("OpcSamplingInterval", 1000),
                         new JProperty("OpcPublishingInterval", 1000))));
-            await PublishNodesAsync(pnJson, _timeoutToken);
+            using var telemetryTimeout =
+                CancellationTokenSource.CreateLinkedTokenSource(_timeoutToken);
+            telemetryTimeout.CancelAfter(TimeSpan.FromMinutes(3));
+            IReadOnlyList<string> deviceIds;
+            try
+            {
+                deviceIds = await TestHelper.ReadAfterAsync(
+                    _consumer, ReadDeviceIdAsync,
+                    token => PublishNodesAsync(pnJson, token),
+                    telemetryTimeout.Token);
+            }
+            catch
+            {
+                using var diagnosticsCts = new CancellationTokenSource(
+                    TimeSpan.FromMinutes(2));
+                var diagnostics = await TestHelper.GetEdgeRuntimeDiagnosticsAsync(
+                    _context, _deployment.ModuleName, diagnosticsCts.Token)
+                    .ConfigureAwait(false);
+                _context.OutputHelper?.WriteLine(
+                    $"=== {_deployment.ModuleName} telemetry diagnostics ===" +
+                    $"{Environment.NewLine}{diagnostics}");
+                throw;
+            }
 
             // Assert - telemetry reaches IoT Hub attributed to the child device identity.
-            var deviceId = await _consumer.ReadConnectionDeviceIdForWriterIdAsync(
-                _writerId, _context, _timeoutToken);
+            var deviceId = Assert.Single(deviceIds);
             Assert.Equal(_childDeviceId, deviceId);
 
             await UnpublishAllNodesAsync(_timeoutToken);
+
+            async IAsyncEnumerable<string> ReadDeviceIdAsync(
+                IAsyncEnumerable<PartitionEvent> events,
+                [EnumeratorCancellation] CancellationToken token)
+            {
+                yield return await events
+                    .ReadConnectionDeviceIdForWriterIdAsync(
+                        _writerId, _context, token)
+                    .ConfigureAwait(false);
+            }
         }
 
         [Fact, PriorityOrder(998)]
@@ -134,13 +166,28 @@ namespace OpcPublisherAEE2ETests.Standalone
 
         private async Task<MethodResultModel> CallMethodAsync(MethodParameterModel parameters, CancellationToken ct)
         {
-            return await TestHelper.CallMethodAsync(
-                _iotHubClient,
-                _context.DeviceConfig.DeviceId,
-                _deployment.ModuleName,
-                parameters,
-                _context,
-                ct).ConfigureAwait(false);
+            try
+            {
+                return await TestHelper.CallMethodAsync(
+                    _iotHubClient,
+                    _context.DeviceConfig.DeviceId,
+                    _deployment.ModuleName,
+                    parameters,
+                    _context,
+                    ct).ConfigureAwait(false);
+            }
+            catch
+            {
+                using var diagnosticsCts = new CancellationTokenSource(
+                    TimeSpan.FromMinutes(2));
+                var diagnostics = await TestHelper.GetEdgeRuntimeDiagnosticsAsync(
+                    _context, _deployment.ModuleName, diagnosticsCts.Token)
+                    .ConfigureAwait(false);
+                _context.OutputHelper?.WriteLine(
+                    $"=== {_deployment.ModuleName} runtime diagnostics ===" +
+                    $"{Environment.NewLine}{diagnostics}");
+                throw;
+            }
         }
 
         /// <summary>
