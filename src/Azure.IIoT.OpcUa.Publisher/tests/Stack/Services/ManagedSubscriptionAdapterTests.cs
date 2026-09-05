@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
@@ -2589,6 +2590,82 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal("ConditionId", conditionId.DataSetFieldName);
             Assert.Equal(new Variant(new NodeId(1234u, 2)),
                 Assert.IsType<DataValue>(conditionId.Value).WrappedValue);
+        }
+
+        [Theory]
+        [InlineData("i=2041")]
+        [InlineData("i=2782")]
+        public async Task ConditionSnapshotWithSelectedRetainPublishesOneOccurrenceAsync(
+            string retainType)
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, new EventMonitoredItemModel
+            {
+                StartNodeId = "ns=2;s=conditions",
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = 60
+                },
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
+                            AttributeId = NodeAttribute.NodeId
+                        },
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = retainType,
+                            AttributeId = NodeAttribute.Value,
+                            BrowsePath = [BrowseNames.Retain]
+                        }
+                    ]
+                }
+            })]);
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+            var filter = Assert.IsType<EventFilter>(item.Options.Filter);
+            var values = filter.SelectClauses.Select(clause =>
+                clause.AttributeId == Attributes.NodeId
+                    ? new Variant(new NodeId(1234u, 2))
+                    : clause.BrowsePath[0] == BrowseNames.Retain
+                        ? new Variant(true)
+                        : new Variant(ObjectTypeIds.AlarmConditionType)).ToArray();
+
+            await manager.Handler!.OnEventDataNotificationAsync(
+                manager.Subscription, 1, DateTime.UtcNow,
+                new EventNotification[] { new(item, values) },
+                PublishState.None, []);
+            adapter.FlushConditions(force: true);
+            var notification = Assert.Single(owner.Events);
+            notification.Context = new DataSetWriterContext
+            {
+                DataSetWriterId = 1,
+                Topic = "topic",
+                Qos = null,
+                PublisherId = "publisher",
+                Writer = new DataSetWriterModel
+                {
+                    Id = "writer",
+                    DataSet = new PublishedDataSetModel { Name = "conditions" }
+                },
+                WriterName = "writer",
+                MetaData = null,
+                ExtensionFields = [],
+                NextWriterSequenceNumber = () => 1,
+                WriterGroup = new WriterGroupModel { Id = "group" },
+                Schema = null,
+                CloudEvent = null
+            };
+
+            var occurrence = Assert.Single(PubSubNotificationSink.Translate(notification));
+            Assert.Equal(["ConditionId", "Retain"], occurrence.Fields.Select(field => field.Name));
+            Assert.Equal(new Variant(new NodeId(1234u, 2)), occurrence.Fields[0].Value.WrappedValue);
+            Assert.Equal(new Variant(true), occurrence.Fields[1].Value.WrappedValue);
         }
 
         [Fact]

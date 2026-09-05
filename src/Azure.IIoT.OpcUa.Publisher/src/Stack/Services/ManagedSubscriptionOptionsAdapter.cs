@@ -301,7 +301,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 foreach (var clause in clauses)
                 {
-                    if (clause.TypeDefinitionId == typeDefinitionId &&
+                    if ((clause.TypeDefinitionId == typeDefinitionId ||
+                        typeDefinitionId == ObjectTypeIds.ConditionType &&
+                        IsConditionRetainClause(clause)) &&
                         clause.AttributeId == attributeId &&
                         HasSameBrowsePath(clause.BrowsePath, browsePath))
                     {
@@ -333,6 +335,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return true;
                 }
             }
+
+        }
+
+        internal static bool IsConditionRetainClause(SimpleAttributeOperand clause)
+        {
+            // Simple event filters use BaseEventType for every selected value.
+            // Retain still denotes the same ConditionType field in that form.
+            return (clause.TypeDefinitionId == ObjectTypeIds.BaseEventType ||
+                clause.TypeDefinitionId == ObjectTypeIds.ConditionType) &&
+                clause.AttributeId == Attributes.Value &&
+                clause.BrowsePath.Count == 1 &&
+                clause.BrowsePath[0] == BrowseNames.Retain;
         }
     }
 }

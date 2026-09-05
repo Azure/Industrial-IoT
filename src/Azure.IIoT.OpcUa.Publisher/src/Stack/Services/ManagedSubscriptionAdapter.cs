@@ -4484,9 +4484,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     messageContext) ?? "ConditionId");
                                 continue;
                             }
-                            if (clause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                                clause.BrowsePath.Count != 0 &&
-                                clause.BrowsePath[0] == BrowseNames.Retain)
+                            if (ManagedSubscriptionOptionsAdapter.IsConditionRetainClause(clause))
                             {
                                 condition.RetainIndex = index;
                                 fields.Add(GetFieldName(eventTemplate, clause, index,

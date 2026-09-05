@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client.Subscriptions.MonitoredItems;
     using System;
+    using System.Linq;
     using Xunit;
 
     /// <summary>
@@ -409,6 +410,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 template, new OpcUaSubscriptionOptions(), CreateEncoder());
 
             Assert.Equal((uint)Attributes.EventNotifier, result.AttributeId);
+        }
+
+        [Theory]
+        [InlineData("i=2041")]
+        [InlineData("i=2782")]
+        public void ConditionFilterReusesAnEquivalentRetainClause(string typeDefinitionId)
+        {
+            var template = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2253",
+                ConditionHandling = new ConditionHandlingOptionsModel { SnapshotInterval = 60 },
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = typeDefinitionId,
+                            AttributeId = NodeAttribute.Value,
+                            BrowsePath = [BrowseNames.Retain],
+                            DisplayName = "ConfiguredRetain"
+                        }
+                    ]
+                }
+            };
+
+            var result = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                template, new OpcUaSubscriptionOptions(), CreateEncoder());
+            var filter = Assert.IsType<EventFilter>(result.Filter);
+
+            var retain = Assert.Single(filter.SelectClauses.ToArray().Where(clause =>
+                clause.BrowsePath.Count == 1 && clause.BrowsePath[0] == BrowseNames.Retain));
+            Assert.Equal(typeDefinitionId, retain.TypeDefinitionId.ToString());
+            Assert.Equal(3, filter.SelectClauses.Count);
         }
 
         [Fact]
