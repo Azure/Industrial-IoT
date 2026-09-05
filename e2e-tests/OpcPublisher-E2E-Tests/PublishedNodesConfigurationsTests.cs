@@ -8,6 +8,7 @@ namespace OpcPublisherAEE2ETests
     using Newtonsoft.Json.Linq;
     using Xunit;
 
+    [Trait("Category", "Unit")]
     public sealed class PublishedNodesConfigurationsTests
     {
         [Fact]

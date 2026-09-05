@@ -40,7 +40,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
             // Act
             var values = await TestHelper.ReadAfterAsync(
-                token => _consumer.ReadMessagesFromWriterIdAsync(
+                _consumer, (events, token) => events.ReadMessagesFromWriterIdAsync(
                     _writerId, -1, _context,
                     _context.IoTHubPublisherDeployment.ModuleName, token).Take(1),
                 token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
@@ -66,7 +66,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
             // Act
             var values = await TestHelper.ReadAfterAsync(
-                token => _consumer.ReadMessagesFromWriterIdAsync(
+                _consumer, (events, token) => events.ReadMessagesFromWriterIdAsync(
                     _writerId, -1, _context,
                     _context.IoTHubPublisherDeployment.ModuleName, token).Take(1),
                 token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(
@@ -91,7 +91,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId);
             // Act
             var values = await TestHelper.ReadAfterAsync(
-                token => _consumer.ReadMessagesFromWriterIdAsync(
+                _consumer, (events, token) => events.ReadMessagesFromWriterIdAsync(
                     _writerId, -1, _context,
                     _context.IoTHubPublisherDeployment.ModuleName, token).Take(1),
                 token => TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(

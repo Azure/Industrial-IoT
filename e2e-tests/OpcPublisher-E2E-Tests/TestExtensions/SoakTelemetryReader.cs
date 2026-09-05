@@ -9,8 +9,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     using Microsoft.Azure.Devices;
     using System;
     using System.Diagnostics;
-    using System.IO;
-    using System.IO.Compression;
     using System.Text;
     using System.Text.Json;
     using System.Threading;
@@ -85,16 +83,8 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                         continue;
                     }
 
-                    byte[] body;
-                    if (TestHelper.IsGzipPayload(partitionEvent.Data))
-                    {
-                        body = Decompress(Convert.FromBase64String(
-                            partitionEvent.Data.EventBody.ToString()));
-                    }
-                    else
-                    {
-                        body = partitionEvent.Data.EventBody.ToArray();
-                    }
+                    var body = await TestHelper.DecodeEventBodyAsync(
+                        partitionEvent.Data, cts.Token).ConfigureAwait(false);
                     if (body.Length == 0)
                     {
                         continue;
@@ -103,7 +93,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                     if (first)
                     {
                         first = false;
-                        onFirstMessage?.Invoke(Encoding.UTF8.GetString(body));
+                        onFirstMessage?.Invoke(Encoding.UTF8.GetString(body.Span));
                     }
 
                     using var document = JsonDocument.Parse(body);
@@ -156,15 +146,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                 stop.Cancel();
             }, onFirstMessage: null, stop.Token).ConfigureAwait(false);
             return seen ? stopWatch.Elapsed : null;
-        }
-
-        private static byte[] Decompress(byte[] compressed)
-        {
-            using var input = new MemoryStream(compressed);
-            using var gs = new GZipStream(input, CompressionMode.Decompress);
-            using var output = new MemoryStream();
-            gs.CopyTo(output);
-            return output.ToArray();
         }
 
         /// <summary>

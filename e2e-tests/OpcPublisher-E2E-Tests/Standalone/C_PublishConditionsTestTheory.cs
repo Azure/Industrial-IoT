@@ -38,6 +38,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --dalm=files/sc001.json --pn=50000"},
                 _timeoutToken,
                 "opc-plc-files/sc001.json");
+            var namespaceUris = await ReadNamespaceUrisAsync(_timeoutToken);
 
             var pnJson = _context.PublishedNodesJson(
                 50000,
@@ -47,7 +48,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             const int nMessages = 6;
             // Act
             var payloads = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync<ConditionTypePayload>(
                         _writerId, 10000, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
@@ -82,9 +83,9 @@ namespace OpcPublisherAEE2ETests.Standalone
                 SourceName = DataValueObject.Create("VendingMachine1"),
                 SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
             };
-            VerifyPayload(payloads, ++i, null, doorOpen);
+            VerifyPayload(namespaceUris, payloads, ++i, null, doorOpen);
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 FromSeconds(5),
                 new ConditionTypePayload
@@ -102,7 +103,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2")
                 });
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 Zero,
                 new ConditionTypePayload
@@ -120,7 +121,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 FromSeconds(5),
                 new ConditionTypePayload
@@ -138,7 +139,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
-            VerifyPayload(payloads,
+            VerifyPayload(namespaceUris, payloads,
                 ++i,
                 FromSeconds(4),
                 new ConditionTypePayload
@@ -156,10 +157,12 @@ namespace OpcPublisherAEE2ETests.Standalone
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
-            VerifyPayload(payloads, ++i, Zero, doorOpen); // cycling back to first message
+            VerifyPayload(namespaceUris, payloads, ++i, Zero, doorOpen); // cycling back to first message
         }
 
-        private static void VerifyPayload(IReadOnlyList<ConditionTypePayload> payloads, int i, TimeSpan? expectedDelay, ConditionTypePayload expectedPayload)
+        private static void VerifyPayload(IReadOnlyList<string> namespaceUris,
+            IReadOnlyList<ConditionTypePayload> payloads, int i,
+            TimeSpan? expectedDelay, ConditionTypePayload expectedPayload)
         {
             var p = payloads[i];
 
@@ -172,10 +175,11 @@ namespace OpcPublisherAEE2ETests.Standalone
             (p.Retain.Value ?? false).Should().Be(
                 expectedPayload.Retain.Value ?? false);
             p.SourceName.Value.Should().BeEquivalentTo(expectedPayload.SourceName.Value);
-            GetNodeIdIdentifier(p.SourceNode.Value).Should().Be(
-                GetNodeIdIdentifier(expectedPayload.SourceNode.Value));
+            OpcUaNodeId.Normalize(p.SourceNode.Value, namespaceUris).Should().Be(
+                OpcUaNodeId.Normalize(expectedPayload.SourceNode.Value, namespaceUris));
 
-            GetNodeIdIdentifier(p.ConditionId.Value).Should().StartWith("i=");
+            OpcUaNodeId.Normalize(p.ConditionId.Value, namespaceUris).Should().StartWith(
+                "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
 
             p.EnabledStateEffectiveTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
             p.EnabledStateTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
@@ -186,17 +190,6 @@ namespace OpcPublisherAEE2ETests.Standalone
                 var transitionTime = p.EnabledStateEffectiveTransitionTime.Value - payloads[i - 1].EnabledStateEffectiveTransitionTime.Value;
                 // TODO there is no difference in the transition time...
                 // transitionTime.Should().BeCloseTo(expectedDelay.Value, Precision);
-            }
-
-            static string GetNodeIdIdentifier(string nodeId)
-            {
-                var separator = nodeId.LastIndexOf('#');
-                if (separator >= 0)
-                {
-                    return nodeId[(separator + 1)..];
-                }
-                separator = nodeId.IndexOf(';');
-                return separator >= 0 ? nodeId[(separator + 1)..] : nodeId;
             }
         }
     }

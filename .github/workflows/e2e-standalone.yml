@@ -315,19 +315,19 @@ jobs:
               fi
             done
           fi
-      - name: Run E2E reader unit tests
+      - name: Run E2E unit tests
         shell: bash
         run: |
           mkdir -p e2e-tests/results
           dotnet test \
             e2e-tests/OpcPublisher-E2E-Tests/OpcPublisher-AE-E2E-Tests.csproj \
             -c Release --no-build \
-            --filter "FullyQualifiedName~PubSubMessageMatcherTests" \
+            --filter "Category=Unit" \
             --results-directory e2e-tests/results \
-            --logger "trx;LogFileName=pubsub-message-matcher.trx"
+            --logger "trx;LogFileName=e2e-unit.trx"
           if ! grep -Eq 'total="[1-9][0-9]*"' \
-              e2e-tests/results/pubsub-message-matcher.trx; then
-            echo "::error::E2E reader unit tests matched zero tests."
+              e2e-tests/results/e2e-unit.trx; then
+            echo "::error::E2E unit tests matched zero tests."
             exit 1
           fi
 

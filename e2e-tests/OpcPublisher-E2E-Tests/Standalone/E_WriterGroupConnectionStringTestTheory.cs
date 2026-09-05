@@ -122,7 +122,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             try
             {
                 deviceIds = await TestHelper.ReadAfterAsync(
-                    ReadDeviceIdAsync,
+                    _consumer, ReadDeviceIdAsync,
                     token => PublishNodesAsync(pnJson, token),
                     telemetryTimeout.Token);
             }
@@ -146,9 +146,10 @@ namespace OpcPublisherAEE2ETests.Standalone
             await UnpublishAllNodesAsync(_timeoutToken);
 
             async IAsyncEnumerable<string> ReadDeviceIdAsync(
+                IAsyncEnumerable<PartitionEvent> events,
                 [EnumeratorCancellation] CancellationToken token)
             {
-                yield return await _consumer
+                yield return await events
                     .ReadConnectionDeviceIdForWriterIdAsync(
                         _writerId, _context, token)
                     .ConfigureAwait(false);

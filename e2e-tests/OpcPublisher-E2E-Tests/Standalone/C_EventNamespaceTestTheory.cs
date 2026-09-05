@@ -46,7 +46,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // subscription so the first event cannot be lost to lazy
             // IAsyncEnumerable startup.
             var payloads = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
                         _writerId, 1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
@@ -72,7 +72,7 @@ namespace OpcPublisherAEE2ETests.Standalone
 
             // Act
             var payloads = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
                         _writerId, 1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
@@ -96,7 +96,7 @@ namespace OpcPublisherAEE2ETests.Standalone
 
             // Act
             var payloads = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
                         _writerId, 1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)
@@ -120,7 +120,7 @@ namespace OpcPublisherAEE2ETests.Standalone
 
             // Act
             var payloads = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(
                         _writerId, 1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)

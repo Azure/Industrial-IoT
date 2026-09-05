@@ -907,7 +907,19 @@ namespace OpcPublisherAEE2ETests
             string expectedModuleId, IIoTPlatformTestContext context = null)
             where T : BaseEventTypePayload
         {
-            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId,
+            ArgumentNullException.ThrowIfNull(consumer);
+            return consumer.ReadEventsAsync(false, cancellationToken: cancellationToken)
+                .ReadMessagesFromWriterIdAsync<T>(dataSetWriterId,
+                    numberOfBatchesToRead, cancellationToken, expectedModuleId, context);
+        }
+
+        public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(
+            this IAsyncEnumerable<PartitionEvent> events, string dataSetWriterId,
+            int numberOfBatchesToRead, CancellationToken cancellationToken,
+            string expectedModuleId, IIoTPlatformTestContext context = null)
+            where T : BaseEventTypePayload
+        {
+            return ReadMessagesFromWriterIdAsync(events, dataSetWriterId,
                 numberOfBatchesToRead, context, expectedModuleId, cancellationToken)
                         .Select(x =>
                             new EventData<T>
@@ -958,29 +970,35 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
-        /// Start an asynchronous reader before invoking the action that can
-        /// produce its first result, then collect the sequence.
+        /// Capture every partition's starting position before triggering
+        /// telemetry, then collect messages from those positions.
         /// </summary>
         /// <remarks>
-        /// Merely assigning an <see cref="IAsyncEnumerable{T}"/> does not start
-        /// it. Several event tests constructed a reader before publishing
-        /// their configuration but enumerated it afterwards, so a one-shot
-        /// condition refresh could be emitted before Event Hubs consumption
-        /// began. This helper advances the enumerator to its first pending
-        /// <c>MoveNextAsync</c>, allows the partition receivers to settle, and
-        /// only then runs the trigger.
+        /// Receiver attachment can finish after the trigger. Explicit sequence
+        /// positions ensure that a one-shot event is still read in that case;
+        /// a delay before opening receivers at Latest cannot provide that guarantee.
         /// </remarks>
         public static async Task<List<T>> ReadAfterAsync<T>(
-            Func<CancellationToken, IAsyncEnumerable<T>> reader,
-            Func<CancellationToken, Task> trigger,
-            CancellationToken ct,
-            TimeSpan? readerSettleTime = null)
+            EventHubConsumerClient consumer,
+            Func<IAsyncEnumerable<PartitionEvent>, CancellationToken, IAsyncEnumerable<T>> reader,
+            Func<CancellationToken, Task> trigger, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(reader);
             ArgumentNullException.ThrowIfNull(trigger);
-            var settleTime = readerSettleTime ?? kEventHubReaderSettleTime;
-            ArgumentOutOfRangeException.ThrowIfLessThan(settleTime,
-                TimeSpan.Zero);
+            var boundary = await EventHubReadBoundary.CaptureAsync(consumer, ct)
+                .ConfigureAwait(false);
+            return await CollectAfterAsync(
+                token => reader(boundary.ReadAsync(token), token), trigger, ct)
+                .ConfigureAwait(false);
+        }
+
+        internal static async Task<List<T>> CollectAfterAsync<T>(
+            Func<CancellationToken, IAsyncEnumerable<T>> reader,
+            Func<CancellationToken, Task> trigger,
+            CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(reader);
+            ArgumentNullException.ThrowIfNull(trigger);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct);
             var ready = new TaskCompletionSource(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -989,14 +1007,11 @@ namespace OpcPublisherAEE2ETests
             try
             {
                 await ready.Task.WaitAsync(ct).ConfigureAwait(false);
-                if (settleTime > TimeSpan.Zero)
-                {
-                    await Task.Delay(settleTime, ct).ConfigureAwait(false);
-                }
                 if (read.IsFaulted)
                 {
                     await read.ConfigureAwait(false);
                 }
+                ct.ThrowIfCancellationRequested();
                 try
                 {
                     await trigger(linked.Token).ConfigureAwait(false);
@@ -1064,9 +1079,8 @@ namespace OpcPublisherAEE2ETests
             finally
             {
                 //
-                // MoveNextAsync has been invoked. ReadAfterAsync adds a short
-                // settle window before triggering a one-shot event so the
-                // Event Hubs partition receivers can establish their links.
+                // This coordinates iterator startup only. Event Hubs positions
+                // have already been captured by ReadAfterAsync before arriving here.
                 //
                 ready.TrySetResult();
             }
@@ -1100,14 +1114,23 @@ namespace OpcPublisherAEE2ETests
         /// <param name="expectedModuleId">Expected source module, or null to accept any source.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
-        public static async IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
+        public static IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
+            int numberOfBatchesToRead, IIoTPlatformTestContext context,
+            string expectedModuleId, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(consumer);
+            return consumer.ReadEventsAsync(false, cancellationToken: cancellationToken)
+                .ReadMessagesFromWriterIdAsync(dataSetWriterId, numberOfBatchesToRead,
+                    context, expectedModuleId, cancellationToken);
+        }
+
+        public static async IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this IAsyncEnumerable<PartitionEvent> events, string dataSetWriterId,
             int numberOfBatchesToRead, IIoTPlatformTestContext context,
             string expectedModuleId,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(consumer);
+            ArgumentNullException.ThrowIfNull(events);
             ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
-            var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
             var diagnostics = new List<string>();
             using var cancellationRegistration = cancellationToken.Register(() =>
             {
@@ -1143,7 +1166,7 @@ namespace OpcPublisherAEE2ETests
                 }
                 var isPayloadCompressed = IsGzipPayload(partitionEvent.Data);
                 var json = await DeserializeEventBodyAsync(partitionEvent,
-                    isPayloadCompressed, cancellationToken).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
                 var matched = false;
                 foreach (var message in
                     PubSubMessageMatcher.EnumerateNetworkMessages(json))
@@ -1198,13 +1221,21 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>The IoT Hub connection device id of the first matching message, or null if none was found.</returns>
-        public static async Task<string> ReadConnectionDeviceIdForWriterIdAsync(this EventHubConsumerClient consumer,
+        public static Task<string> ReadConnectionDeviceIdForWriterIdAsync(this EventHubConsumerClient consumer,
             string dataSetWriterId, IIoTPlatformTestContext context, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(consumer);
+            return consumer.ReadEventsAsync(false, cancellationToken: cancellationToken)
+                .ReadConnectionDeviceIdForWriterIdAsync(dataSetWriterId, context, cancellationToken);
+        }
+
+        public static async Task<string> ReadConnectionDeviceIdForWriterIdAsync(
+            this IAsyncEnumerable<PartitionEvent> events,
+            string dataSetWriterId, IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(events);
             ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
             var diagnostics = new List<string>();
-            var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
             try
             {
                 await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
@@ -1221,9 +1252,8 @@ namespace OpcPublisherAEE2ETests
                     {
                             continue;
                     }
-                    var compressed = IsGzipPayload(partitionEvent.Data);
                     var json = await DeserializeEventBodyAsync(partitionEvent,
-                        compressed, cancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                     foreach (var message in
                         PubSubMessageMatcher.EnumerateNetworkMessages(json))
                     {
@@ -1277,20 +1307,46 @@ namespace OpcPublisherAEE2ETests
                 encodingName.EndsWith("Gzip", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static async Task<JToken> DeserializeEventBodyAsync(
-            PartitionEvent partitionEvent, bool compressed, CancellationToken ct)
+        internal static async Task<ReadOnlyMemory<byte>> DecodeEventBodyAsync(
+            EventData eventData, CancellationToken ct)
         {
-            if (!compressed)
+            ArgumentNullException.ThrowIfNull(eventData);
+            ct.ThrowIfCancellationRequested();
+            var payload = eventData.EventBody.ToMemory();
+            if (!IsGzipPayload(eventData))
             {
-                return partitionEvent.DeserializeJson<JToken>();
+                return payload;
             }
-            var payload = Convert.FromBase64String(
-                partitionEvent.Data.EventBody.ToString());
-            await using var input = new MemoryStream(payload);
+            if (!HasGzipHeader(payload.Span))
+            {
+                if (!eventData.Properties.TryGetValue("$$ContentType", out var legacyType) ||
+                    legacyType is not "application/json+gzip")
+                {
+                    throw new InvalidDataException("The native gzip message has no gzip header.");
+                }
+                // Older transport wrappers serialized the compressed bytes as
+                // base64. Raw gzip remains valid with either metadata format.
+                payload = Convert.FromBase64String(eventData.EventBody.ToString());
+                if (!HasGzipHeader(payload.Span))
+                {
+                    throw new InvalidDataException("The legacy message does not contain gzip data.");
+                }
+            }
+            await using var input = new MemoryStream(payload.ToArray());
             await using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            using var reader = new StreamReader(gzip);
-            return JsonConvert.DeserializeObject<JToken>(
-                await reader.ReadToEndAsync(ct).ConfigureAwait(false));
+            await using var output = new MemoryStream();
+            await gzip.CopyToAsync(output, ct).ConfigureAwait(false);
+            return output.ToArray();
+
+            static bool HasGzipHeader(ReadOnlySpan<byte> bytes)
+                => bytes.Length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b;
+        }
+
+        private static async Task<JToken> DeserializeEventBodyAsync(
+            PartitionEvent partitionEvent, CancellationToken ct)
+        {
+            var body = await DecodeEventBodyAsync(partitionEvent.Data, ct).ConfigureAwait(false);
+            return JToken.Parse(Encoding.UTF8.GetString(body.Span));
         }
 
         /// <summary>
@@ -1556,8 +1612,6 @@ namespace OpcPublisherAEE2ETests
         }
 
         private static readonly JsonSerializer kSerializer = new();
-        private static readonly TimeSpan kEventHubReaderSettleTime =
-            TimeSpan.FromSeconds(5);
         private static readonly TimeSpan kDirectMethodResponseTimeout =
             TimeSpan.FromMinutes(2);
         private static readonly TimeSpan kConfigurationMethodResponseTimeout =

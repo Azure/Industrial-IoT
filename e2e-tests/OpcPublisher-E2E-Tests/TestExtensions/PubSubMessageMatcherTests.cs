@@ -17,6 +17,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     using TestModels;
     using Xunit;
 
+    [Trait("Category", "Unit")]
     public sealed class PubSubMessageMatcherTests
     {
         [Fact]
@@ -94,6 +95,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                     {
                       "DataSetWriterId": 17,
                       "DataSetWriterName": "writer-guid",
+                      "MetaDataVersion": {"MajorVersion":7,"MinorVersion":0},
                       "Payload": {
                         "Value": 42
                       }
@@ -220,7 +222,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         }
 
         [Fact]
-        public async Task ReadAfterStartsReaderBeforeTriggerAsync()
+        public async Task CollectAfterStartsReaderBeforeTriggerAsync()
         {
             var readerStarted = new TaskCompletionSource(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -228,8 +230,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
             var values = await global::OpcPublisherAEE2ETests.TestHelper
-                .ReadAfterAsync(Read, Trigger, CancellationToken.None,
-                    TimeSpan.Zero);
+                .CollectAfterAsync(Read, Trigger, CancellationToken.None);
 
             Assert.Equal([42], values);
 
@@ -251,13 +252,13 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         }
 
         [Fact]
-        public async Task ReadAfterPreservesTriggerExceptionWhenReaderCleanupFailsAsync()
+        public async Task CollectAfterPreservesTriggerExceptionWhenReaderCleanupFailsAsync()
         {
             var expected = new InvalidOperationException("trigger failed");
 
             var actual = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => global::OpcPublisherAEE2ETests.TestHelper.ReadAfterAsync(
-                    Read, Trigger, CancellationToken.None, TimeSpan.Zero));
+                () => global::OpcPublisherAEE2ETests.TestHelper.CollectAfterAsync(
+                    Read, Trigger, CancellationToken.None));
 
             Assert.Same(expected, actual);
 
@@ -284,13 +285,13 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         }
 
         [Fact]
-        public async Task ReadAfterPreservesTriggerExceptionWhenCancellationCallbackFailsAsync()
+        public async Task CollectAfterPreservesTriggerExceptionWhenCancellationCallbackFailsAsync()
         {
             var expected = new InvalidOperationException("trigger failed");
 
             var actual = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => global::OpcPublisherAEE2ETests.TestHelper.ReadAfterAsync(
-                    Read, Trigger, CancellationToken.None, TimeSpan.Zero));
+                () => global::OpcPublisherAEE2ETests.TestHelper.CollectAfterAsync(
+                    Read, Trigger, CancellationToken.None));
 
             Assert.Same(expected, actual);
 

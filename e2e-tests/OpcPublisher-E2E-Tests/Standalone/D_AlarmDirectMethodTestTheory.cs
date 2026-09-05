@@ -32,6 +32,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
                 _timeoutToken);
+            var namespaceUris = await ReadNamespaceUrisAsync(_timeoutToken);
 
             var pnJson = _context.PublishedNodesJson(
                 50000,
@@ -39,7 +40,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
             // Act
             var payloads = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync(
                         _writerId, -1, _context,
                         _context.IoTHubPublisherDeployment.ModuleName, token)
@@ -54,7 +55,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            ValidatePendingConditionsView(payloads);
+            ValidatePendingConditionsView(payloads, namespaceUris);
         }
     }
 }

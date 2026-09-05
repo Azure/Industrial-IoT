@@ -62,7 +62,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 TaskCreationOptions.RunContinuationsAsynchronously);
             // Act
             var fullData = await TestHelper.ReadAfterAsync(
-                token => _consumer
+                _consumer, (events, token) => events
                     .ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(
                         _writerId, -1, token,
                         _context.IoTHubPublisherDeployment.ModuleName, _context)

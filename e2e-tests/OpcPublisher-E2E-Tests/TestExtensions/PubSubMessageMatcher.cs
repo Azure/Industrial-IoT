@@ -6,8 +6,11 @@
 namespace OpcPublisherAEE2ETests.TestExtensions
 {
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
 
     /// <summary>
     /// Correlates OPC UA PubSub messages with the configured writer identity.
@@ -102,6 +105,14 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                 {
                     continue;
                 }
+                if (dataSetMessage["MetaDataVersion"] is not JObject metadata ||
+                    !IsVersion(metadata["MajorVersion"]) ||
+                    !IsVersion(metadata["MinorVersion"]))
+                {
+                    throw new InvalidDataException(
+                        $"Writer '{writerId}' has an invalid MetaDataVersion; " +
+                        "MajorVersion and MinorVersion must both be UInt32 integers.");
+                }
                 yield return new PubSubDataSetMatch(
                     writerGroupName ?? string.Empty,
                     dataSetWriterName ?? legacyWriterId,
@@ -109,6 +120,11 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                     payload);
             }
         }
+
+        private static bool IsVersion(JToken value)
+            => value?.Type == JTokenType.Integer &&
+                uint.TryParse(value.ToString(Formatting.None), NumberStyles.None,
+                    CultureInfo.InvariantCulture, out _);
 
         /// <summary>
         /// Describe the identity-bearing fields for timeout diagnostics.

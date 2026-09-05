@@ -187,6 +187,45 @@ namespace OpcPublisherAEE2ETests.Standalone
             Assert.Empty(response.Endpoints);
         }
 
+        protected async Task<IReadOnlyList<string>> ReadNamespaceUrisAsync(CancellationToken ct)
+        {
+            var host = Assert.Single(_context.PlcAciDynamicUrls);
+            var result = await CallMethodAsync(new MethodParameterModel
+            {
+                Name = "ValueRead_V2",
+                JsonPayload = new JObject
+                {
+                    ["connection"] = new JObject
+                    {
+                        ["endpoint"] = new JObject
+                        {
+                            ["url"] = $"opc.tcp://{host}:50000",
+                            ["securityMode"] = "NotNone"
+                        }
+                    },
+                    ["request"] = new JObject
+                    {
+                        ["nodeId"] = "i=2255",
+                        ["encoding"] = "NonReversible"
+                    }
+                }.ToString()
+            }, ct);
+            Assert.Equal((int)HttpStatusCode.OK, result.Status);
+            var response = Json.Deserialize<ValueReadResponseModel>(result.JsonPayload);
+            Assert.Null(response.ErrorInfo);
+            var values = Assert.IsType<System.Text.Json.Nodes.JsonArray>(response.Value);
+            var namespaces = new List<string>(values.Count);
+            foreach (var value in values)
+            {
+                var uri = value?.GetValue<string>();
+                Assert.False(string.IsNullOrEmpty(uri), "NamespaceArray contains an empty URI.");
+                namespaces.Add(uri);
+            }
+            Assert.NotEmpty(namespaces);
+            Assert.Equal("http://opcfoundation.org/UA/", namespaces[0]);
+            return namespaces;
+        }
+
         protected string SimpleEvents(string messageTypeDefinitionId, string messageBrowsePath,
             string cycleIdDefinitionId, string cycleIdBrowsePath, string filterTypeDefinitionId)
         {
@@ -226,12 +265,13 @@ namespace OpcPublisherAEE2ETests.Standalone
             }
         }
 
-        protected static void ValidatePendingConditionsView(IEnumerable<ConditionTypePayload> eventData)
+        protected static void ValidatePendingConditionsView(
+            IEnumerable<ConditionTypePayload> eventData, IReadOnlyList<string> namespaceUris)
         {
             foreach (var pendingMessage in eventData)
             {
-                pendingMessage.ConditionId.Value.Should().MatchRegex(
-                    @"^(http://microsoft\.com/Opc/OpcPlc/AlarmsInstance#|ns=6;[isgb]=).+");
+                OpcUaNodeId.Normalize(pendingMessage.ConditionId.Value, namespaceUris)
+                    .Should().StartWith("http://microsoft.com/Opc/OpcPlc/AlarmsInstance#");
                 pendingMessage.Retain.Value.Should().BeTrue();
             }
         }
