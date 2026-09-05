@@ -167,7 +167,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var options = new PubSubShadowEgressOptions();
                 configure?.Invoke(provider, options);
                 return new PubSubShadowEgressRegistration(
-                    selectorFactory(provider), options);
+                    selectorFactory(provider), options,
+                    provider.GetService<ILogger<PubSubShadowTombstoneQueue>>());
             });
             return services;
         }
@@ -216,7 +217,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubShadowRuntimeStateProvider state,
             PubSubShadowEncodingRegistry encodingRegistry,
             IPubSubApplication application,
-            PubSubConfigurationDataType configuration)
+            PubSubConfigurationDataType configuration,
+            PubSubShadowEgressRegistration? egress = null)
         {
             _identityRegistry = identityRegistry ??
                 throw new ArgumentNullException(nameof(identityRegistry));
@@ -226,6 +228,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 throw new ArgumentNullException(nameof(encodingRegistry));
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _egress = egress;
+            if (egress is not null)
+            {
+                _translator.Activate = true;
+            }
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -290,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var translation = _translator.TranslateWithEncodingRegistry(groups, transaction);
                 var replacement = translation.Configuration;
                 var previousGeneration = _encodingRegistry.ActiveGeneration;
-                var previousEgress = _egress?.Settings.Snapshot();
+                await using var previousEgress = _egress?.Settings.AcquireSnapshot();
                 await using var sourceTransaction = _managedDataSources is null
                     ? null
                     : await _managedDataSources.PrepareAsync(groups, cancellationToken)
@@ -310,10 +317,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     sourceTransaction?.Install();
                     if (_egress is not null)
                     {
-                        _egress.Settings.Replace(groups, _publisherOptions?.Value
-                            ?? new PublisherOptions(), _egress.Options);
+                        await _egress.Settings.ReplaceAsync(groups, _publisherOptions?.Value
+                            ?? new PublisherOptions(), _egress.Options, cancellationToken)
+                            .ConfigureAwait(false);
                         egressReplaced = true;
-                        tombstones = GetRemovedMetaDataTopics(_configuration, previousEgress,
+                        tombstones = GetRemovedMetaDataTopics(_configuration, previousEgress?.Settings,
                             replacement, _egress.Settings.Snapshot());
                         foreach (var tombstone in tombstones)
                         {
@@ -398,6 +406,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     {
                         _egress?.Tombstones.Restore(reactivation);
                     }
+                    // Rollback creates native connections too: restore their
+                    // lookup state before asking the runtime to recreate them.
+                    if (encodingsReplaced)
+                    {
+                        _encodingRegistry.Restore(previousGeneration);
+                    }
+                    Exception? cleanupFailure = null;
+                    if (egressReplaced && previousEgress is not null)
+                    {
+                        try
+                        {
+                            await _egress!.Settings.RestoreAsync(previousEgress.Settings)
+                                .ConfigureAwait(false);
+                        }
+                        catch (Exception cleanupException)
+                        {
+                            // Lookup state is restored before retired roots are
+                            // released. Cleanup must not prevent the old runtime
+                            // from being restored and restarted.
+                            cleanupFailure = cleanupException;
+                        }
+                    }
+                    var updateFailure = cleanupFailure is null ? exception :
+                        new AggregateException(
+                            "The PubSub configuration update and candidate cleanup failed.",
+                            exception, cleanupFailure);
                     if (replaced)
                     {
                         try
@@ -409,37 +443,33 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         catch (Exception rollbackException)
                         {
                             _state.Failed(rollbackException);
-                            throw new PubSubShadowRollbackException(exception, rollbackException);
+                            throw new PubSubShadowRollbackException(updateFailure, rollbackException);
                         }
-                        finally
-                        {
-                            if (encodingsReplaced)
-                            {
-                                _encodingRegistry.Restore(previousGeneration);
-                                encodingsReplaced = false;
-                            }
-                            if (egressReplaced && previousEgress is not null)
-                            {
-                                _egress!.Settings.Restore(previousEgress);
-                                egressReplaced = false;
-                            }
-                        }
-                    }
-                    if (encodingsReplaced)
-                    {
-                        _encodingRegistry.Restore(previousGeneration);
-                    }
-                    if (egressReplaced && previousEgress is not null)
-                    {
-                        _egress!.Settings.Restore(previousEgress);
                     }
                     if (stopped && wasStarted)
                     {
-                        await _application.StartAsync(CancellationToken.None)
-                            .ConfigureAwait(false);
+                        try
+                        {
+                            await _application.StartAsync(CancellationToken.None)
+                                .ConfigureAwait(false);
+                        }
+                        catch (Exception restartException)
+                        {
+                            _state.Failed(restartException);
+                            throw new PubSubShadowRollbackException(updateFailure, restartException);
+                        }
                     }
-                    _state.Failed(exception);
+                    _state.Failed(updateFailure);
+                    if (cleanupFailure is not null)
+                    {
+                        throw updateFailure;
+                    }
                     throw;
+                }
+                finally
+                {
+                    await Task.WhenAll(reactivations.Select(reactivation =>
+                        reactivation.DisposeAsync().AsTask())).ConfigureAwait(false);
                 }
             }
             finally
@@ -573,9 +603,31 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private async ValueTask DisposeCoreAsync()
         {
-            await StopAsync(CancellationToken.None).ConfigureAwait(false);
-            await _application.DisposeAsync().ConfigureAwait(false);
-            _gate.Dispose();
+            try
+            {
+                try
+                {
+                    await StopAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await _application.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (_egress is not null)
+                    {
+                        await _egress.Settings.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    _gate.Dispose();
+                }
+            }
         }
 
         /// <summary>

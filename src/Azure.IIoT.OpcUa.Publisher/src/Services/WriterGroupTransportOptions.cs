@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Selects and configures the event client a writer group publishes
@@ -29,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// send queue is bounded by the egress options instead. Only the client
     /// selection outlived it.
     /// </remarks>
-    internal sealed record class WriterGroupTransportOptions : IDisposable
+    internal sealed class WriterGroupTransportOptions : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Event client selected
@@ -49,13 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Dictionary<string, IEventClientFactory> factories,
             IOptions<PublisherOptions> options, ILogger logger)
         {
-            EventClient = eventClients
-                    .Find(e => e.Name.Equals(writerGroup.Transport?.ToString(),
-                        StringComparison.OrdinalIgnoreCase))
-                ?? eventClients
-                    .Find(e => e.Name.Equals(options.Value.DefaultTransport?.ToString(),
-                        StringComparison.OrdinalIgnoreCase))
-                ?? eventClients[0];
+            EventClient = SelectEventClient(writerGroup, eventClients, options.Value);
 
             if (string.IsNullOrEmpty(writerGroup.TransportConfiguration))
             {
@@ -81,8 +77,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             catch (Exception e)
             {
+                Dispose();
                 logger.CustomWriterGroupConfigurationCouldNotBeAppliedWithError(
-                    writerGroup.Id, EventClient.Name, e.Message);
+                    writerGroup.Id, EventClient.Name, e.GetType().Name);
+                if (e is OperationCanceledException)
+                {
+                    throw;
+                }
                 throw new InvalidOperationException(
                     $"Custom configuration for writer group {writerGroup.Id} " +
                     $"could not be applied to transport {EventClient.Name}.", e);
@@ -92,10 +93,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void Dispose()
         {
-            _scope?.Dispose();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        /// <inheritdoc/>
+        public ValueTask DisposeAsync()
+        {
+            lock (_gate)
+            {
+                return new ValueTask(_disposeTask ??= DisposeCoreAsync());
+            }
+        }
+
+        internal static IEventClient SelectEventClient(WriterGroupModel writerGroup,
+            List<IEventClient> eventClients, PublisherOptions options)
+        {
+            return eventClients
+                    .Find(e => e.Name.Equals(writerGroup.Transport?.ToString(),
+                        StringComparison.OrdinalIgnoreCase))
+                ?? eventClients
+                    .Find(e => e.Name.Equals(options.DefaultTransport?.ToString(),
+                        StringComparison.OrdinalIgnoreCase))
+                ?? eventClients[0];
+        }
+
+        private async Task DisposeCoreAsync()
+        {
+            if (_scope is IAsyncDisposable asyncScope)
+            {
+                await asyncScope.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                _scope?.Dispose();
+            }
         }
 
         private readonly IDisposable? _scope;
+        private readonly Lock _gate = new();
+        private Task? _disposeTask;
     }
 
     /// <summary>

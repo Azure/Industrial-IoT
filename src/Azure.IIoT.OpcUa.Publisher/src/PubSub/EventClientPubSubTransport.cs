@@ -84,6 +84,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// </summary>
         public required IEventClient EventClient { get; init; }
 
+        public PubSubShadowEventClientLease? ClientLease { get; init; }
+
         public required PubSubShadowEncoding Encoding { get; init; }
         public required string Topic { get; init; }
         public required string ContentType { get; init; }
@@ -195,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// </summary>
         /// <param name="writerGroup">Writer group being configured.</param>
         /// <returns>The transport to publish the group through.</returns>
-        IEventClient Select(WriterGroupModel writerGroup);
+        PubSubShadowEventClientLease Select(WriterGroupModel writerGroup);
     }
 
     /// <summary>
@@ -209,9 +211,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
         }
 
-        public IEventClient Select(WriterGroupModel writerGroup)
+        public PubSubShadowEventClientLease Select(WriterGroupModel writerGroup)
         {
-            return _eventClient;
+            return new PubSubShadowEventClientLease(_eventClient);
         }
 
         private readonly IEventClient _eventClient;
@@ -222,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// The registry mirrors the encoding-generation rule: an old connection
     /// holds its resolved settings while a replacement receives a new snapshot.
     /// </summary>
-    internal sealed class PubSubShadowEgressSettingsRegistry
+    internal sealed class PubSubShadowEgressSettingsRegistry : IDisposable, IAsyncDisposable
     {
         public PubSubShadowEgressSettingsRegistry(
             IPubSubShadowEventClientSelector eventClients)
@@ -234,30 +236,49 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public void Replace(IEnumerable<WriterGroupModel> writerGroups,
             PublisherOptions publisherOptions, PubSubShadowEgressOptions options)
         {
+            ReplaceAsync(writerGroups, publisherOptions, options)
+                .AsTask().GetAwaiter().GetResult();
+        }
+
+        public async ValueTask ReplaceAsync(IEnumerable<WriterGroupModel> writerGroups,
+            PublisherOptions publisherOptions, PubSubShadowEgressOptions options,
+            CancellationToken cancellationToken = default)
+        {
             ArgumentNullException.ThrowIfNull(writerGroups);
             ArgumentNullException.ThrowIfNull(publisherOptions);
             ArgumentNullException.ThrowIfNull(options);
 
             var replacement = new Dictionary<string, PubSubShadowEgressSettings>(
                 StringComparer.Ordinal);
-            foreach (var writerGroup in writerGroups)
+            var leases = new List<PubSubShadowEventClientLease>();
+            try
             {
-                ArgumentNullException.ThrowIfNull(writerGroup);
-                var settings = CreateSettings(writerGroup, publisherOptions, options,
-                    _eventClients.Select(writerGroup));
-                if (!replacement.TryAdd(settings.ConnectionName, settings))
+                foreach (var writerGroup in writerGroups)
                 {
-                    throw new ArgumentException(
-                        $"The egress connection '{settings.ConnectionName}' occurs more than once.",
-                        nameof(writerGroups));
+                    cancellationToken.ThrowIfCancellationRequested();
+                    ArgumentNullException.ThrowIfNull(writerGroup);
+                    var lease = _eventClients.Select(writerGroup);
+                    leases.Add(lease);
+                    var settings = CreateSettings(writerGroup, publisherOptions, options,
+                        lease.EventClient) with { ClientLease = lease };
+                    if (!replacement.TryAdd(settings.ConnectionName, settings))
+                    {
+                        throw new ArgumentException(
+                            $"The egress connection '{settings.ConnectionName}' occurs more than once.",
+                            nameof(writerGroups));
+                    }
                 }
+                cancellationToken.ThrowIfCancellationRequested();
             }
-            lock (_gate)
+            catch
             {
-                _settings = replacement;
+                await PubSubShadowEventClientLease.ReleaseAllAsync(leases).ConfigureAwait(false);
+                throw;
             }
+            await ExchangeAsync(replacement).ConfigureAwait(false);
         }
 
+        /// <summary>Returns a borrowed view for routing and diagnostics.</summary>
         public Dictionary<string, PubSubShadowEgressSettings> Snapshot()
         {
             lock (_gate)
@@ -267,13 +288,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        public void Restore(Dictionary<string, PubSubShadowEgressSettings> snapshot)
+        public PubSubShadowEgressSettingsSnapshot AcquireSnapshot()
         {
-            ArgumentNullException.ThrowIfNull(snapshot);
             lock (_gate)
             {
-                _settings = new Dictionary<string, PubSubShadowEgressSettings>(snapshot,
-                    StringComparer.Ordinal);
+                ObjectDisposedException.ThrowIf(_disposed, this);
+                return new PubSubShadowEgressSettingsSnapshot(Acquire(_settings));
+            }
+        }
+
+        public void Restore(Dictionary<string, PubSubShadowEgressSettings> snapshot)
+        {
+            RestoreAsync(snapshot).AsTask().GetAwaiter().GetResult();
+        }
+
+        public ValueTask RestoreAsync(Dictionary<string, PubSubShadowEgressSettings> snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
+            return ExchangeAsync(Acquire(snapshot));
+        }
+
+        public PubSubShadowEgressSettings Acquire(PubSubConnectionDataType connection)
+        {
+            lock (_gate)
+            {
+                var settings = Resolve(connection);
+                return settings with { ClientLease = settings.ClientLease?.Acquire() };
             }
         }
 
@@ -290,6 +330,77 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             throw new InvalidOperationException(
                 $"No event-client egress settings were committed for connection '{name}'.");
+        }
+
+        public void Dispose()
+        {
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            lock (_gate)
+            {
+                if (_disposeTask is null)
+                {
+                    _disposed = true;
+                    var previous = _settings;
+                    _settings = new(StringComparer.Ordinal);
+                    _disposeTask = ReleaseAsync(previous);
+                }
+                return new ValueTask(_disposeTask);
+            }
+        }
+
+        private async ValueTask ExchangeAsync(
+            Dictionary<string, PubSubShadowEgressSettings> replacement)
+        {
+            Dictionary<string, PubSubShadowEgressSettings> previous;
+            try
+            {
+                lock (_gate)
+                {
+                    ObjectDisposedException.ThrowIf(_disposed, this);
+                    previous = _settings;
+                    _settings = replacement;
+                }
+            }
+            catch
+            {
+                await ReleaseAsync(replacement).ConfigureAwait(false);
+                throw;
+            }
+            await ReleaseAsync(previous).ConfigureAwait(false);
+        }
+
+        private static Dictionary<string, PubSubShadowEgressSettings> Acquire(
+            Dictionary<string, PubSubShadowEgressSettings> settings)
+        {
+            var acquired = new Dictionary<string, PubSubShadowEgressSettings>(
+                StringComparer.Ordinal);
+            try
+            {
+                foreach (var entry in settings)
+                {
+                    acquired.Add(entry.Key, entry.Value with
+                    {
+                        ClientLease = entry.Value.ClientLease?.Acquire()
+                    });
+                }
+                return acquired;
+            }
+            catch
+            {
+                ReleaseAsync(acquired).GetAwaiter().GetResult();
+                throw;
+            }
+        }
+
+        private static Task ReleaseAsync(
+            Dictionary<string, PubSubShadowEgressSettings> settings)
+        {
+            return PubSubShadowEventClientLease.ReleaseAllAsync(
+                settings.Values.Select(settings => settings.ClientLease));
         }
 
         /// <summary>
@@ -521,6 +632,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly IPubSubShadowEventClientSelector _eventClients;
         private Dictionary<string, PubSubShadowEgressSettings> _settings =
             new(StringComparer.Ordinal);
+        private Task? _disposeTask;
+        private bool _disposed;
     }
 
     /// <summary>
@@ -530,13 +643,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         public PubSubShadowEgressRegistration(
             IPubSubShadowEventClientSelector eventClients,
-            PubSubShadowEgressOptions options)
+            PubSubShadowEgressOptions options, ILogger? logger = null)
         {
             EventClients = eventClients
                 ?? throw new ArgumentNullException(nameof(eventClients));
             Options = options ?? throw new ArgumentNullException(nameof(options));
             Settings = new PubSubShadowEgressSettingsRegistry(EventClients);
-            Tombstones = new PubSubShadowTombstoneQueue(Options);
+            Tombstones = new PubSubShadowTombstoneQueue(Options, logger);
         }
 
         public IPubSubShadowEventClientSelector EventClients { get; }
@@ -556,20 +669,31 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// </remarks>
         public void Dispose()
         {
-            //
-            // Bounded for the same reason the sink's is: a tombstone may be
-            // mid-send to a broker that has stopped answering, and a shutdown
-            // that gives up beats a shutdown that hangs.
-            //
-            Tombstones.DisposeAsync().AsTask().Wait(kDisposeTimeout);
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         public ValueTask DisposeAsync()
         {
-            return Tombstones.DisposeAsync();
+            lock (_disposeGate)
+            {
+                return new ValueTask(_disposeTask ??= DisposeCoreAsync());
+            }
         }
 
-        private static readonly TimeSpan kDisposeTimeout = TimeSpan.FromSeconds(5);
+        private async Task DisposeCoreAsync()
+        {
+            try
+            {
+                await Tombstones.DisposeAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                await Settings.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+
+        private readonly Lock _disposeGate = new();
+        private Task? _disposeTask;
     }
 
     /// <summary>
@@ -580,9 +704,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// </summary>
     internal sealed class PubSubShadowTombstoneQueue : IAsyncDisposable
     {
-        public PubSubShadowTombstoneQueue(PubSubShadowEgressOptions options)
+        public PubSubShadowTombstoneQueue(PubSubShadowEgressOptions options,
+            ILogger? logger = null)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _logger = logger;
             _timeProvider = TimeProvider.System;
             _worker = Task.Run(ProcessAsync);
         }
@@ -622,16 +748,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 throw new ArgumentException("A tombstone topic is required.", nameof(topic));
             }
+            PendingTombstone? previous;
             lock (_gate)
             {
-                if (_pending.TryGetValue(topic, out var previous))
-                {
-                    previous.SendCancellation?.Cancel();
-                }
+                ObjectDisposedException.ThrowIf(_disposeTask is not null, this);
+                _pending.TryGetValue(topic, out previous);
+                // Cancellation callbacks may throw; change ownership only
+                // after they return, so a failed update retains its journal entry.
+                CancelPending(previous);
                 _pending[topic] = new PendingTombstone(settings, topic, generation,
                     _timeProvider.GetUtcNow(), _options.InitialRetryDelay);
+                _wake.Release();
             }
-            _wake.Release();
+            previous?.Dispose();
         }
 
         /// <summary>
@@ -646,13 +775,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PendingTombstone? removed = null;
             lock (_gate)
             {
+                ObjectDisposedException.ThrowIf(_disposeTask is not null, this);
                 if (_pending.TryGetValue(topic, out var pending)
                     && pending.Generation < generation)
                 {
+                    CancelPending(pending);
                     _ = _pending.Remove(topic);
-                    pending.SendCancellation?.Cancel();
                     inFlight = pending.SendCompleted?.Task;
-                    removed = pending.Clone();
+                    removed = pending;
                 }
             }
             if (inFlight is not null)
@@ -669,111 +799,201 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public void Restore(PubSubShadowTombstoneReactivation reactivation)
         {
             ArgumentNullException.ThrowIfNull(reactivation);
+            PendingTombstone? previous;
             lock (_gate)
             {
+                ObjectDisposedException.ThrowIf(_disposeTask is not null, this);
                 if (_pending.TryGetValue(reactivation.Entry.Topic, out var current)
                     && current.Generation > reactivation.Entry.Generation)
                 {
                     return;
                 }
+                previous = current;
+                CancelPending(previous);
                 _pending[reactivation.Entry.Topic] = reactivation.Entry.Clone();
+                _wake.Release();
             }
-            _wake.Release();
+            previous?.Dispose();
         }
 
-        public async ValueTask DisposeAsync()
+        private void CancelPending(PendingTombstone? pending)
         {
-            _stop.Cancel();
-            _wake.Release();
+            if (pending?.SendCancellation is not { } cancellation)
+            {
+                return;
+            }
+            // A cancellation callback can finish the send synchronously and
+            // reenter the worker. Keep the journal root, but don't start another
+            // attempt before the caller has completed its ownership change.
+            pending.IsCanceling = true;
             try
             {
-                await _worker.ConfigureAwait(false);
+                cancellation.Cancel();
             }
-            catch (OperationCanceledException)
+            catch
             {
+                pending.IsCanceling = false;
+                _wake.Release();
+                throw;
+            }
+            pending.IsCanceling = false;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            lock (_gate)
+            {
+                return new ValueTask(_disposeTask ??= DisposeCoreAsync());
+            }
+        }
+
+        private async Task DisposeCoreAsync()
+        {
+            var failures = new List<Exception>();
+            try
+            {
+                await CollectFailuresAsync(_stop.CancelAsync(), failures).ConfigureAwait(false);
+                _wake.Release();
+                await CollectFailuresAsync(_worker, failures).ConfigureAwait(false);
+                PendingTombstone[] pending;
+                lock (_gate)
+                {
+                    pending = [.. _pending.Values];
+                    _pending.Clear();
+                    failures.AddRange(_disposalFailures);
+                }
+                await CollectFailuresAsync(PubSubShadowEventClientLease.ReleaseAllAsync(
+                    pending.Select(entry => entry.ClientLease)), failures).ConfigureAwait(false);
             }
             finally
             {
                 _stop.Dispose();
                 _wake.Dispose();
             }
+            if (failures.Count != 0)
+            {
+                throw new AggregateException("Retired PubSub transport cleanup failed.", failures);
+            }
+        }
+
+        private static async Task CollectFailuresAsync(Task task, List<Exception> failures)
+        {
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                if (task.Exception is { } aggregate)
+                {
+                    failures.AddRange(aggregate.InnerExceptions);
+                }
+                else
+                {
+                    failures.Add(exception);
+                }
+            }
         }
 
         private async Task ProcessAsync()
         {
-            try
+            while (!_stop.IsCancellationRequested)
             {
-                while (!_stop.IsCancellationRequested)
+                PendingTombstone[] due;
+                TimeSpan wait;
+                lock (_gate)
                 {
-                    PendingTombstone[] due;
-                    TimeSpan wait;
-                    lock (_gate)
-                    {
-                        var now = _timeProvider.GetUtcNow();
-                        due = _pending.Values
-                            .Where(tombstone => tombstone.NextAttempt <= now)
-                            .ToArray();
-                        wait = due.Length != 0 || _pending.Count == 0
-                            ? Timeout.InfiniteTimeSpan
-                            : _pending.Values.Min(tombstone =>
-                                tombstone.NextAttempt - now);
-                    }
-                    if (due.Length == 0)
+                    var now = _timeProvider.GetUtcNow();
+                    var eligible = _pending.Values.Where(entry => !entry.IsCanceling).ToArray();
+                    due = eligible
+                        .Where(tombstone => tombstone.NextAttempt <= now)
+                        .ToArray();
+                    wait = due.Length != 0 || eligible.Length == 0
+                        ? Timeout.InfiniteTimeSpan
+                        : eligible.Min(tombstone => tombstone.NextAttempt - now);
+                }
+                if (due.Length == 0)
+                {
+                    try
                     {
                         _ = await _wake.WaitAsync(wait, _stop.Token).ConfigureAwait(false);
-                        continue;
                     }
-
-                    foreach (var tombstone in due)
+                    catch (OperationCanceledException) when (_stop.IsCancellationRequested)
                     {
-                        CancellationTokenSource? sendCancellation = null;
+                        break;
+                    }
+                    continue;
+                }
+
+                foreach (var tombstone in due)
+                {
+                    CancellationTokenSource sendCancellation;
+                    PubSubShadowEventClientLease? sendLease;
+                    PendingTombstone? completed = null;
+                    lock (_gate)
+                    {
+                        if (!_pending.TryGetValue(tombstone.Topic, out var current)
+                            || !ReferenceEquals(current, tombstone))
+                        {
+                            continue;
+                        }
+                        sendCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+                            _stop.Token);
+                        tombstone.SendCompleted = new TaskCompletionSource(
+                            TaskCreationOptions.RunContinuationsAsynchronously);
+                        tombstone.SendCancellation = sendCancellation;
+                        sendLease = tombstone.ClientLease?.Acquire();
+                    }
+                    try
+                    {
+                        await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
+                            tombstone.Settings.EventClient, tombstone.Settings,
+                            tombstone.Topic, _timeProvider,
+                            sendCancellation.Token).ConfigureAwait(false);
                         lock (_gate)
                         {
-                            if (!_pending.TryGetValue(tombstone.Topic, out var current)
-                                || !ReferenceEquals(current, tombstone))
+                            if (_pending.TryGetValue(tombstone.Topic, out var current)
+                                && ReferenceEquals(current, tombstone) && !tombstone.IsCanceling)
                             {
-                                continue;
+                                _ = _pending.Remove(tombstone.Topic);
+                                completed = tombstone;
                             }
-                            sendCancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                                _stop.Token);
-                            tombstone.SendCompleted = new TaskCompletionSource(
-                                TaskCreationOptions.RunContinuationsAsynchronously);
-                            tombstone.SendCancellation = sendCancellation;
                         }
+                    }
+                    catch (OperationCanceledException) when (sendCancellation.IsCancellationRequested)
+                    {
+                        // Reactivation invalidated this generation.
+                    }
+                    catch
+                    {
+                        Interlocked.Increment(ref _retryCount);
+                        lock (_gate)
+                        {
+                            if (_pending.TryGetValue(tombstone.Topic, out var current)
+                                && ReferenceEquals(current, tombstone))
+                            {
+                                var delay = TimeSpan.FromTicks(Math.Min(
+                                    tombstone.RetryDelay.Ticks * 2,
+                                    _options.MaximumRetryDelay.Ticks));
+                                tombstone.RetryDelay = delay;
+                                tombstone.NextAttempt = _timeProvider.GetUtcNow() + delay;
+                            }
+                        }
+                    }
+                    finally
+                    {
                         try
                         {
-                            await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
-                                tombstone.Settings.EventClient, tombstone.Settings,
-                                tombstone.Topic, _timeProvider,
-                                sendCancellation!.Token).ConfigureAwait(false);
+                            await PubSubShadowEventClientLease.ReleaseAllAsync(
+                                [completed?.ClientLease, sendLease]).ConfigureAwait(false);
+                        }
+                        catch (Exception exception)
+                        {
                             lock (_gate)
                             {
-                                if (_pending.TryGetValue(tombstone.Topic, out var current)
-                                    && ReferenceEquals(current, tombstone))
-                                {
-                                    _ = _pending.Remove(tombstone.Topic);
-                                }
+                                _disposalFailures.Add(exception);
                             }
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // Reactivation invalidated this generation.
-                        }
-                        catch
-                        {
-                            Interlocked.Increment(ref _retryCount);
-                            lock (_gate)
-                            {
-                                if (_pending.TryGetValue(tombstone.Topic, out var current)
-                                    && ReferenceEquals(current, tombstone))
-                                {
-                                    var delay = TimeSpan.FromTicks(Math.Min(
-                                        tombstone.RetryDelay.Ticks * 2,
-                                        _options.MaximumRetryDelay.Ticks));
-                                    tombstone.RetryDelay = delay;
-                                    tombstone.NextAttempt = _timeProvider.GetUtcNow() + delay;
-                                }
-                            }
+                            _logger?.EgressCleanupDisposalFailed(exception.GetType().Name);
                         }
                         finally
                         {
@@ -783,17 +1003,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                                 tombstone.SendCompleted?.TrySetResult();
                                 tombstone.SendCompleted = null;
                             }
-                            sendCancellation!.Dispose();
+                            sendCancellation.Dispose();
                         }
                     }
                 }
             }
-            catch (OperationCanceledException)
-            {
-            }
         }
 
-        internal sealed class PendingTombstone
+        internal sealed class PendingTombstone : IDisposable, IAsyncDisposable
         {
             public PendingTombstone(PubSubShadowEgressSettings settings,
                 string topic, long generation, DateTimeOffset nextAttempt,
@@ -804,6 +1021,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Generation = generation;
                 NextAttempt = nextAttempt;
                 RetryDelay = retryDelay;
+                ClientLease = settings.ClientLease?.Acquire();
             }
 
             public PubSubShadowEgressSettings Settings { get; }
@@ -813,6 +1031,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             public TimeSpan RetryDelay { get; set; }
             public CancellationTokenSource? SendCancellation { get; set; }
             public TaskCompletionSource? SendCompleted { get; set; }
+            public bool IsCanceling { get; set; }
+            public PubSubShadowEventClientLease? ClientLease { get; }
+
+            public void Dispose()
+            {
+                ClientLease?.Dispose();
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                return ClientLease?.DisposeAsync() ?? ValueTask.CompletedTask;
+            }
 
             public PendingTombstone Clone()
             {
@@ -827,13 +1057,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly Dictionary<string, PendingTombstone> _pending =
             new(StringComparer.Ordinal);
         private readonly PubSubShadowEgressOptions _options;
+        private readonly ILogger? _logger;
+        private readonly List<Exception> _disposalFailures = [];
         private readonly TimeProvider _timeProvider;
         private readonly Task _worker;
+        private Task? _disposeTask;
         private long _retryCount;
         private long _nextGeneration;
     }
 
-    internal sealed class PubSubShadowTombstoneReactivation
+    internal sealed class PubSubShadowTombstoneReactivation : IDisposable, IAsyncDisposable
     {
         internal PubSubShadowTombstoneReactivation(
             PubSubShadowTombstoneQueue.PendingTombstone entry)
@@ -842,6 +1075,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         internal PubSubShadowTombstoneQueue.PendingTombstone Entry { get; }
+
+        public void Dispose()
+        {
+            Entry.Dispose();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return Entry.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -868,21 +1111,28 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             ArgumentNullException.ThrowIfNull(connection);
             ArgumentNullException.ThrowIfNull(telemetry);
             ArgumentNullException.ThrowIfNull(timeProvider);
-            var settings = _settings.Resolve(connection);
-            var eventClient = settings.EventClient;
-            settings = DegradeUnsupportedCapabilities(eventClient, settings,
-                telemetry.CreateLogger<EventClientPubSubTransportFactory>());
-            ValidateCapabilities(eventClient, settings.RequiredCapabilities);
-            var metadata = CreateMetadataRouting(connection, settings);
-            foreach (var route in metadata.ByTopic.Values)
+            var settings = _settings.Acquire(connection);
+            try
             {
-                ValidateCapabilities(eventClient, route.RequiredCapabilities);
+                var eventClient = settings.EventClient;
+                settings = DegradeUnsupportedCapabilities(eventClient, settings,
+                    telemetry.CreateLogger<EventClientPubSubTransportFactory>());
+                ValidateCapabilities(eventClient, settings.RequiredCapabilities);
+                var metadata = CreateMetadataRouting(connection, settings);
+                foreach (var route in metadata.ByTopic.Values)
+                {
+                    ValidateCapabilities(eventClient, route.RequiredCapabilities);
+                }
+                var direction = connection.WriterGroups.IsNull || connection.WriterGroups.Count == 0
+                    ? PubSubTransportDirection.None
+                    : PubSubTransportDirection.Send;
+                return new EventClientPubSubTransport(TransportProfileUri, direction, eventClient,
+                    settings, metadata, _options, timeProvider);
             }
-            var direction = connection.WriterGroups.IsNull || connection.WriterGroups.Count == 0
-                ? PubSubTransportDirection.None
-                : PubSubTransportDirection.Send;
-            return new EventClientPubSubTransport(TransportProfileUri, direction, eventClient,
-                settings, metadata, _options, timeProvider);
+            finally
+            {
+                settings.ClientLease?.Dispose();
+            }
         }
 
         /// <summary>
@@ -1148,6 +1398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+            _clientLease = settings.ClientLease?.Acquire();
         }
 
         public string TransportProfileUri { get; }
@@ -1321,36 +1572,52 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public async ValueTask DisposeAsync()
         {
-            Task closing;
+            Task disposing;
             TaskCompletionSource? closeStart = null;
+            TaskCompletionSource? disposeStart = null;
             await _lifecycleGate.WaitAsync().ConfigureAwait(false);
             try
             {
-                if (_disposed != 0)
+                if (_disposeTask is null)
                 {
-                    return;
-                }
-                _disposed = 1;
-                var generation = _active;
-                Volatile.Write(ref _active, null);
-                if (generation is not null)
-                {
-                    closeStart = new TaskCompletionSource(
+                    _disposed = 1;
+                    var generation = _active;
+                    Volatile.Write(ref _active, null);
+                    if (generation is not null)
+                    {
+                        closeStart = new TaskCompletionSource(
+                            TaskCreationOptions.RunContinuationsAsynchronously);
+                        _closingTask = CloseGenerationAsync(generation, closeStart.Task, notify: false);
+                    }
+                    disposeStart = new TaskCompletionSource(
                         TaskCreationOptions.RunContinuationsAsynchronously);
-                    closing = CloseGenerationAsync(generation, closeStart.Task, notify: false);
-                    _closingTask = closing;
+                    _disposeTask = DisposeCoreAsync(_closingTask, disposeStart.Task);
                 }
-                else
-                {
-                    closing = _closingTask;
-                }
+                disposing = _disposeTask;
             }
             finally
             {
                 _lifecycleGate.Release();
             }
             closeStart?.TrySetResult();
-            await closing.ConfigureAwait(false);
+            disposeStart?.TrySetResult();
+            await disposing.ConfigureAwait(false);
+        }
+
+        private async Task DisposeCoreAsync(Task closing, Task start)
+        {
+            await start.ConfigureAwait(false);
+            try
+            {
+                await closing.ConfigureAwait(false);
+            }
+            finally
+            {
+                if (_clientLease is not null)
+                {
+                    await _clientLease.DisposeAsync().ConfigureAwait(false);
+                }
+            }
         }
 
         public string BuildMetaDataTopic(PublisherId publisherId, ushort writerGroupId,
@@ -1673,6 +1940,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         private readonly IEventClient _eventClient;
+        private readonly PubSubShadowEventClientLease? _clientLease;
         private readonly PubSubShadowEgressSettings _settings;
         private readonly PubSubShadowMetadataRouting _metadata;
         private readonly PubSubShadowEgressOptions _options;
@@ -1680,6 +1948,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
         private readonly Lock _stateNotificationGate = new();
         private Task _closingTask = Task.CompletedTask;
+        private Task? _disposeTask;
         private Task _stateNotification = Task.CompletedTask;
         private EgressGeneration? _active;
         private int _disposed;
@@ -1762,5 +2031,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             "carry it. Telemetry and delivery guarantees are unaffected.")]
         public static partial void EgressCapabilityDegraded(this ILogger logger,
             string connection, string transport, EventClientCapabilities capability);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "A retired PubSub transport could not be disposed ({ErrorType}). " +
+            "Other metadata cleanup continues; this failure will be propagated on shutdown.")]
+        public static partial void EgressCleanupDisposalFailed(this ILogger logger, string errorType);
     }
 }

@@ -14,6 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Text.Json.Nodes;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
 
     /// <summary>
@@ -542,11 +544,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = Mock.Of<IEventClient>();
             var selector = new PubSubShadowSingleEventClientSelector(client);
 
-            var result1 = selector.Select(new WriterGroupModel { Id = "g1" });
-            var result2 = selector.Select(new WriterGroupModel { Id = "g2" });
+            using var result1 = selector.Select(new WriterGroupModel { Id = "g1" });
+            using var result2 = selector.Select(new WriterGroupModel { Id = "g2" });
 
-            Assert.Same(client, result1);
-            Assert.Same(client, result2);
+            Assert.Same(client, result1.EventClient);
+            Assert.Same(client, result2.EventClient);
         }
 
         [Fact]
@@ -554,6 +556,159 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         {
             Assert.Throws<ArgumentNullException>(() =>
                 new PubSubShadowSingleEventClientSelector(null!));
+        }
+
+        [Theory]
+        [InlineData("duplicate")]
+        [InlineData("invalid-settings")]
+        [InlineData("selection")]
+        [InlineData("canceled")]
+        [InlineData("canceled-last")]
+        public async Task FailedStagingReleasesEveryAcquiredLeaseAndKeepsOldSettingsAsync(
+            string failureMode)
+        {
+            var oldClient = Mock.Of<IEventClient>();
+            var oldScope = new Mock<IDisposable>(MockBehavior.Strict);
+            oldScope.Setup(scope => scope.Dispose());
+            var old = CreateWriterGroup("old");
+            old.Publishing = new PublishingQueueSettingsModel
+            {
+                QueueName = "old/topic",
+                RequestedDeliveryGuarantee = QoS.ExactlyOnce
+            };
+            var valid = CreateWriterGroup("staged");
+            var last = CreateWriterGroup(failureMode == "duplicate" ? "staged" : "last");
+            if (failureMode == "invalid-settings")
+            {
+                last.Publishing = new PublishingQueueSettingsModel { QueueName = "group/topic" };
+                last.DataSetWriters![0].Publishing = new PublishingQueueSettingsModel
+                {
+                    QueueName = "conflicting/writer/topic"
+                };
+            }
+            using var cts = new CancellationTokenSource();
+            var failure = new InvalidOperationException("second selection failed");
+            var staged = new List<(Mock<IDisposable> Scope, PubSubShadowEventClientLease Lease)>();
+            var selector = new DelegateEventClientSelector(group =>
+            {
+                if (ReferenceEquals(group, old))
+                {
+                    return new PubSubShadowEventClientLease(oldClient, oldScope.Object);
+                }
+                if (ReferenceEquals(group, last) && failureMode == "selection")
+                {
+                    throw failure;
+                }
+                var scope = new Mock<IDisposable>(MockBehavior.Strict);
+                scope.Setup(instance => instance.Dispose());
+                var lease = new PubSubShadowEventClientLease(Mock.Of<IEventClient>(),
+                    scope.Object);
+                staged.Add((scope, lease));
+                if (failureMode == "canceled"
+                    || (failureMode == "canceled-last" && ReferenceEquals(group, last)))
+                {
+                    cts.Cancel();
+                }
+                return lease;
+            });
+            await using var registry = new PubSubShadowEgressSettingsRegistry(selector);
+            await registry.ReplaceAsync([old], new PublisherOptions(),
+                new PubSubShadowEgressOptions());
+            var previous = Assert.Single(registry.Snapshot().Values);
+
+            var error = await Record.ExceptionAsync(() => registry.ReplaceAsync(
+                [valid, last], new PublisherOptions(), new PubSubShadowEgressOptions(),
+                cts.Token).AsTask().WaitAsync(TimeSpan.FromSeconds(10)));
+
+            switch (failureMode)
+            {
+                case "duplicate":
+                    Assert.Equal("writerGroups", Assert.IsType<ArgumentException>(error).ParamName);
+                    break;
+                case "invalid-settings":
+                    Assert.Contains("writer-specific egress settings",
+                        Assert.IsType<InvalidOperationException>(error).Message,
+                        StringComparison.Ordinal);
+                    break;
+                case "selection":
+                    Assert.Same(failure, error);
+                    break;
+                default:
+                    Assert.Equal(cts.Token,
+                        Assert.IsAssignableFrom<OperationCanceledException>(error).CancellationToken);
+                    break;
+            }
+            Assert.Equal(failureMode is "selection" or "canceled" ? 1 : 2, staged.Count);
+            Assert.All(staged, item =>
+            {
+                item.Scope.Verify(scope => scope.Dispose(), Times.Once);
+                Assert.Throws<InvalidOperationException>(() => item.Lease.Acquire());
+            });
+            Assert.Same(previous, Assert.Single(registry.Snapshot().Values));
+            Assert.Same(oldClient, registry.Resolve(new PubSubConnectionDataType
+            {
+                Name = "shadow-old"
+            }).EventClient);
+            Assert.Equal("old/topic", previous.Topic);
+            Assert.Equal(QoS.ExactlyOnce, previous.QualityOfService);
+            oldScope.Verify(scope => scope.Dispose(), Times.Never);
+
+            await registry.DisposeAsync();
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            Assert.All(staged, item => item.Scope.Verify(scope => scope.Dispose(), Times.Once));
+        }
+
+        [Fact]
+        public async Task OwnedSnapshotPinsRollbackRootsButBorrowedAndMetadataViewsDoNotAsync()
+        {
+            var oldClient = Mock.Of<IEventClient>();
+            var newClient = Mock.Of<IEventClient>();
+            var oldScope = new Mock<IDisposable>(MockBehavior.Strict);
+            oldScope.Setup(scope => scope.Dispose());
+            var newScope = new Mock<IDisposable>(MockBehavior.Strict);
+            newScope.Setup(scope => scope.Dispose());
+            var old = CreateWriterGroup("old");
+            var replacement = CreateWriterGroup("replacement");
+            var selector = new DelegateEventClientSelector(group =>
+                ReferenceEquals(group, old)
+                    ? new PubSubShadowEventClientLease(oldClient, oldScope.Object)
+                    : new PubSubShadowEventClientLease(newClient, newScope.Object));
+            await using var registry = new PubSubShadowEgressSettingsRegistry(selector);
+            await registry.ReplaceAsync([old], new PublisherOptions(),
+                new PubSubShadowEgressOptions());
+            var borrowed = Assert.Single(registry.Snapshot().Values);
+            var metadata = borrowed.WithTransportSettings("old/metadata",
+                new PublishingQueueSettingsModel { Retain = true }, defaultRetain: false);
+            await using var saved = registry.AcquireSnapshot();
+            Assert.NotSame(borrowed.ClientLease, saved.Settings["shadow-old"].ClientLease);
+            Assert.Same(borrowed.ClientLease, metadata.ClientLease);
+            Assert.Equal("old/metadata", metadata.Topic);
+            Assert.True(metadata.Retain);
+
+            await registry.ReplaceAsync([replacement], new PublisherOptions(),
+                new PubSubShadowEgressOptions());
+            oldScope.Verify(scope => scope.Dispose(), Times.Never);
+            Assert.Same(newClient, Assert.Single(registry.Snapshot().Values).EventClient);
+
+            await registry.RestoreAsync(saved.Settings);
+            newScope.Verify(scope => scope.Dispose(), Times.Once);
+            Assert.Same(oldClient, Assert.Single(registry.Snapshot().Values).EventClient);
+            Assert.NotSame(saved.Settings["shadow-old"].ClientLease,
+                registry.Snapshot()["shadow-old"].ClientLease);
+            await saved.DisposeAsync();
+            await saved.DisposeAsync();
+            oldScope.Verify(scope => scope.Dispose(), Times.Never);
+
+            await registry.DisposeAsync();
+            await registry.DisposeAsync();
+            oldScope.Verify(scope => scope.Dispose(), Times.Once);
+            newScope.Verify(scope => scope.Dispose(), Times.Once);
+            Assert.Empty(registry.Snapshot());
+            Assert.Throws<InvalidOperationException>(() => borrowed.ClientLease!.Acquire());
+            Assert.Throws<InvalidOperationException>(() => metadata.ClientLease!.Acquire());
+            Assert.Collection(selector.Selected,
+                group => Assert.Same(old, group),
+                group => Assert.Same(replacement, group));
         }
 
         // ── Factory helpers ────────────────────────────────────────────────────
@@ -605,6 +760,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             };
         }
 
+        private sealed class DelegateEventClientSelector(
+            Func<WriterGroupModel, PubSubShadowEventClientLease> select)
+            : IPubSubShadowEventClientSelector
+        {
+            public List<WriterGroupModel> Selected { get; } = [];
+
+            public PubSubShadowEventClientLease Select(WriterGroupModel writerGroup)
+            {
+                Selected.Add(writerGroup);
+                return select(writerGroup);
+            }
+        }
+
         private sealed class FixedEventClientSelector : IPubSubShadowEventClientSelector
         {
             public FixedEventClientSelector(IEventClient client)
@@ -612,9 +780,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 _client = client;
             }
 
-            public IEventClient Select(WriterGroupModel writerGroup)
+            public PubSubShadowEventClientLease Select(WriterGroupModel writerGroup)
             {
-                return _client;
+                return new PubSubShadowEventClientLease(_client);
             }
 
             private readonly IEventClient _client;

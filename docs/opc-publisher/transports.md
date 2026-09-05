@@ -42,6 +42,8 @@ The following table shows the supported features of the Azure IoT Edge and IoT H
 
 IoT Edge is used as the default transport unless the Azure IoT related configuration cannot be found at startup time. By default all discovery and runtime events are sent through IoT Edge. Using the `-t` command line argument a different transport can be chosen to publish network messages with. The writer group (network message) transport can also be individually overridden for a writer group using the OPC Publisher [configuration schema's](./readme.md#configuration-schema) `WriterGroupTransport` attribute.
 
+Writer groups using `WriterGroupTransport=IoTHub` and compatible `WriterGroupTransportConfiguration` connection strings share one client per hub/device/module identity. Removing a group releases its ownership without disconnecting other groups using that client. Conflicting active credentials or connection settings for the same identity are rejected rather than opening competing MQTT connections. To change those settings, remove all groups using the identity and allow their connections and pending metadata cleanup to finish before adding the replacement configuration. For the default IoT Edge workload identity, omit the per-group connection string and use the default transport.
+
 Direct methods can be used to interact with the OPC Publisher configuration, discovery, and general (fka. OPC Twin) [API](./api.md). Direct method calls have a payload limit of 256 KB. High frequency interaction such as browsing through direct methods is naturally slow.
 
 ## MQTT
