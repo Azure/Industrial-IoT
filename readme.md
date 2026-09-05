@@ -33,7 +33,7 @@ Our releases are tagged following semantic versioning (“semver”) conventions
 |--------------------|--------------------|----------------|-----------------------|---------------------|
 | OPC Publisher 2.8  | [2.8.7](https://github.com/Azure/Industrial-IoT/tree/release/2.8.7) | 12/15/2023 | OPC Publisher 2.9 | N/A |
 | OPC Publisher 2.9  | [2.9.18](https://github.com/Azure/Industrial-IoT/tree/release/2.9.18) | 11/10/2026 | OPC Publisher 3.0 | [Migration Path](docs/opc-publisher/migrationpath.md), [2.9 to 3.0](docs/opc-publisher/migration-2.9-to-3.0.md) |
-| OPC Publisher 3.0  | [3.0.0](https://github.com/Azure/Industrial-IoT/tree/release/3.0.0) | 11/10/2026 | TBA | [Migration Path](docs/opc-publisher/migrationpath.md), [2.9 to 3.0](docs/opc-publisher/migration-2.9-to-3.0.md) |
+| OPC Publisher 3.0  | [3.0.0](https://github.com/Azure/Industrial-IoT/tree/release/3.0.0) | TBD (Community support) | N/A | [Migration Path](docs/opc-publisher/migrationpath.md), [2.9 to 3.0](docs/opc-publisher/migration-2.9-to-3.0.md) |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string.
 
