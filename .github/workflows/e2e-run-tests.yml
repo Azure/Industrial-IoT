@@ -113,7 +113,7 @@ jobs:
       # second attempt is not tolerant, so a genuine credential or permission
       # problem still fails the job.
       # ----------------------------------------------------------------------
-      - uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
+      - uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
         id: azure_login
         continue-on-error: true
         with:
@@ -123,7 +123,7 @@ jobs:
           enable-AzPSSession: true
       - name: Azure login (retry after transient failure)
         if: steps.azure_login.outcome == 'failure'
-        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
