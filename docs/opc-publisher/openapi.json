@@ -7309,6 +7309,13 @@
         },
         "header": {
           "$ref": "#/definitions/RequestHeaderModel"
+        },
+        "details": {
+          "description": "The HistoryReadDetailsType extension object used\r\nin the original request encoded in json.",
+          "type": "object"
+        },
+        "timestampsToReturn": {
+          "$ref": "#/definitions/TimestampsToReturn"
         }
       },
       "additionalProperties": false
