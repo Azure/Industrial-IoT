@@ -1330,8 +1330,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DataEncoding = null // TODO
                     }
                 };
+                ExtensionObject? readDetails = null;
+                if (request.Details != null)
+                {
+                    var variant = context.Session.Codec.Decode(request.Details,
+                        BuiltInType.ExtensionObject);
+                    readDetails = variant.Value as ExtensionObject ??
+                        throw new ArgumentException("Bad details", nameof(request));
+                }
                 var response = await context.Session.Services.HistoryReadAsync(
-                    request.Header.ToRequestHeader(_timeProvider), null, Opc.Ua.TimestampsToReturn.Both,
+                    request.Header.ToRequestHeader(_timeProvider), readDetails,
+                    request.TimestampsToReturn.ToStackType(),
                     request.Abort ?? false, historytoread, context.Ct).ConfigureAwait(false);
                 context.UntrackedToken = request.ContinuationToken;
 
