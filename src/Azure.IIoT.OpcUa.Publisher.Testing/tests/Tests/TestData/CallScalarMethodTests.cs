@@ -1702,6 +1702,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var expected = new JsonObject
             {
+                ["UaTypeId"] = "i=296",
                 ["Name"] = name,
                 ["DataType"] = "i=12",
                 ["ValueRank"] = valueRank,

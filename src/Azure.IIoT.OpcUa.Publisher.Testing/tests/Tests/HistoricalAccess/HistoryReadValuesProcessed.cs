@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
+                    Assert.Null(arg.Status?.SymbolicId);
                     Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
+                    Assert.Null(arg.Status?.SymbolicId);
                     Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);

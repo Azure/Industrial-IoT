@@ -2720,6 +2720,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var inner = CreateEngineSession(engineFactory, application, endpoint);
             var factory = new Mock<ISessionFactory>();
             factory.SetupGet(item => item.Telemetry).Returns(telemetry);
+            factory.SetupGet(item => item.SubscriptionEngineFactory).Returns(engineFactory);
             factory.Setup(item => item.CreateAsync(
                     It.IsAny<ApplicationConfiguration>(),
                     It.IsAny<ConfiguredEndpoint>(),
