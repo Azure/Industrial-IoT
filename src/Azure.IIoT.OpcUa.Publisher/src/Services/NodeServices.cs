@@ -1351,8 +1351,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var variant = context.Session.Codec.Decode(request.Details,
                         BuiltInType.ExtensionObject);
-                    readDetails = variant.Value as ExtensionObject ??
+                    if (variant.Value is not ExtensionObject extensionObject)
+                    {
                         throw new ArgumentException("Bad details", nameof(request));
+                    }
+                    readDetails = extensionObject;
                 }
                 var response = await context.Session.Services.HistoryReadAsync(
                     request.Header.ToRequestHeader(_timeProvider), readDetails,

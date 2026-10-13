@@ -11,13 +11,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using Moq;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -28,20 +28,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public async Task HistoryReadNextPassesOriginalParametersAsync()
         {
             var details = new ExtensionObject(new ReadRawModifiedDetails());
-            var encodedDetails = new NewtonsoftJsonSerializer().Parse("{}");
+            var encodedDetails = JsonNode.Parse("{}");
             var codec = new Mock<IVariantEncoder>();
             codec.Setup(c => c.Decode(encodedDetails, BuiltInType.ExtensionObject))
                 .Returns(new Variant(details));
 
-            ExtensionObject passedDetails = null;
+            ExtensionObject? passedDetails = null;
             var passedTimestamps = Opc.Ua.TimestampsToReturn.Both;
             var services = new Mock<ISessionServices>();
             services.Setup(s => s.HistoryReadAsync(
-                    It.IsAny<RequestHeader>(), It.IsAny<ExtensionObject>(),
+                    It.IsAny<RequestHeader>(), It.IsAny<ExtensionObject?>(),
                     It.IsAny<Opc.Ua.TimestampsToReturn>(), false,
-                    It.IsAny<HistoryReadValueIdCollection>(), It.IsAny<CancellationToken>()))
-                .Callback<RequestHeader, ExtensionObject, Opc.Ua.TimestampsToReturn, bool,
-                    HistoryReadValueIdCollection, CancellationToken>(
+                    It.IsAny<List<HistoryReadValueId>>(), It.IsAny<CancellationToken>()))
+                .Callback<RequestHeader, ExtensionObject?, Opc.Ua.TimestampsToReturn, bool,
+                    List<HistoryReadValueId>, CancellationToken>(
                     (_, value, timestamps, _, _, _) =>
                     {
                         passedDetails = value;
@@ -50,14 +50,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .ReturnsAsync(new HistoryReadResponse
                 {
                     ResponseHeader = new ResponseHeader(),
-                    Results = new HistoryReadResultCollection
-                    {
+                    Results =
+                    [
                         new HistoryReadResult
                         {
                             StatusCode = StatusCodes.Good,
                             HistoryData = new ExtensionObject(new HistoryData())
                         }
-                    },
+                    ],
                     DiagnosticInfos = []
                 });
 
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 TimestampsToReturn = Models.TimestampsToReturn.Source
             }, (_, _) => new object(), default);
 
-            Assert.Same(details, passedDetails);
+            Assert.Equal(details, passedDetails);
             Assert.Equal(Opc.Ua.TimestampsToReturn.Source, passedTimestamps);
         }
     }

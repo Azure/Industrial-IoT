@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Request node history read continuation
@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "details", Order = 3,
             EmitDefaultValue = false)]
-        public VariantValue? Details { get; set; }
+        public JsonNode? Details { get; set; }
 
         /// <summary>
         /// The timestamps requested in the original request.
