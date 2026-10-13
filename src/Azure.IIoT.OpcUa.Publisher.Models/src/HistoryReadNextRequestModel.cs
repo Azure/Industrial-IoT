@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Request node history read continuation
@@ -35,5 +36,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "header", Order = 2,
             EmitDefaultValue = false)]
         public RequestHeaderModel? Header { get; set; }
+
+        /// <summary>
+        /// The HistoryReadDetailsType extension object used
+        /// in the original request encoded in json.
+        /// </summary>
+        [DataMember(Name = "details", Order = 3,
+            EmitDefaultValue = false)]
+        public JsonNode? Details { get; set; }
+
+        /// <summary>
+        /// The timestamps requested in the original request.
+        /// </summary>
+        [DataMember(Name = "timestampsToReturn", Order = 4,
+            EmitDefaultValue = false)]
+        public TimestampsToReturn? TimestampsToReturn { get; set; }
     }
 }
