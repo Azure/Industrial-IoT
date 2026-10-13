@@ -18,6 +18,7 @@
     </PackageReference>
     <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="Microsoft.Json.Schema" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.csproj" />
