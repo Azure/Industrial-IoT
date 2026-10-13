@@ -615,12 +615,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var appuri = payload.TryGetProperty("ApplicationUri", out _);
             Assert.False(appuri);
 
-            //
-            // Compact encoding is what omits a value equal to its type default,
-            // and this configuration is reversible rather than compact, so the
-            // member is present on both paths here. See AssertBooleanField for
-            // the compact case.
-            //
             Assert.False(AssertDataValue(
                 payload.GetProperty("Important"), 1, "Boolean").GetBoolean());
             Assert.Equal("5", AssertDataValue(
@@ -794,22 +788,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         /// <summary>
-        /// Asserts a boolean DataValue field the way the active path writes it.
+        /// Asserts the type and value of a boolean DataValue field.
         /// </summary>
-        /// <remarks>
-        /// Compact JSON omits a value that equals its type's default
-        /// (Part 6 §5.4.1), so a false boolean arrives carrying only its type
-        /// and a decoder reconstructs the value from it. The custom encoder
-        /// always writes the member. This is a property of compact encoding
-        /// rather than of the native path - the same path writes the member
-        /// under reversible encoding - so this helper is for the compact
-        /// configurations only.
-        ///
-        /// It matters more than the other accepted differences, because whether
-        /// the member is present then depends on the value rather than on the
-        /// configuration: a consumer reading it works until the value first
-        /// goes false.
-        /// </remarks>
         /// <param name="payload">The data set payload.</param>
         /// <param name="name">Field name.</param>
         /// <param name="expected">Expected value.</param>
@@ -818,11 +798,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             var field = payload.GetProperty(name);
             Assert.Equal(1, field.GetProperty("UaType").GetInt32());
-            if (!expected)
-            {
-                Assert.False(field.TryGetProperty("Value", out _));
-                return;
-            }
             Assert.Equal(expected, field.GetProperty("Value").GetBoolean());
         }
 
