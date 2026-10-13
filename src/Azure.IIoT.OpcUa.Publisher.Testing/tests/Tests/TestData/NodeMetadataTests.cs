@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("BaseObjectType", baseType.BrowseName);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.NotEmpty(result.TypeDefinition.Declarations);
-            Assert.Equal(65, result.TypeDefinition.Declarations.Count);
+            Assert.Equal(63, result.TypeDefinition.Declarations.Count);
             Assert.Collection(result.TypeDefinition.Declarations.Select(d => d.BrowseName),
                 arg => Assert.Equal("ServerArray", arg),
                 arg => Assert.Equal("NamespaceArray", arg),
@@ -199,13 +199,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal("OutputArguments", arg),
                 arg => Assert.Equal("ResendData", arg),
                 arg => Assert.Equal("InputArguments", arg),
-                arg => Assert.Equal("OutputArguments", arg),
                 arg => Assert.Equal("SetSubscriptionDurable", arg),
                 arg => Assert.Equal("InputArguments", arg),
                 arg => Assert.Equal("OutputArguments", arg),
                 arg => Assert.Equal("RequestServerStateChange", arg),
-                arg => Assert.Equal("InputArguments", arg),
-                arg => Assert.Equal("OutputArguments", arg));
+                arg => Assert.Equal("InputArguments", arg));
         }
 
         public async Task NodeGetMetadataForConditionTypeTestAsync(CancellationToken ct = default)
@@ -233,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(2, result.TypeDefinition.TypeHierarchy!.Count);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.NotEmpty(result.TypeDefinition.Declarations);
-            Assert.Equal(47, result.TypeDefinition.Declarations.Count);
+            Assert.Equal(43, result.TypeDefinition.Declarations.Count);
         }
 
         public async Task NodeGetMetadataForServerStatusVariableTestAsync(CancellationToken ct = default)

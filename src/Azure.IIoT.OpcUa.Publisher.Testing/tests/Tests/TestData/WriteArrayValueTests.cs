@@ -690,11 +690,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new JsonObject
                 {
+                    ["UaType"] = (byte)BuiltInType.String,
                     ["Value"] = "first"
                 },
                 null,
                 new JsonObject
                 {
+                    ["UaType"] = (byte)BuiltInType.Int32,
                     ["Value"] = 42
                 }
             };

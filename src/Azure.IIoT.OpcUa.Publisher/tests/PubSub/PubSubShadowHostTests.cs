@@ -715,8 +715,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal(PubSubShadowEncoding.JsonReversible, reversible.Encoding);
             Assert.Equal(Profiles.PubSubMqttJsonTransport, reversible.TransportProfileUri);
             Assert.NotEqual(compactPayload, reversiblePayload);
-            Assert.Contains("\"Type\":", reversiblePayload, StringComparison.Ordinal);
-            Assert.Contains("\"Body\":42", reversiblePayload, StringComparison.Ordinal);
+            Assert.Contains("\"Value\":42", reversiblePayload, StringComparison.Ordinal);
             Assert.IsType<JsonNetworkMessage>(await new JsonDecoder().TryDecodeAsync(
                 reversible.Payload, CreateContext()));
         }
@@ -747,8 +746,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal(Profiles.PubSubMqttJsonTransport, capture.TransportProfileUri);
             Assert.Equal((byte)0x1f, capture.Payload.Span[0]);
             Assert.Equal((byte)0x8b, capture.Payload.Span[1]);
-            Assert.Contains("\"Type\":", payload, StringComparison.Ordinal);
-            Assert.Contains("\"Body\":42", payload, StringComparison.Ordinal);
+            Assert.Contains("\"Value\":42", payload, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -868,12 +866,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 .First(capture =>
                     capture.Encoding == PubSubShadowEncoding.JsonReversibleGzip &&
                     Decompress(capture.Payload)
-                        .Contains("\"Body\":43", StringComparison.Ordinal));
+                        .Contains("\"Value\":43", StringComparison.Ordinal));
             var newPayload = Decompress(newCapture.Payload);
             Assert.Equal(PubSubShadowEncoding.JsonReversibleGzip, newCapture.Encoding);
             Assert.Equal("gzip", newCapture.ContentEncoding);
-            Assert.Contains("\"Type\":", newPayload, StringComparison.Ordinal);
-            Assert.Contains("\"Body\":43", newPayload, StringComparison.Ordinal);
+            Assert.Contains("\"Value\":43", newPayload, StringComparison.Ordinal);
             Assert.Equal(0, captures.DroppedCaptureCount);
         }
 

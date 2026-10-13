@@ -1153,13 +1153,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DataType = "StatusCode",
                     Value = new JsonArray {
                         new JsonObject {
-                            ["Code"] = 0x80B00000u
+                            ["Code"] = 0x80B00000u,
+                            ["Symbol"] = "BadEndOfStream"
                         },
                         new JsonObject {
-                            ["Code"] = 0x80B20000u
+                            ["Code"] = 0x80B20000u,
+                            ["Symbol"] = "BadWaitingForResponse"
                         },
                         new JsonObject {
-                            ["Code"] = 0x80B30000u
+                            ["Code"] = 0x80B30000u,
+                            ["Symbol"] = "BadOperationAbandoned"
                         }
                     }
                 }
