@@ -99,8 +99,8 @@
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="coverlet.msbuild" Version="10.1.0" />
-    <PackageVersion Include="    Microsoft.NET.Test.Sdk" Version="18.11.0" />
-        <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.94" />
     <PackageVersion Include="Neovolve.Logging.Xunit" Version="6.3.0" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
