@@ -82,6 +82,8 @@ The `monitoredOpcNodesFailedCount` in the table above only provides a count of t
 
 By convention, all instrument names start with _"iiot"_, e.g., `iiot_<component>_<metric>`. Metrics are collected through the .net Observability infrastructure. For backwards compatibility and to support IoT Edge metrics collector, metrics from OPC Publisher are exposed in Prometheus format on path _/metrics_ on the default HTTP server port (see `-p` [command line argument](./commandline.md). When binding the HTTPS port to 9072 on the host machine, the URL becomes <https://localhost:9072/metrics>.
 
+Component meters have independent identities so removing a writer group does not stop metrics from the remaining groups. Each instrument on each meter instance counts toward `--maxmetricstreams` (default: 4000), even when instrument names are the same. For configurations with many writer groups or subscriptions, increase this [limit](./commandline.md) as needed, allowing headroom for replacement groups: disposed streams are reclaimed only on the next metrics collection. Increasing the limit can increase memory usage.
+
 One can combine information from multiple metrics to understand and paint a bigger picture of the state of the publisher. The following table describes the individual default metrics which are in Prometheus format.
 
 | Instrument Name | Dimensions | Description | Type |
