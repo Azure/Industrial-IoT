@@ -25,10 +25,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public async Task RemovingMeterDoesNotStopOtherWriterGroupMetricsAsync(
             string metricName, MetricType metricType)
         {
+            metricName += "_" + Guid.NewGuid().ToString("N");
             var builder = WebApplication.CreateBuilder();
             builder.WebHost.UseTestServer();
             builder.Services.AddOpenTelemetry().WithMetrics(metrics => metrics
                 .AddMeter(Diagnostics.Namespace)
+                .AddView(instrument => instrument.Name == metricName
+                    ? null : MetricStreamConfiguration.Drop)
+                .SetMaxMetricStreams(3)
                 .AddPrometheusExporter(options =>
                     options.ScrapeResponseCacheDurationMilliseconds = 0));
             await using var app = builder.Build();
