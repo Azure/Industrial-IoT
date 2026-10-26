@@ -96,7 +96,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Other">
-    <PackageVersion Include="Apache.Avro" Version="1.12.2" />
+    <PackageVersion Include="Apache.Avro" Version="1.12.1" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="Irony" Version="1.5.3" />
     <PackageVersion Include="Json.More.Net" Version="3.0.1" />
