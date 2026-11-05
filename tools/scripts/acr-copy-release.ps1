@@ -10,12 +10,48 @@
 
     Releases images with a given version number.
 
+    By default the script releases the images that the "Push multi-arch
+    images to GHCR" job in .github/workflows/ci.yml publishes to
+    ghcr.io/azure, e.g. ghcr.io/azure/iotedge/opc-publisher:2.9.19.  For
+    each repository it reads the digest of the image tagged with the release
+    version and imports that digest into the release registry in the public
+    namespace, e.g. public/iotedge/opc-publisher:2.9.19.  The import
+    includes all platforms of a multi-arch image.  Importing the digest
+    instead of the tag releases the image that was found, even if the tag
+    moves before the import runs.
+
+    The script reads a build registry given as a login server without
+    credentials, so on GHCR the packages must be public.  It does not
+    distinguish an image that does not exist from one that needs
+    credentials, and skips both with a message.  Any other failure, such as
+    an unreachable registry, ends the script with an error.  If no image is
+    found, the script reports that nothing was copied.  Cosign signatures
+    are separate tags (sha256-<digest>.sig) and are not copied.
+
+    To release from an Azure container registry instead, pass its name as
+    -BuildRegistry.  The script then releases every repository of that
+    registry that has the release version.
+
  .PARAMETER BuildRegistry
-    The name of the source registry where development image is present.
+    The registry that holds the images to release, ghcr.io/azure by default.
+    A value that contains a dot or slash is a login server with an optional
+    namespace, e.g. ghcr.io/azure.  Any other value is the name of an Azure
+    container registry, e.g. industrialiot.
  .PARAMETER BuildSubscription
-    The subscription where the build registry is located
+    The subscription of the build registry if that is an Azure container
+    registry.  For a build registry given as a login server the script works
+    in ReleaseSubscription and uses this value only if ReleaseSubscription
+    is empty.
  .PARAMETER BuildNamespace
     The namespace in the build registry (optional)
+ .PARAMETER BuildRepositories
+    The repositories in the build registry to release (optional).  The
+    default for an Azure container registry is all of its repositories.  The
+    script does not list the repositories of a build registry given as a
+    login server, because registries such as GHCR have no catalog.  It
+    releases iotedge/opc-publisher and iot/opc-ua-test-server instead, the
+    two images that CI builds.  Pass this parameter to release another
+    repository.
 
  .PARAMETER ReleaseRegistry
     The name of the destination registry where release images will
@@ -43,11 +79,13 @@
     to the tag. This will not update rolling tags like latest and major
     version and allow customers to test the releae image ahead of release.
  .PARAMETER RemoveNamespaceOnRelease
-    Remove namespace (e.g. public) on release.
+    Remove namespace (e.g. public) on release.  An image from a build
+    registry given as a login server is released in the public namespace,
+    e.g. public/iotedge/opc-publisher, unless this is set.
 #>
 
 Param(
-    [string] $BuildRegistry = "industrialiot",
+    [string] $BuildRegistry = "ghcr.io/azure",
     [string] $BuildSubscription = "IOT_GERMANY",
     [string] $BuildNamespace = $null,
     [string] $ReleaseRegistry = "industrialiotprod",
@@ -59,8 +97,93 @@ Param(
     [switch] $IsLatest,
     [switch] $IsMajorUpdate,
     [string] $PreviewVersion,
-    [switch] $RemoveNamespaceOnRelease
+    [switch] $RemoveNamespaceOnRelease,
+    [string[]] $BuildRepositories = $null
 )
+
+# A build registry name without a dot or slash is an Azure container registry.
+# Anything else is the login server and optional namespace of another registry.
+$IsBuildAcr = $script:BuildRegistry -notmatch '[./]'
+
+# Gets the digest of an image, e.g. ghcr.io/azure/iotedge/opc-publisher:2.9.19,
+# without sending credentials.  Returns $null if the image does not exist or is
+# not readable anonymously, and the caller cannot tell which.  Any other failure
+# throws, so that a network error is not taken for a missing image.
+function Get-ImageDigest {
+    Param(
+        [Parameter(Mandatory = $true)] [string] $Image
+    )
+    $ErrorActionPreference = "Stop"
+    if ($Image -notmatch '^(?<server>[^/]+)/(?<name>.+):(?<tag>[^:/]+)$') {
+        throw "$Image is not a fully qualified image name with a tag."
+    }
+    $manifestUri = "https://$($Matches.server)/v2/$($Matches.name)/manifests/$($Matches.tag)"
+    $accept = @(
+        "application/vnd.oci.image.index.v1+json",
+        "application/vnd.oci.image.manifest.v1+json",
+        "application/vnd.docker.distribution.manifest.list.v2+json",
+        "application/vnd.docker.distribution.manifest.v2+json"
+    ) -join ", "
+
+    Add-Type -AssemblyName System.Net.Http
+    $client = [System.Net.Http.HttpClient]::new()
+    try {
+        $token = $null
+        for ($attempt = 1; $attempt -le 2; $attempt++) {
+            $request = [System.Net.Http.HttpRequestMessage]::new(
+                [System.Net.Http.HttpMethod]::Head, $manifestUri)
+            [void] $request.Headers.TryAddWithoutValidation("Accept", $accept)
+            if ($token) {
+                $request.Headers.Authorization = `
+                    [System.Net.Http.Headers.AuthenticationHeaderValue]::new("Bearer", $token)
+            }
+            $response = $client.SendAsync($request).GetAwaiter().GetResult()
+            if ($response.IsSuccessStatusCode) {
+                $digests = $null
+                if (!$response.Headers.TryGetValues("Docker-Content-Digest", [ref] $digests)) {
+                    throw "The response for $manifestUri has no Docker-Content-Digest header."
+                }
+                return $digests | Select-Object -First 1
+            }
+
+            # An unauthorized response carries the location of the token service
+            # that issues the anonymous pull token for the repository.
+            $challenge = $response.Headers.WwwAuthenticate `
+                | Where-Object { $_.Scheme -eq "Bearer" } | Select-Object -First 1
+            if ([int] $response.StatusCode -ne 401 -or !$challenge -or $token) {
+                break
+            }
+            $parameters = @{}
+            foreach ($match in [regex]::Matches($challenge.Parameter, '(\w+)="([^"]*)"')) {
+                $parameters[$match.Groups[1].Value] = $match.Groups[2].Value
+            }
+            $tokenUri = "$($parameters["realm"])?service=" `
+                + "$([uri]::EscapeDataString($parameters["service"]))" `
+                + "&scope=$([uri]::EscapeDataString($parameters["scope"]))"
+            $tokenResponse = $client.GetAsync($tokenUri).GetAwaiter().GetResult()
+            if (!$tokenResponse.IsSuccessStatusCode) {
+                if ((401, 403, 404) -contains [int] $tokenResponse.StatusCode) {
+                    # Also the answer for a repository that does not exist
+                    return $null
+                }
+                throw "Request for $tokenUri failed with $([int] $tokenResponse.StatusCode) $($tokenResponse.ReasonPhrase)."
+            }
+            $tokenJson = $tokenResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult() `
+                | ConvertFrom-Json
+            $token = $tokenJson.token
+            if (!$token) {
+                $token = $tokenJson.access_token
+            }
+        }
+        if ((401, 403, 404) -contains [int] $response.StatusCode) {
+            return $null
+        }
+        throw "Request for $manifestUri failed with $([int] $response.StatusCode) $($response.ReasonPhrase)."
+    }
+    finally {
+        $client.Dispose()
+    }
+}
 
 if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
     # check if release registry exists and if not create it
@@ -102,11 +225,16 @@ Write-Host "Created container registry $($registry.name) in $script:ResourceGrou
     }
 }
 
-# Set build subscription if provided
-if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
-    Write-Debug "Setting subscription to $($script:BuildSubscription)"
+# Work in the subscription of the build registry if that is an Azure container
+# registry, otherwise in the release one if it is set.
+$AccountSubscription = $script:BuildSubscription
+if (!$IsBuildAcr -and ![string]::IsNullOrEmpty($script:ReleaseSubscription)) {
+    $AccountSubscription = $script:ReleaseSubscription
+}
+if (![string]::IsNullOrEmpty($AccountSubscription)) {
+    Write-Debug "Setting subscription to $($AccountSubscription)"
     $argumentList = @("account", "set",
-        "--subscription", $script:BuildSubscription, "-ojson")
+        "--subscription", $AccountSubscription, "-ojson")
     & "az" @argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
@@ -114,14 +242,26 @@ if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
 }
 
 # Get build repositories
-$argumentList = @("acr", "repository", "list",
-    "--name", $script:BuildRegistry, "-ojson",
-    "--subscription", $script:BuildSubscription)
-$result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
-if ($LastExitCode -ne 0) {
-    throw "az $($argumentList) failed with $($LastExitCode)."
+if ($script:BuildRepositories) {
+    $BuildRepositories = $script:BuildRepositories
 }
-$BuildRepositories = $result | ConvertFrom-Json
+elseif ($IsBuildAcr) {
+    $argumentList = @("acr", "repository", "list",
+        "--name", $script:BuildRegistry, "-ojson",
+        "--subscription", $script:BuildSubscription)
+    $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
+    if ($LastExitCode -ne 0) {
+        throw "az $($argumentList) failed with $($LastExitCode)."
+    }
+    $BuildRepositories = $result | ConvertFrom-Json
+}
+else {
+    # A build registry given as a login server is not listed, because registries
+    # such as GHCR have no catalog.  These are the ContainerRepository values of
+    # the projects that ci.yml pushes to GHCR.  Add a repository here when CI
+    # starts to publish another image.
+    $BuildRepositories = @("iotedge/opc-publisher", "iot/opc-ua-test-server")
+}
 
 $ReleaseTags = @()
 if ($script:PreviewVersion) {
@@ -279,30 +419,50 @@ foreach ($Repository in $BuildRepositories) {
     }
 
     # see if build tag exists
-    $argumentList = @("acr", "repository", "show",
-        "--name", $script:BuildRegistry,
-        "--subscription", $script:BuildSubscription,
-        "-t", $BuildTag,
-        "-ojson"
-    )
-    $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
-    if ($LastExitCode -ne 0) {
-        Write-Host "Image $BuildTag not found..." -ForegroundColor Yellow
-        continue
-    }
-    $Image = $result | ConvertFrom-Json
-    if ([string]::IsNullOrEmpty($Image.digest)) {
-        Write-Host "Image $BuildTag not found..." -ForegroundColor Yellow
-        continue
-    }
+    if ($IsBuildAcr) {
+        $argumentList = @("acr", "repository", "show",
+            "--name", $script:BuildRegistry,
+            "--subscription", $script:BuildSubscription,
+            "-t", $BuildTag,
+            "-ojson"
+        )
+        $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
+        if ($LastExitCode -ne 0) {
+            Write-Host "Image $BuildTag not found..." -ForegroundColor Yellow
+            continue
+        }
+        $Image = $result | ConvertFrom-Json
+        if ([string]::IsNullOrEmpty($Image.digest)) {
+            Write-Host "Image $BuildTag not found..." -ForegroundColor Yellow
+            continue
+        }
+        $ImageDigest = $Image.digest
+        $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)"
 
-    # Create acr command line
-    # --force is needed to replace existing tags like "latest" with new images
-    $argumentList = @("acr", "import", "-ojson", "--force",
-        "--name", $script:ReleaseRegistry,
-        "--source", $BuildTag,
-        "--registry", $script:BuildRegistry
-    )
+        # Create acr command line
+        # --force is needed to replace existing tags like "latest" with new images
+        $argumentList = @("acr", "import", "-ojson", "--force",
+            "--name", $script:ReleaseRegistry,
+            "--source", $BuildTag,
+            "--registry", $script:BuildRegistry
+        )
+    }
+    else {
+        $SourceRegistry = $script:BuildRegistry.TrimEnd('/')
+        $FullImageName = "$($SourceRegistry)/$($BuildTag)"
+        $ImageDigest = Get-ImageDigest -Image $FullImageName
+        if ([string]::IsNullOrEmpty($ImageDigest)) {
+            Write-Host "Image $FullImageName not found or not readable without credentials..." `
+                -ForegroundColor Yellow
+            continue
+        }
+
+        # Import by digest so the image that was found is the image that is released
+        $argumentList = @("acr", "import", "-ojson", "--force",
+            "--name", $script:ReleaseRegistry,
+            "--source", "$($SourceRegistry)/$($Repository)@$($ImageDigest)"
+        )
+    }
     # set release subscription
     if (![string]::IsNullOrEmpty($script:ReleaseSubscription)) {
         $argumentList += "--subscription"
@@ -314,7 +474,16 @@ foreach ($Repository in $BuildRepositories) {
     }
 
     # add the output / release image tags
-    if ($script:RemoveNamespaceOnRelease.IsPresent `
+    if (!$IsBuildAcr) {
+        # CI pushes images without a namespace, and the release registry has them in public.
+        if ($script:RemoveNamespaceOnRelease.IsPresent) {
+            $TargetRepository = $Repository
+        }
+        else {
+            $TargetRepository = "public/$($Repository)"
+        }
+    }
+    elseif ($script:RemoveNamespaceOnRelease.IsPresent `
         -and (!$Repository.StartsWith("iot/")) `
         -and (!$Repository.StartsWith("iotedge/"))) {
         $TargetRepository = $Repository.Substring($Repository.IndexOf('/') + 1)
@@ -327,8 +496,7 @@ foreach ($Repository in $BuildRepositories) {
         $argumentList += "$($TargetRepository):$($ReleaseTag)"
     }
 
-    $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)"
-    $ConsoleOutput = "Copying $FullImageName $($Image.digest) with tags '$($ReleaseTags -join ", ")' to release $script:ReleaseRegistry"
+    $ConsoleOutput = "Copying $FullImageName $ImageDigest with tags '$($ReleaseTags -join ", ")' to release $script:ReleaseRegistry as $TargetRepository"
     Write-Host "Starting Job $ConsoleOutput..." -ForegroundColor Cyan
     $jobs += Start-Job -Name $FullImageName -ArgumentList @($argumentList, $ConsoleOutput) -ScriptBlock {
         $argumentList = $args[0]
@@ -355,5 +523,9 @@ if ($jobs.Count -ne 0) {
     $jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
         throw "ERROR: Copying $($_.Name). resulted in $($_.State)."
     }
+    Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)." -ForegroundColor Green
 }
-Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)." -ForegroundColor Green
+else {
+    Write-Host "No images tagged $($script:ReleaseVersion) found in $($script:BuildRegistry) - nothing was copied to $($script:ReleaseRegistry)." `
+        -ForegroundColor Yellow
+}
