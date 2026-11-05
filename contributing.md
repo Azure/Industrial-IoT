@@ -87,6 +87,8 @@ Tagged with the nbgv semantic version (e.g. `2.9.17`) and, when pushed from `mai
 
 For the E2E pipeline to pull these images from an IoT Edge VM at runtime, the GHCR packages must be **public**. If you keep them private, set repository secrets `GHCR_USERNAME` and `GHCR_TOKEN` (a classic PAT with `read:packages`) so the deployment scripts can write registry credentials to KeyVault.
 
+`tools/scripts/acr-copy-release.ps1` releases these images to the production registry (`industrialiotprod` by default). For each repository it reads the digest of the release version tag from GHCR, imports that digest with all platforms into the `public` namespace, for example `public/iotedge/opc-publisher:2.9.19`, and applies the release tags, for example `2.9` and `2.9.19`. The script sends no credentials to GHCR, so it skips a private package as not found. It does not copy the cosign signatures. `Get-Help ./tools/scripts/acr-copy-release.ps1 -Full` lists the parameters.
+
 ### NuGet packages
 
 Three packages are published to `https://nuget.pkg.github.com/Azure/index.json`:
