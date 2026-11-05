@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using System;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
 
@@ -33,7 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         public static Meter NewMeter()
         {
-            return new(Namespace, Version);
+            // Isolate OpenTelemetry streams so disposing one meter does not complete another's.
+            return new(Namespace, Version, new TagList
+            {
+                { "meterInstanceId", Guid.NewGuid().ToString() }
+            });
         }
 
         /// <summary>
