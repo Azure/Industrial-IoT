@@ -91,10 +91,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Tests.Clients
             Returns(new HistoryReadNextResponseModel<HistoricValueModel[]> { History = Array.Empty<HistoricValueModel>() });
 
             var result = await Client.HistoryReadValuesNextAsync(Connection(),
-                new HistoryReadNextRequestModel { ContinuationToken = "values-next" }, default);
+                new HistoryReadNextRequestModel
+                {
+                    ContinuationToken = "values-next",
+                    NodeId = "ns=2;s=History"
+                }, default);
 
             var payload = AssertCalled("HistoryReadValuesNext_V2");
             Assert.Equal("values-next", RequestOf(payload).GetProperty("continuationToken").GetString());
+            Assert.Equal("ns=2;s=History", RequestOf(payload).GetProperty("nodeId").GetString());
             Assert.NotNull(result);
         }
 

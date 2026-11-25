@@ -24,9 +24,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
     public sealed class NodeServicesHistoryTests
     {
-        [Fact]
-        public async Task HistoryReadNextPassesOriginalParametersAsync()
+        [Theory]
+        [InlineData(null, false)]
+        [InlineData("ns=1;s=History", false)]
+        [InlineData("nsu=urn:history;s=History", true)]
+        public async Task HistoryReadNextPassesOriginalParametersAsync(string? nodeId, bool abort)
         {
+            var messageContext = new ServiceMessageContext();
+            var namespaceIndex = messageContext.NamespaceUris.GetIndexOrAppend("urn:history");
+            var expectedNodeId = nodeId == null ? NodeId.Null : new NodeId("History", namespaceIndex);
+            byte[] continuationPoint = [1, 2, 3];
             var details = new ExtensionObject(new ReadRawModifiedDetails());
             var encodedDetails = JsonNode.Parse("{}");
             var codec = new Mock<IVariantEncoder>();
@@ -38,12 +45,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var services = new Mock<ISessionServices>();
             services.Setup(s => s.HistoryReadAsync(
                     It.IsAny<RequestHeader>(), It.IsAny<ExtensionObject?>(),
-                    It.IsAny<Opc.Ua.TimestampsToReturn>(), false,
+                    It.IsAny<Opc.Ua.TimestampsToReturn>(), abort,
                     It.IsAny<List<HistoryReadValueId>>(), It.IsAny<CancellationToken>()))
                 .Callback<RequestHeader, ExtensionObject?, Opc.Ua.TimestampsToReturn, bool,
                     List<HistoryReadValueId>, CancellationToken>(
-                    (_, value, timestamps, _, _, _) =>
+                    (_, value, timestamps, _, nodes, _) =>
                     {
+                        var node = Assert.Single(nodes);
+                        Assert.Equal(expectedNodeId, node.NodeId);
+                        Assert.Equal(continuationPoint, node.ContinuationPoint.ToArray());
                         passedDetails = value;
                         passedTimestamps = timestamps;
                     })
@@ -64,6 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var session = new Mock<IOpcUaSession>();
             session.SetupGet(s => s.Codec).Returns(codec.Object);
             session.SetupGet(s => s.Services).Returns(services.Object);
+            session.SetupGet(s => s.MessageContext).Returns(messageContext);
             var client = new Mock<IOpcUaClientManager<string>>();
             client.Setup(c => c.ExecuteAsync(It.IsAny<string>(),
                     It.IsAny<Func<ServiceCallContext,
@@ -83,7 +94,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 Options.Create(new PublisherOptions()));
             await sut.HistoryReadNextAsync("endpoint", new HistoryReadNextRequestModel
             {
-                ContinuationToken = Convert.ToBase64String([1, 2, 3]),
+                ContinuationToken = Convert.ToBase64String(continuationPoint),
+                NodeId = nodeId,
+                Abort = abort,
                 Details = encodedDetails,
                 TimestampsToReturn = Models.TimestampsToReturn.Source
             }, (_, _) => new object(), default);
