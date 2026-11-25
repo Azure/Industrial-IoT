@@ -444,7 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             static string GetStoreMoniker(string storeType) => storeType switch
             {
                 CertificateStoreType.Directory or CertificateStoreType.X509Store => string.Empty,
-                FlatCertificateStore.StoreTypePrefix => FlatCertificateStore.StoreTypePrefix,
+                FlatCertificateStore.StoreTypeName => FlatCertificateStore.StoreTypePrefix,
                 _ => throw new ArgumentOutOfRangeException(nameof(storeType),
                     $"Unknown certificate store type '{storeType}'")
             };
