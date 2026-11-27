@@ -635,7 +635,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         options.ApplicationCertificates.StoreType != null)
                     {
                         using var certStore = CertificateStoreIdentifier.CreateStore(
-                            options.ApplicationCertificates.StoreType, Value.CreateMessageContext().Telemetry);
+                            options.ApplicationCertificates.StoreType, _telemetry);
                         certStore.Open(options.ApplicationCertificates.StorePath, false);
                         var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                         var subjects = new List<string>();
@@ -1134,11 +1134,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Found invalid certificate for {Subject} [{Thumbprint}].")]
         public static partial void InvalidCertFound(this ILogger logger, string subject, string thumbprint);
 
-        [LoggerMessage(EventId = EventClass + 23, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 23, Level = LogLevel.Warning,
             Message = "Could not find a certificate to take information from.")]
         public static partial void NoCertFound(this ILogger logger);
 
-        [LoggerMessage(EventId = EventClass + 24, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 24, Level = LogLevel.Warning,
             Message = "Failed to find a certificate to take information from.")]
         public static partial void FindCertFailed(this ILogger logger, Exception ex);
 

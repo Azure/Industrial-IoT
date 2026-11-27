@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Configuration;
@@ -14,7 +15,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.Security.Certificates;
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
@@ -89,6 +93,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal("options", exception.ParamName);
             Assert.StartsWith("Application certificate missing", exception.Message,
                 StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public async Task ConfiguresFromExistingApplicationCertificateAsync()
+        {
+            const string applicationName = "Provisioned Publisher";
+            const string hostName = "publisher.example.test";
+            const string applicationUri = "urn:publisher.example.test:provisioned";
+            var pki = Directory.CreateTempSubdirectory();
+            try
+            {
+                var config = new ConfigurationBuilder().AddInMemoryCollection(
+                    new Dictionary<string, string>
+                    {
+                        [OpcUaClientConfig.PkiRootPathKey] = pki.FullName,
+                        [OpcUaClientConfig.TryConfigureFromExistingAppCertKey] = "true"
+                    }).Build();
+                var services = new ServiceCollection();
+                services.AddLogging();
+                services.AddSingleton<IConfiguration>(config);
+                services.AddOpcUaStack();
+
+                using var cert = DefaultCertificateFactory.Instance.CreateApplicationCertificate(applicationUri,
+                    applicationName, $"CN={applicationName}, DC={hostName}",
+                    new[] { hostName }).CreateForRSA();
+                using (var store = CertificateStoreIdentifier.CreateStore(
+                    CertificateStoreType.Directory, DefaultTelemetry.Create(_ => { })))
+                {
+                    store.Open(Path.Combine(pki.FullName, "own"), false);
+                    await store.AddAsync(cert);
+                }
+
+                await using var container = services.BuildServiceProvider();
+                var application = container.GetRequiredService<IOpcUaConfiguration>();
+                var certificates = await container.GetRequiredService<IOpcUaCertificates>()
+                    .ListCertificatesAsync(CertificateStoreName.Application, true);
+
+                Assert.Equal(applicationUri, application.Value.ApplicationUri);
+                Assert.Equal(applicationName, application.Value.ApplicationName);
+                Assert.Equal(cert.Subject,
+                    application.Value.SecurityConfiguration.ApplicationCertificate.SubjectName);
+                Assert.Contains(certificates, c => c.Thumbprint == cert.Thumbprint &&
+                    c.HasPrivateKey == true);
+            }
+            finally
+            {
+                pki.Delete(true);
+            }
         }
 
         [Fact]
