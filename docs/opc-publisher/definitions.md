@@ -1012,6 +1012,7 @@ Request node history read continuation
 |**abort**  <br>*optional*|Abort reading after this read|boolean|
 |**continuationToken**  <br>*required*|Continuation token to continue reading more<br>results.  <br>**Minimum length** : `1`|string|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*optional*|The NodeId of the historian node read by the original request. Supply it for servers that require a NodeId with the continuation token.|string|
 
 
 <a name="historyreadnextrequestmodelrequestenvelope"></a>

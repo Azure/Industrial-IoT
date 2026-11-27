@@ -51,5 +51,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "timestampsToReturn", Order = 4,
             EmitDefaultValue = false)]
         public TimestampsToReturn? TimestampsToReturn { get; set; }
+
+        /// <summary>
+        /// The NodeId of the historian node read by the original request.
+        /// Supply it for servers that require a NodeId with the continuation token.
+        /// </summary>
+        [DataMember(Name = "nodeId", Order = 5,
+            EmitDefaultValue = false)]
+        public string? NodeId { get; set; }
     }
 }

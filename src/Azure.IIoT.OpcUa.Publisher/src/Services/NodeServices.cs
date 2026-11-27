@@ -1338,10 +1338,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("HistoryReadNext");
             return await _client.ExecuteAsync(connectionId, async context =>
             {
+                var nodeId = NodeId.Null;
+                if (!string.IsNullOrEmpty(request.NodeId))
+                {
+                    nodeId = request.NodeId.ToNodeId(context.Session.MessageContext);
+                    if (NodeIdCompat.IsNull(nodeId))
+                    {
+                        throw new ArgumentException("Bad node id", nameof(request));
+                    }
+                }
                 var historytoread = new List<HistoryReadValueId>
                 {
                     new HistoryReadValueId
                     {
+                        NodeId = nodeId,
                         ContinuationPoint = (ByteString)Convert.FromBase64String(request.ContinuationToken),
                         DataEncoding = QualifiedName.Null // TODO
                     }

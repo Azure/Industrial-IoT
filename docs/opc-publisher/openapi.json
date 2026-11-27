@@ -7572,6 +7572,10 @@
         },
         "timestampsToReturn": {
           "$ref": "#/definitions/TimestampsToReturn"
+        },
+        "nodeId": {
+          "description": "The NodeId of the historian node read by the original request.\r\nSupply it for servers that require a NodeId with the continuation token.",
+          "type": "string"
         }
       },
       "additionalProperties": false
