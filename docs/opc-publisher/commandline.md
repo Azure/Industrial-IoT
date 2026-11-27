@@ -12,6 +12,8 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 
 > Please note that rolling of secrets is not supported and that any errors loading secrets is silently discarded.
 
+For flat certificate stores, use `FlatDirectory` as the store type and `FlatDirectory:` as the path prefix. OPC Publisher adds the prefix to default paths. When setting a path explicitly, include the prefix, for example `--apt=FlatDirectory --ap=FlatDirectory:/app/pki/own`.
+
 ```text
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
 ██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║   ██║██╔══██╗██║     ██║██╔════╝██║  ██║██╔════╝██╔══██╗

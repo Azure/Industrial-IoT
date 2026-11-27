@@ -649,8 +649,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Runtime
         public void Config_TrustedIssuerCertificatesType_FlatStoreUsesPrefixInPath()
         {
             var opts = Configure(P(OpcUaClientConfig.TrustedIssuerCertificatesTypeKey,
-                FlatCertificateStore.StoreTypePrefix));
-            Assert.Equal(FlatCertificateStore.StoreTypePrefix,
+                FlatCertificateStore.StoreTypeName));
+            Assert.Equal(FlatCertificateStore.StoreTypeName,
                 opts.Security.TrustedIssuerCertificates!.StoreType);
             Assert.StartsWith(FlatCertificateStore.StoreTypePrefix,
                 opts.Security.TrustedIssuerCertificates.StorePath, StringComparison.Ordinal);
@@ -921,11 +921,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Runtime
         public void Config_FlatCertificateStoreType_PrefixesTrustedPeerStorePath()
         {
             var opts = Configure(P(OpcUaClientConfig.TrustedPeerCertificatesTypeKey,
-                FlatCertificateStore.StoreTypePrefix));
-            Assert.Equal(FlatCertificateStore.StoreTypePrefix,
+                FlatCertificateStore.StoreTypeName));
+            Assert.Equal(FlatCertificateStore.StoreTypeName,
                 opts.Security.TrustedPeerCertificates!.StoreType);
-            Assert.StartsWith(FlatCertificateStore.StoreTypePrefix,
-                opts.Security.TrustedPeerCertificates.StorePath, StringComparison.Ordinal);
+            Assert.Equal($"{FlatCertificateStore.StoreTypePrefix}{opts.Security.PkiRootPath}/trusted",
+                opts.Security.TrustedPeerCertificates.StorePath);
+        }
+
+        [Fact]
+        public void Config_FlatCertificateStoreType_PreservesExplicitApplicationStorePath()
+        {
+            const string storePath = "FlatDirectory:/app/pki/own";
+            var opts = Configure(
+                P(OpcUaClientConfig.ApplicationCertificateStoreTypeKey, FlatCertificateStore.StoreTypeName),
+                P(OpcUaClientConfig.ApplicationCertificateStorePathKey, storePath));
+            Assert.Equal(FlatCertificateStore.StoreTypeName,
+                opts.Security.ApplicationCertificates!.StoreType);
+            Assert.Equal(storePath, opts.Security.ApplicationCertificates.StorePath);
         }
 
         [Fact]
